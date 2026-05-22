@@ -9,6 +9,16 @@
   --gray-400: #A3A3A3;
   --gray-500: #6B6B6B;
   --gray-700: #3A3A3A;
+
+  /* Y-VENTURES brand theme — sampled from brand assets */
+  --slate-900: #1F2632;
+  --slate-800: #262D3A;
+  --slate-700: #2C3340;
+  --slate-600: #353C4A;
+  --blue-500: #2563EB;
+  --blue-400: #3B82F6;
+  --blue-300: #60A5FA;
+  --silver: #C8CDD6;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,40 +37,43 @@ img { max-width: 100%; display: block; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 48px;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--gray-200);
+  background: rgba(31, 38, 50, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-logo {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  color: var(--black);
-  text-transform: uppercase;
+  height: 32px;
+}
+.nav-logo img {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
-.nav-menu { display: flex; list-style: none; gap: 40px; }
-.nav-item { position: relative; height: 64px; display: flex; align-items: center; }
+.nav-menu { display: flex; list-style: none; gap: 36px; }
+.nav-item { position: relative; height: 72px; display: flex; align-items: center; }
 .nav-item > a {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--black);
+  color: rgba(255, 255, 255, 0.78);
   display: flex;
   align-items: center;
   transition: color 0.2s;
 }
-.nav-item > a:hover { color: var(--gray-500); }
-.nav-item > a.active { color: var(--gray-500); }
+.nav-item > a:hover { color: var(--blue-400); }
+.nav-item > a.active { color: var(--white); }
 
 .dropdown {
   display: none;
@@ -68,24 +81,24 @@ img { max-width: 100%; display: block; }
   top: 100%;
   left: 0;
   min-width: 200px;
-  background: var(--white);
-  border: 1px solid var(--gray-200);
+  background: var(--slate-800);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 8px 0;
   z-index: 300;
 }
 .nav-item:hover .dropdown { display: block; }
 .dropdown a {
   display: block;
-  padding: 10px 20px;
+  padding: 12px 20px;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--gray-700);
-  transition: background 0.15s;
+  color: rgba(255, 255, 255, 0.65);
+  transition: background 0.15s, color 0.15s;
 }
-.dropdown a:hover { background: var(--gray-50); color: var(--black); }
+.dropdown a:hover { background: var(--slate-700); color: var(--blue-300); }
 
 .hamburger {
   display: none;
@@ -96,40 +109,51 @@ img { max-width: 100%; display: block; }
   cursor: pointer;
   padding: 4px;
 }
-.hamburger span { display: block; width: 22px; height: 1.5px; background: var(--black); }
+.hamburger span { display: block; width: 22px; height: 1.5px; background: var(--white); }
 
 /* ── HERO ── */
 .hero {
-  height: 100vh;
-  min-height: 600px;
-  background: var(--black);
+  min-height: 100vh;
+  background-color: var(--slate-900);
+  background-image: url('../YV Background.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 0 80px 80px;
+  align-items: center;
+  padding: 0 80px;
+  position: relative;
+  overflow: hidden;
 }
-.hero-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
-  margin-bottom: 28px;
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(31, 38, 50, 0.88) 0%, rgba(31, 38, 50, 0.55) 45%, rgba(31, 38, 50, 0) 65%);
+  pointer-events: none;
+}
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
 }
 .hero-title {
-  font-size: clamp(44px, 7.5vw, 108px);
+  font-size: clamp(32px, 4.2vw, 60px);
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   color: var(--white);
-  text-transform: uppercase;
 }
 .hero-sub {
-  margin-top: 40px;
+  margin-top: 22px;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.7;
-  max-width: 480px;
+  letter-spacing: 0.02em;
+}
+.hero-sub strong {
+  color: var(--white);
+  font-weight: 700;
 }
 
 /* ── STATS ── */
@@ -256,15 +280,24 @@ img { max-width: 100%; display: block; }
 
 /* ── PAGE HEADER ── */
 .page-header {
-  padding: 160px 80px 80px;
-  border-bottom: 1px solid var(--gray-200);
+  padding: 200px 80px 100px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--slate-900);
+  background-image:
+    linear-gradient(90deg, rgba(31, 38, 50, 0.85) 0%, rgba(31, 38, 50, 0.5) 60%, rgba(31, 38, 50, 0) 100%),
+    url('../YV Background.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  color: var(--white);
+  position: relative;
 }
 .page-tag {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--gray-400);
+  color: var(--blue-300);
   margin-bottom: 18px;
 }
 .page-title {
@@ -273,12 +306,13 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.03em;
   line-height: 1.03;
   text-transform: uppercase;
+  color: var(--white);
 }
 .page-desc {
   margin-top: 24px;
   font-size: 16px;
   line-height: 1.78;
-  color: var(--gray-700);
+  color: rgba(255, 255, 255, 0.65);
   max-width: 540px;
 }
 
@@ -487,9 +521,16 @@ img { max-width: 100%; display: block; }
 
 /* ── FOOTER ── */
 footer {
-  background: var(--black);
+  background-color: var(--slate-900);
+  background-image:
+    linear-gradient(90deg, rgba(31, 38, 50, 0.95) 0%, rgba(31, 38, 50, 0.7) 60%, rgba(31, 38, 50, 0.4) 100%),
+    url('../YV Background.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
   color: var(--white);
   padding: 80px;
+  position: relative;
 }
 .footer-top {
   display: grid;
@@ -543,6 +584,8 @@ footer {
   .contact-grid { grid-template-columns: 1fr; }
   .curriculum-grid { grid-template-columns: 1fr; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; }
+
+  .hero { padding: 100px 40px 60px; }
 }
 
 @media (max-width: 640px) {
@@ -565,8 +608,11 @@ footer {
   .nav-item > a { padding: 14px 20px; font-size: 13px; }
   .dropdown { display: none !important; }
 
-  .hero { padding: 20px 20px 60px; }
-  .hero-title { font-size: 38px; }
+  .hero { padding: 96px 20px 48px; }
+  .hero::before { background: linear-gradient(180deg, rgba(31, 38, 50, 0.55) 0%, rgba(31, 38, 50, 0.85) 100%); }
+  .hero-title { font-size: 28px; line-height: 1.25; }
+  .hero-sub { font-size: 13px; }
+  .nav-logo img { height: 22px; }
 
   .stats-row { grid-template-columns: 1fr; }
   .stat-cell { padding: 40px 20px; border-right: none; }
