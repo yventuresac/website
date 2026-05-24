@@ -9,40 +9,14 @@
 <body>
 
   <nav id="nav">
-    <a href="index.html" class="nav-logo">Y-VENTURES</a>
+    <a href="index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="logo.png" alt="Y-VENTURES" />
+    </a>
     <ul class="nav-menu" id="navMenu">
-      <li class="nav-item">
-        <a href="about.html" class="active">ABOUT</a>
-        <div class="dropdown">
-          <a href="who-we-are.html">Who we are</a>
-          <a href="greetings.html">Greetings</a>
-          <a href="history.html">History</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a href="accelerator.html">ACCELERATOR</a>
-        <div class="dropdown">
-          <a href="boost.html">Boost Program</a>
-          <a href="ystartup.html">Y-Startup</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a href="academia.html">ACADEMIA</a>
-        <div class="dropdown">
-          <a href="curriculum.html">Curriculum</a>
-          <a href="recruiting.html">Recruiting</a>
-          <a href="faq.html">FAQ</a>
-          <a href="insight.html">Insight</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a href="people.html">PEOPLE</a>
-        <div class="dropdown">
-          <a href="team.html">Our Team</a>
-          <a href="portfolio.html">Portfolio</a>
-          <a href="partners.html">Partners</a>
-        </div>
-      </li>
+      <li class="nav-item"><a href="about.html" class="active">ABOUT</a></li>
+      <li class="nav-item"><a href="accelerator.html">PROGRAMS</a></li>
+      <li class="nav-item"><a href="partners.html">NETWORK</a></li>
+      <li class="nav-item"><a href="people.html">SCOUTS</a></li>
       <li class="nav-item"><a href="contact.html">CONTACT</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
@@ -85,38 +59,54 @@
   </section>
 
   <footer>
-    <div class="footer-top">
-      <div class="footer-brand">
-        <div class="logo">Y-VENTURES</div>
-        <p>연세대학교 학생 주도<br>스타트업 엑셀러레이터</p>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <a href="index.html" class="footer-logo" aria-label="Y-VENTURES 홈">
+          <img src="logo.png" alt="Y-VENTURES" />
+        </a>
+        <ul class="footer-nav">
+          <li><a href="about.html">ABOUT</a></li>
+          <li><a href="accelerator.html">PROGRAMS</a></li>
+          <li><a href="partners.html">NETWORK</a></li>
+          <li><a href="people.html">SCOUTS</a></li>
+          <li><a href="contact.html">CONTACT</a></li>
+        </ul>
       </div>
-      <div class="footer-col">
-        <div class="footer-col-label">Navigate</div>
-        <a href="about.html">About</a>
-        <a href="accelerator.html">Accelerator</a>
-        <a href="academia.html">Academia</a>
-        <a href="people.html">People</a>
-        <a href="contact.html">Contact</a>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-label">Contact</div>
+
+      <div class="footer-meta">
         <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
         <a href="mailto:academia@yventures.ac">academia@yventures.ac</a>
-        <div class="footer-col-label" style="margin-top: 28px;">Social</div>
-        <a href="#">Instagram</a>
-        <a href="#">LinkedIn</a>
-        <a href="#">KakaoTalk</a>
+        <span class="footer-loc">Seoul, South Korea</span>
       </div>
-      <div class="footer-col">
-        <div class="footer-col-label">Location</div>
-        <span>Seoul, South Korea</span>
+
+      <div class="footer-copy">© 2026 Y-VENTURES. All rights reserved.</div>
+
+      <div class="footer-social">
+        <a href="https://www.instagram.com/yventures.ac/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+        <a href="https://www.linkedin.com/company/y-ventures/" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
+          </svg>
+        </a>
+        <a href="https://pf.kakao.com/" target="_blank" rel="noopener" aria-label="KakaoTalk">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.84 1.86 5.33 4.66 6.74l-1.18 4.3c-.11.4.33.72.69.5l5.13-3.4c.23.01.46.02.7.02 5.52 0 10-3.58 10-8s-4.48-7.16-10-7.16z"/>
+        </svg>
+        </a>
       </div>
-    </div>
-    <div class="footer-bottom">
-      <span class="footer-copy">ⓒ 2025 Y-VENTURES. All rights reserved.</span>
-      <div class="footer-legal">
-        <a href="#">Terms of Use</a>
-        <a href="#">Privacy</a>
+
+      <div class="footer-bottom">
+        <div class="footer-legal">
+          <a href="#">Terms of Use</a>
+          <span class="footer-divider">|</span>
+          <a href="#">Privacy</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -125,6 +115,11 @@
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('navMenu');
     hamburger.addEventListener('click', () => navMenu.classList.toggle('open'));
+
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   </script>
 </body>
 </html>
