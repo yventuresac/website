@@ -126,12 +126,20 @@ img { max-width: 100%; display: block; }
   border-radius: 10px;
   box-shadow: var(--glow-hover);
   padding: 8px 0;
-  margin-top: 6px;
+  margin-top: 2px;
   z-index: 300;
   opacity: 0;
   transform: translateY(-6px);
   transition: opacity 0.25s var(--ease-out), transform 0.3s var(--ease-out);
   pointer-events: none;
+}
+.dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
 }
 .nav-item:hover .dropdown,
 .nav-item:focus-within .dropdown {
