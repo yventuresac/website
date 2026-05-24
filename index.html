@@ -32,44 +32,54 @@
     </div>
   </section>
 
-  <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat-cell">
-      <div class="stat-number">75%</div>
-      <div class="stat-label">참여팀 투자 유치율</div>
+  <!-- ACCELERATE BANNER -->
+  <section class="accelerate-banner">
+    <div class="accelerate-stripes" aria-hidden="true">
+      <span></span><span></span><span></span>
     </div>
-    <div class="stat-cell">
-      <div class="stat-number">100%</div>
-      <div class="stat-label">서비스 출시 및 운영</div>
+    <h2 class="accelerate-title">
+      <span>Accelerate</span>
+      <span>the</span>
+      <span>Yonsei Startup Ecosystem</span>
+    </h2>
+  </section>
+
+  <!-- VIDEO -->
+  <section class="video-section">
+    <div class="video-wrap">
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/TnTL-SHLfhs?rel=0"
+        title="Y-VENTURES 소개 영상"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen></iframe>
     </div>
-    <div class="stat-cell">
-      <div class="stat-number">210+</div>
-      <div class="stat-label">등록 창업가 수</div>
-    </div>
-  </div>
+  </section>
 
   <!-- PROGRAMS -->
   <section class="section bordered">
     <div class="eyebrow">Programs</div>
     <h2 class="section-heading">모든 연세 창업팀의<br>여정을 지원합니다.</h2>
 
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-tag">Accelerator</div>
-        <div class="card-title">Accelerator</div>
-        <p class="card-body">유망한 연세 초기 창업팀을 누구보다 먼저 발굴하여 폭발적인 성장과 실행을 할 수 있도록 지원합니다. Boost Program과 Y-Startup 두 트랙으로 운영됩니다.</p>
-        <div style="margin-top: 36px;">
-          <a href="accelerator.html" class="text-link">자세히 보기 →</a>
+    <div class="program-grid">
+      <a href="boost.html" class="program-card program-card-boost">
+        <div class="program-card-inner">
+          <div class="program-card-tag">Track 01</div>
+          <div class="program-card-title">Boost Program</div>
+          <p class="program-card-desc">예비·초기 창업팀을 위한 6주 집중 멘토링 프로그램. 아이디어를 실행 가능한 사업 모델로 발전시키고, 첫 사용자 검증까지 끌어올립니다.</p>
+          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-tag">Academia</div>
-        <div class="card-title">Academia</div>
-        <p class="card-body">연세대학교 최초이자 유일한 VC학회. 창업과 투자의 교차점에서 다음 세대 창업 생태계 리더를 양성합니다.</p>
-        <div style="margin-top: 36px;">
-          <a href="academia.html" class="text-link">자세히 보기 →</a>
+        <div class="program-card-label">Boost Program <span>session</span></div>
+      </a>
+      <a href="ystartup.html" class="program-card program-card-ystartup">
+        <div class="program-card-inner">
+          <div class="program-card-tag">Track 02</div>
+          <div class="program-card-title">Y-Startup</div>
+          <p class="program-card-desc">검증된 연세 창업팀의 폭발적 성장을 지원하는 본 트랙. 투자 유치, 시장 확장, 후속 라운드까지 단계별로 함께합니다.</p>
+          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
         </div>
-      </div>
+        <div class="program-card-label">Y-Startup <span>session</span></div>
+      </a>
     </div>
   </section>
 
@@ -148,7 +158,7 @@
     onScroll();
 
     // scroll-reveal via IntersectionObserver
-    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.card', '.stat-cell', '.btn'];
+    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.card', '.program-card', '.accelerate-title span', '.video-wrap', '.btn'];
     const revealTargets = document.querySelectorAll(revealSelectors.join(','));
     revealTargets.forEach((el, i) => {
       el.classList.add('reveal');
@@ -164,34 +174,6 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealTargets.forEach((el) => io.observe(el));
-
-    // stat counter animation
-    const statNums = document.querySelectorAll('.stat-number');
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-    const animateCount = (el) => {
-      const text = el.textContent.trim();
-      const match = text.match(/^(\d+)([^\d]*)$/);
-      if (!match) return;
-      const target = parseInt(match[1], 10);
-      const suffix = match[2];
-      const duration = 1400;
-      const start = performance.now();
-      const step = (now) => {
-        const t = Math.min((now - start) / duration, 1);
-        el.textContent = Math.round(target * easeOutCubic(t)) + suffix;
-        if (t < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    };
-    const statIO = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          animateCount(e.target);
-          statIO.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.4 });
-    statNums.forEach((el) => statIO.observe(el));
 
     // subtle hero background parallax on mouse move
     const hero = document.querySelector('.hero');
