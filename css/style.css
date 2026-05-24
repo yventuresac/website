@@ -562,7 +562,7 @@ img { max-width: 100%; display: block; }
 
 /* ── FOOTER ── */
 footer {
-  background: var(--slate-900);
+  background: #2D333E;
   color: var(--white);
   padding: 80px 80px 40px;
   position: relative;
