@@ -53,20 +53,19 @@
   </nav>
 
   <div class="page-header">
-    <div class="page-tag">Track 01 — Y-Startup</div>
-    <h1 class="page-title">Y-Startup</h1>
-    <p class="page-desc">6주의 스프린트, 아이디어에서 첫 사용자까지. 예비 학생 창업팀이 가장 처음 만나는 입문 트랙입니다.</p>
+    <h1 class="page-title">Y-STARTUP</h1>
+    <p class="page-desc">Y-VENTURES의 창업스쿨 프로그램, Y-Startup Program은 6주 간의 가설 검증 스프린트를 통해 창업에 대한 흥미를 고취시킬 수 있도록 돕습니다.</p>
   </div>
 
   <section class="section bordered">
     <div class="eyebrow">Overview</div>
-    <h2 class="section-heading">아이디어 단계에서<br>가장 먼저 만납니다.</h2>
-    <p class="section-text">Y-Startup은 연세대학교의 예비 창업팀이 아이디어를 빠르게 검증하고, 첫 사용자에게 도달하기까지의 여정을 함께하는 6주 스프린트입니다. 가설을 세우고, 빠르게 실험하고, 학습한 것을 다시 제품에 반영하는 사이클을 단단히 다집니다.</p>
+    <h2 class="section-heading">6주의 가설 검증<br>스프린트.</h2>
+    <p class="section-text">Y-Startup Program은 연세대학교 학부생을 위한 창업 교육 프로그램입니다. 가설을 세우고, 가장 작게 만들어 실험하고, 사용자에게서 학습한 것을 다시 제품에 반영하는 사이클을 6주 안에 단단히 다집니다.</p>
   </section>
 
   <section class="section bordered">
     <div class="eyebrow">Process</div>
-    <h2 class="section-heading">방향을 잡고,<br>한 사이클을 돌립니다.</h2>
+    <h2 class="section-heading">스프린트는<br>3-Step 프로세스.</h2>
 
     <div class="ys-compass-wrap">
       <div class="ys-compass">
@@ -147,6 +146,39 @@
   </section>
 
   <section class="section bordered">
+    <div class="eyebrow">Moments</div>
+    <h2 class="section-heading">현장의 모습.</h2>
+    <p class="section-text">정기 세션부터 밤샘 해커톤, 그리고 데모데이까지. Y-Startup 참여자들의 6주.</p>
+
+    <div class="collage">
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_2266.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_2266.jpg" alt="Y-Startup 3기 단체 사진" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_1974.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_1974.jpg" alt="Y-Startup 세션 현장" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_1958.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_1958.jpg" alt="Y-Startup 멘토링" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_1942.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_1942.jpg" alt="Y-Startup 팀 디스커션" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_2245.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_2245.jpg" alt="Y-Startup 발표 세션" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_1803.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_1803.jpg" alt="Y-Startup 워크스페이스" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_1815.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_1815.jpg" alt="Y-Startup 협업 장면" loading="lazy"/>
+      </a>
+      <a class="collage-item" href="../assets/y-startup-photos/IMG_2112.jpg" target="_blank" rel="noopener">
+        <img src="../assets/y-startup-photos/IMG_2112.jpg" alt="Y-Startup 운영" loading="lazy"/>
+      </a>
+    </div>
+  </section>
+
+  <section class="section bordered">
     <div class="eyebrow">For Whom</div>
     <h2 class="section-heading">이런 분들에게<br>가장 잘 맞습니다.</h2>
     <div class="card-grid">
@@ -220,7 +252,7 @@
     const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.card', '.about-cta-title', '.about-cta-actions', '.btn'];
+    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.card', '.collage-item', '.about-cta-title', '.about-cta-actions', '.btn'];
     const revealTargets = document.querySelectorAll(revealSelectors.join(','));
     revealTargets.forEach((el, i) => {
       el.classList.add('reveal');
