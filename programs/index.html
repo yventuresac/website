@@ -6,7 +6,7 @@
   <title>Programs — Y-VENTURES</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
-<body>
+<body class="accent-programs">
 
   <nav id="nav">
     <a href="../index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
@@ -52,46 +52,46 @@
     </button>
   </nav>
 
-  <div class="page-header">
-    <div class="page-tag">Programs</div>
-    <h1 class="page-title">Programs</h1>
-    <p class="page-desc">유망한 연세 초기 창업팀과 VC 커리어를 모색하는 학생들을 위한 세 가지 트랙. 각 단계에 맞는 가장 가까운 지원을 제공합니다.</p>
-  </div>
+  <section class="network-hero">
+    <div class="eyebrow">Programs</div>
+    <h1>학생 창업과 VC 커리어,<br>가장 가까이에서 돕습니다.</h1>
+    <p>초기 아이디어 검증부터 본격 성장, 그리고 VC 커리어 진입까지. Y-VENTURES는 매 단계에 가장 가까운 자리에서 함께합니다.</p>
+  </section>
 
   <section class="section bordered">
-    <div class="eyebrow">Tracks</div>
-    <h2 class="section-heading">세 가지 트랙으로<br>창업 여정을 함께합니다.</h2>
+    <div class="activity-scroll" id="activityScroll">
+      <div class="activity-track">
 
-    <div class="program-grid program-grid-3">
-      <a href="../y-startup/" class="program-card">
-        <div class="program-card-inner">
-          <div class="program-card-tag">Track 01</div>
-          <div class="program-card-title">Y-Startup</div>
-          <p class="program-card-desc">아이디어 단계의 예비 창업팀을 위한 입문 트랙. 6주간 멘토링과 실행 검증을 통해 첫 사용자까지 닿게 합니다.</p>
-          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
-        </div>
-      </a>
-      <a href="../boost/" class="program-card">
-        <div class="program-card-inner">
-          <div class="program-card-tag">Track 02</div>
-          <div class="program-card-title">Boost Program</div>
-          <p class="program-card-desc">검증된 학생 창업팀의 본격 성장을 지원하는 메인 트랙. 투자 유치, 시장 확장, 후속 라운드까지 단계별로 함께합니다.</p>
-          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
-        </div>
-      </a>
-      <a href="../vc-career/" class="program-card">
-        <div class="program-card-inner">
-          <div class="program-card-tag">Track 03</div>
-          <div class="program-card-title">VC Career Session</div>
-          <p class="program-card-desc">VC 커리어를 고민하는 연세 학생을 위한 세션. 현직자 라운드테이블과 실전 케이스로 진입 경로를 좁힙니다.</p>
-          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
-        </div>
-      </a>
+        <a class="activity-card activity-card-purple" href="../y-startup/">
+          <h3 class="activity-title">Y-Startup</h3>
+          <p class="activity-desc">아이디어 단계의 학생 창업팀을 위한 6주 입문 프로그램. 멘토링과 실행 검증으로 첫 사용자까지 닿게 합니다.</p>
+          <div class="activity-poster">
+            <img src="../assets/posters/y-startup.jpg" alt="Y-Startup 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+        <a class="activity-card activity-card-blue" href="../boost/">
+          <h3 class="activity-title">Boost Program</h3>
+          <p class="activity-desc">검증을 마친 학생 창업팀의 본격 성장 프로그램. 투자 유치와 시장 확장까지 단계별로 함께합니다.</p>
+          <div class="activity-poster">
+            <img src="../assets/posters/boost-program.jpg" alt="Boost Program 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+        <a class="activity-card activity-card-lime" href="../vc-career/">
+          <h3 class="activity-title">VC Career Session</h3>
+          <p class="activity-desc">벤처 캐피털 현업의 시각을 학생들에게 전하는 커리어 세션. 심사역, 어쏘시에잇과 직접 만나는 자리입니다.</p>
+          <div class="activity-poster">
+            <img src="../assets/posters/vc-career-session.jpg" alt="2026 VC Career Session 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+      </div>
     </div>
   </section>
 
   <section class="about-cta">
-    <h2 class="about-cta-title">지금 가장 맞는<br>트랙을 찾아보세요.</h2>
+    <h2 class="about-cta-title">함께할 준비가<br>되어 있다면.</h2>
     <div class="about-cta-actions">
       <a href="../contact/" class="btn btn-black">지원 문의</a>
       <a href="../about/" class="btn btn-outline">About Y-VENTURES</a>
@@ -161,7 +161,36 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    const revealSelectors = ['.eyebrow', '.section-heading', '.program-card', '.about-cta-title', '.about-cta-actions', '.btn'];
+    // activity scroller — drag to scroll on desktop
+    (function () {
+      const scroller = document.getElementById('activityScroll');
+      if (!scroller) return;
+      let isDown = false, startX = 0, startScroll = 0, moved = 0;
+      scroller.addEventListener('mousedown', (e) => {
+        if (e.target.closest('a') && !e.target.closest('.activity-card')) return;
+        isDown = true; moved = 0;
+        startX = e.pageX;
+        startScroll = scroller.scrollLeft;
+        scroller.classList.add('dragging');
+      });
+      window.addEventListener('mouseup', () => {
+        if (!isDown) return;
+        isDown = false;
+        scroller.classList.remove('dragging');
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const dx = e.pageX - startX;
+        moved = Math.abs(dx);
+        scroller.scrollLeft = startScroll - dx;
+      });
+      scroller.addEventListener('click', (e) => {
+        if (moved > 6) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+    })();
+
+    const revealSelectors = ['.network-hero h1', '.network-hero p', '.activity-card', '.about-cta-title', '.about-cta-actions', '.btn'];
     const revealTargets = document.querySelectorAll(revealSelectors.join(','));
     revealTargets.forEach((el, i) => {
       el.classList.add('reveal');

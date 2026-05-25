@@ -55,8 +55,8 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-copy">
-      <h1 class="hero-title">연세대학교 학생 주도<br>스타트업 엑셀러레이터</h1>
-      <p class="hero-sub">Yonsei Student-Run <strong>Startup Accelerator</strong></p>
+      <h1 class="hero-title hero-wordmark">Y-VENTURES</h1>
+      <p class="hero-sub">Yonsei Student Venture Scout</p>
     </div>
   </section>
 
@@ -84,30 +84,40 @@
     </div>
   </section>
 
-  <!-- PROGRAMS -->
+  <!-- ECOSYSTEM -->
   <section class="section bordered">
-    <div class="eyebrow">Programs</div>
-    <h2 class="section-heading">모든 연세 창업팀의<br>여정을 지원합니다.</h2>
+    <div class="eyebrow">Ecosystem</div>
+    <h2 class="section-heading">학생 창업과 벤처 투자,<br>둘 다 깊이 합니다.</h2>
+    <p class="section-text">Y-Ventures는 학생 창업 활동과 벤처 투자 활동, 두 영역 모두에 진심으로 임합니다.</p>
 
-    <div class="program-grid">
-      <a href="y-startup/" class="program-card program-card-ystartup">
-        <div class="program-card-inner">
-          <div class="program-card-tag">Track 01</div>
-          <div class="program-card-title">Y-Startup</div>
-          <p class="program-card-desc">아이디어 단계의 예비 창업팀을 위한 입문 트랙. 6주간 멘토링과 실행 검증을 통해 첫 사용자까지 닿게 합니다.</p>
-          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
-        </div>
-        <div class="program-card-label">Y-Startup <span>session</span></div>
-      </a>
-      <a href="boost/" class="program-card program-card-boost">
-        <div class="program-card-inner">
-          <div class="program-card-tag">Track 02</div>
-          <div class="program-card-title">Boost Program</div>
-          <p class="program-card-desc">검증된 학생 창업팀의 본격 성장을 지원하는 메인 트랙. 투자 유치, 시장 확장, 후속 라운드까지 단계별로 함께합니다.</p>
-          <span class="program-card-link">자세히 보기 <span class="arrow">→</span></span>
-        </div>
-        <div class="program-card-label">Boost Program <span>session</span></div>
-      </a>
+    <div class="activity-scroll" id="activityScroll">
+      <div class="activity-track">
+
+        <a class="activity-card activity-card-purple" href="https://www.yventures.ac/y-startup/" target="_blank" rel="noopener">
+          <h3 class="activity-title">Y-Startup</h3>
+          <p class="activity-desc">아이디어 단계의 학생 창업팀을 위한 6주 입문 프로그램. 멘토링과 실행 검증으로 첫 사용자까지 닿게 합니다.</p>
+          <div class="activity-poster">
+            <img src="assets/posters/y-startup.jpg" alt="Y-Startup 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+        <a class="activity-card activity-card-blue" href="https://www.yventures.ac/boost/" target="_blank" rel="noopener">
+          <h3 class="activity-title">Boost Program</h3>
+          <p class="activity-desc">검증을 마친 학생 창업팀의 본격 성장 프로그램. 투자 유치와 시장 확장까지 단계별로 함께합니다.</p>
+          <div class="activity-poster">
+            <img src="assets/posters/boost-program.jpg" alt="Boost Program 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+        <a class="activity-card activity-card-lime" href="https://www.yventures.ac/vc-career/" target="_blank" rel="noopener">
+          <h3 class="activity-title">VC Career Session</h3>
+          <p class="activity-desc">벤처 캐피털 현업의 시각을 학생들에게 전하는 커리어 세션. 심사역, 어쏘시에잇과 직접 만나는 자리입니다.</p>
+          <div class="activity-poster">
+            <img src="assets/posters/vc-career-session.jpg" alt="2026 VC Career Session 카드뉴스" loading="lazy"/>
+          </div>
+        </a>
+
+      </div>
     </div>
   </section>
 
@@ -250,6 +260,38 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealTargets.forEach((el) => io.observe(el));
+
+    // activity scroller — drag to scroll on desktop
+    (function () {
+      const scroller = document.getElementById('activityScroll');
+      if (!scroller) return;
+      let isDown = false, startX = 0, startScroll = 0, moved = 0;
+
+      scroller.addEventListener('mousedown', (e) => {
+        if (e.target.closest('a')) return;
+        isDown = true;
+        moved = 0;
+        startX = e.pageX;
+        startScroll = scroller.scrollLeft;
+        scroller.classList.add('dragging');
+      });
+      window.addEventListener('mouseup', () => {
+        if (!isDown) return;
+        isDown = false;
+        scroller.classList.remove('dragging');
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const dx = e.pageX - startX;
+        moved = Math.abs(dx);
+        scroller.scrollLeft = startScroll - dx;
+      });
+      // prevent click after drag
+      scroller.addEventListener('click', (e) => {
+        if (moved > 6) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+    })();
 
     // subtle hero background parallax on mouse move
     const hero = document.querySelector('.hero');
