@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원 전용 — Y-VENTURES</title>
+  <link rel="stylesheet" href="../css/style.css" />
+
+  <!-- ▼ 회원 전용 보호: 이 4줄을 보호할 페이지 <head> 에 넣으면 됩니다 ▼ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/auth-config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+  <!-- ▲ -->
+</head>
+<body>
+
+  <nav id="nav" class="scrolled">
+    <a href="../index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <main class="auth-wrap">
+    <div class="auth-card">
+      <div class="eyebrow">Members Only</div>
+      <h1 class="auth-title">회원 전용 페이지</h1>
+      <p class="auth-sub" id="welcome">환영합니다.</p>
+      <button type="button" class="btn btn-outline auth-submit" id="logoutBtn" style="margin-top:28px;">로그아웃</button>
+    </div>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', async function () {
+      if (!window.yvAuth) return;
+      var user = await yvAuth.getUser();
+      if (user) {
+        var name = (user.user_metadata && user.user_metadata.full_name) || '';
+        document.getElementById('welcome').textContent =
+          (name ? name + '님, ' : '') + '환영합니다. (' + user.email + ')';
+      }
+      document.getElementById('logoutBtn').addEventListener('click', async function () {
+        await yvAuth.signOut();
+        window.location.replace('/auth/login.html');
+      });
+    });
+  </script>
+</body>
+</html>

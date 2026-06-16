@@ -54,8 +54,8 @@
 
   <section class="about-hero">
     <div class="about-hero-inner">
-      <div class="about-photo-frame">
-        <div class="about-photo-placeholder">Photo</div>
+      <div class="about-photo-frame about-photo-frame-wide">
+        <img class="about-photo" src="../assets/YV%202-3.jpeg" alt="Y-VENTURES 팀" />
       </div>
       <h1 class="about-hero-title">Who We Are</h1>
       <p class="about-hero-desc">연세대학교 학생 창업가의 첫 번째 파트너. Y-VENTURES는 가장 이른 시점부터 가장 가까이에서 함께합니다.</p>
@@ -168,5 +168,10 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealTargets.forEach((el) => io.observe(el));
   </script>
+  <!-- auth: nav login/logout -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav-auth.js"></script>
 </body>
 </html>

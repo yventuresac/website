@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 — Y-VENTURES</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+  <nav id="nav" class="scrolled">
+    <a href="../index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <main class="auth-wrap">
+    <div class="auth-card">
+      <div class="eyebrow">Member Login</div>
+      <h1 class="auth-title">로그인</h1>
+      <p class="auth-sub">회원 전용 페이지에 접근하려면 로그인하세요.</p>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="auth-field">
+          <span>이메일</span>
+          <input type="email" name="email" autocomplete="email" required placeholder="you@example.com" />
+        </label>
+        <label class="auth-field">
+          <span>비밀번호</span>
+          <input type="password" name="password" autocomplete="current-password" required placeholder="••••••••" />
+        </label>
+
+        <div class="auth-msg" id="authMsg" role="alert"></div>
+
+        <button type="submit" class="btn btn-black auth-submit" id="submitBtn">로그인</button>
+      </form>
+
+      <p class="auth-alt">계정이 없으신가요? <a href="./signup.html">회원가입</a></p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/auth-config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('loginForm');
+      var msg = document.getElementById('authMsg');
+      var btn = document.getElementById('submitBtn');
+
+      // 이미 로그인돼 있으면 들어올 필요 없음
+      if (window.yvAuth) yvAuth.redirectIfAuthed();
+
+      function showMsg(text, ok) {
+        msg.textContent = text;
+        msg.className = 'auth-msg ' + (ok ? 'is-ok' : 'is-error');
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!window.yvAuth) { showMsg('설정이 완료되지 않았습니다. 관리자에게 문의하세요.', false); return; }
+        var email = form.email.value.trim();
+        var password = form.password.value;
+        if (!email || !password) { showMsg('이메일과 비밀번호를 입력하세요.', false); return; }
+
+        btn.disabled = true; btn.textContent = '로그인 중…'; showMsg('', true);
+        var res = await yvAuth.signIn(email, password);
+        if (res.error) {
+          showMsg(res.error.message === 'Invalid login credentials'
+            ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+            : ('로그인 실패: ' + res.error.message), false);
+          btn.disabled = false; btn.textContent = '로그인';
+          return;
+        }
+        var params = new URLSearchParams(window.location.search);
+        window.location.replace(yvAuth.safeNext(params.get('next')));
+      });
+    })();
+  </script>
+</body>
+</html>

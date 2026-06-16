@@ -1559,9 +1559,11 @@ button.team-card {
 
 .marquee-item {
   flex: 0 0 auto;
-  width: 168px;
-  height: 84px;
-  border-radius: 10px;
+  box-sizing: border-box;
+  width: 132px;
+  height: 132px;
+  padding: 16px;
+  border-radius: 16px;
   background: var(--bg-card);
   border: 1px solid var(--edge);
   box-shadow: var(--glow);
@@ -1580,6 +1582,14 @@ button.team-card {
   color: var(--text-1);
   transform: translateY(-3px);
   box-shadow: var(--glow-hover);
+}
+.marquee-item img {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 /* ── PARTNERS ── */
@@ -2172,6 +2182,14 @@ footer {
   text-transform: uppercase;
   color: var(--blue-300);
 }
+.team-tba {
+  padding: 56px 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
 
 /* ── PARTNERS PAGE ── */
 .partners-block { padding: 96px 80px; }
@@ -2363,6 +2381,8 @@ footer {
   color: var(--text-3);
   background: rgba(255, 255, 255, 0.02);
 }
+.eco-partners { padding: 100px 80px 120px; }
+.eco-partner-logos { max-width: 720px; margin: 0 auto; grid-template-columns: repeat(2, 1fr); }
 .eco-cta { padding: 120px 80px; text-align: center; }
 .eco-cta-title {
   font-size: clamp(28px, 3.5vw, 44px);
@@ -2394,6 +2414,7 @@ footer {
 
   .eco-party { padding: 64px 24px; }
   .eco-groups { grid-template-columns: 1fr; }
+  .eco-partners { padding: 64px 24px; }
   .eco-cta { padding: 80px 24px; }
 }
 
@@ -2703,6 +2724,16 @@ footer {
     0 4px 14px -6px rgba(10, 10, 10, 0.10);
   margin-bottom: 80px;
 }
+.about-photo-frame-wide {
+  max-width: 760px;
+}
+.about-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  border-radius: 2px;
+}
 .about-photo-placeholder {
   aspect-ratio: 4 / 5;
   width: 100%;
@@ -2825,7 +2856,8 @@ footer {
 
 /* ── PARTNER LOGO — IMAGE VARIANT ── */
 .partner-logo.partner-logo-img {
-  padding: 24px;
+  aspect-ratio: 1 / 1;
+  padding: 12%;
   background: var(--bg-card);
 }
 .partner-logo.partner-logo-img img {
@@ -2917,4 +2949,101 @@ footer {
   font-size: var(--text-body-lg);
   line-height: var(--lh-relaxed);
   color: var(--text-2);
+}
+
+/* ── AUTH (로그인 / 회원가입) ── */
+html.yv-gated body { visibility: hidden; }
+.auth-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px 80px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 48px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--edge);
+  border-radius: 20px;
+  box-shadow: var(--glow);
+}
+.auth-title {
+  margin-top: 14px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+.auth-sub {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-3);
+}
+.auth-form {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.auth-field { display: flex; flex-direction: column; gap: 8px; }
+.auth-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+}
+.auth-field > span em { font-style: normal; color: var(--text-3); font-weight: 500; }
+.auth-field input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: 'Pretendard', sans-serif;
+  color: var(--text-1);
+  background: var(--bg-base);
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.auth-field input::placeholder { color: rgba(255,255,255,0.28); }
+.auth-field input:focus {
+  outline: none;
+  border-color: var(--edge-hover);
+  box-shadow: var(--glow-hover);
+}
+.auth-submit { width: 100%; margin-top: 6px; text-align: center; }
+.auth-submit:disabled { opacity: 0.6; cursor: default; transform: none; }
+.auth-msg {
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 0;
+}
+.auth-msg.is-error { color: #ff8a8a; }
+.auth-msg.is-ok { color: var(--text-2); }
+.auth-alt {
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+}
+.auth-alt a { color: var(--text-1); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 520px) {
+  .auth-card { padding: 36px 24px; }
+  .auth-title { font-size: 28px; }
+}
+
+/* ── NAV LOGIN / LOGOUT ── */
+.nav-auth::before {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 13px;
+  background: rgba(255, 255, 255, 0.28);
+  margin-right: 20px;
+}
+.nav-auth > a { cursor: pointer; }
+@media (max-width: 640px) {
+  .nav-auth::before { display: none; }
 }
