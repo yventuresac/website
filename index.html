@@ -9,6 +9,22 @@
 </head>
 <body>
 
+  <!-- BOOST 4기 모집 팝업 -->
+  <div class="yv-popup-overlay" id="boostPopup" role="dialog" aria-modal="true" aria-label="Boost Program 4기 모집">
+    <div class="yv-popup">
+      <button class="yv-popup-close" id="boostPopupClose" aria-label="팝업 닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <a href="boost/" class="yv-popup-link" aria-label="Boost Program 페이지로 이동">
+        <img src="assets/posters/boost-program-4.jpg" alt="Boost Program 4기 모집 - 당신의 IR을 완성할 가장 확실하고 빠른 기회, 7/11(토) 지원 마감" />
+      </a>
+      <div class="yv-popup-foot">
+        <button type="button" id="boostPopupDismiss">오늘 하루 보지 않기</button>
+        <button type="button" class="yv-popup-apply" onclick="location.href='boost/'">지원하러 가기</button>
+      </div>
+    </div>
+  </div>
+
   <nav id="nav">
     <a href="index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
       <img src="assets/logo.png" alt="Y-VENTURES" />
@@ -106,7 +122,7 @@
           <h3 class="activity-title">Boost Program</h3>
           <p class="activity-desc">검증을 마친 학생 창업팀의 본격 성장 프로그램. 투자 유치와 시장 확장까지 단계별로 함께합니다.</p>
           <div class="activity-poster">
-            <img src="assets/posters/boost-program.jpg" alt="Boost Program 카드뉴스" loading="lazy"/>
+            <img src="assets/posters/boost-program-4.jpg" alt="Boost Program 4기 카드뉴스" loading="lazy"/>
           </div>
         </a>
 
@@ -302,6 +318,25 @@
       });
       hero.addEventListener('mouseleave', () => hero.style.setProperty('--hero-bg-x', '100%'));
     }
+
+    // boost recruit popup — shows once per day (dismissable)
+    (function () {
+      const overlay = document.getElementById('boostPopup');
+      if (!overlay) return;
+      const KEY = 'yv-boost4-popup-dismissed';
+      const today = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem(KEY) === today) return;
+
+      const open = () => overlay.classList.add('open');
+      const close = () => overlay.classList.remove('open');
+      const dismissToday = () => { localStorage.setItem(KEY, today); close(); };
+
+      window.setTimeout(open, 900);
+      document.getElementById('boostPopupClose').addEventListener('click', close);
+      document.getElementById('boostPopupDismiss').addEventListener('click', dismissToday);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    })();
   </script>
   <!-- auth: nav login/logout -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
