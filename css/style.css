@@ -3683,3 +3683,13 @@ html.yv-gated body { visibility: hidden; }
 .curri-tracks { grid-template-columns: 1fr 1fr; }
 @media (max-width: 1024px) { .curri-tracks { grid-template-columns: 1fr; } }
 .steprail + .curri-caption { margin-top: 30px; }
+.deadline-pill.is-closed {
+  color: var(--text-3);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--edge);
+}
+.deadline-pill.is-closed::before {
+  background: var(--text-3);
+  box-shadow: none;
+  animation: none;
+}
