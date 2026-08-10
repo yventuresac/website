@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
   <title>Insights — Y-VENTURES</title>
+  <meta name="description" content="Y-VENTURES 학회원이 작성한 산업·시장 인사이트 아카이브입니다." />
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body class="theme-mono">
@@ -17,9 +18,9 @@
       <li class="nav-item">
         <a href="../about/">ABOUT</a>
         <div class="dropdown">
-          <a href="../about/">Who we are</a>
-          <a href="../greetings/">Greetings</a>
-          <a href="../history/">History</a>
+          <a href="../about/#greetings">Greetings</a>
+          <a href="../about/#who-we-are">Who we are</a>
+          <a href="../about/#history">History</a>
         </div>
       </li>
       <li class="nav-item">
@@ -42,8 +43,8 @@
         <a href="../scouts/" class="active">SCOUTS</a>
         <div class="dropdown">
           <a href="../curriculum/">Curriculum</a>
-          <a href="./">Insights</a>
           <a href="../recruiting/">Recruiting</a>
+          <a href="./">Insights</a>
         </div>
       </li>
       <li class="nav-item"><a href="../contact/">CONTACT</a></li>
@@ -53,10 +54,39 @@
     </button>
   </nav>
 
-  <section class="tbd-section">
-    <div class="tbd-mark">Insights · Coming Soon</div>
-    <h1 class="tbd-title">TBD</h1>
-    <p class="tbd-sub">학회원들이 작성한 산업·시장 인사이트 리포트를 준비 중입니다. 곧 공개됩니다.</p>
+  <div class="page-header">
+    <div class="page-tag">Scouts</div>
+    <h1 class="page-title">INSIGHTS</h1>
+    <p class="page-desc">학회원들이 작성한 산업·시장 인사이트를 공유합니다.</p>
+  </div>
+
+  <section class="section bordered">
+    <div class="insight-toolbar">
+      <div class="insight-count" id="insightCount"></div>
+      <a href="write.html" class="btn btn-black insight-write-btn" id="writeBtn" hidden>게시글 작성</a>
+    </div>
+
+    <div id="boardError" class="insight-board-error" hidden>
+      게시판을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+    </div>
+
+    <table class="insight-table" id="boardTable">
+      <thead>
+        <tr>
+          <th class="insight-no">No</th>
+          <th>제목</th>
+          <th class="insight-author">작성자</th>
+          <th class="insight-date">작성일</th>
+          <th class="insight-views">조회수</th>
+          <th class="insight-reacts">♥ / 댓글</th>
+        </tr>
+      </thead>
+      <tbody id="boardBody">
+        <tr><td colspan="6" class="insight-loading">불러오는 중…</td></tr>
+      </tbody>
+    </table>
+
+    <nav class="insight-pager" id="pager" aria-label="페이지"></nav>
   </section>
 
   <footer>
@@ -76,37 +106,14 @@
 
       <div class="footer-meta">
         <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
-        <a href="mailto:academia@yventures.ac">academia@yventures.ac</a>
         <span class="footer-loc">Seoul, South Korea</span>
       </div>
 
       <div class="footer-copy">© 2026 Y-VENTURES. All rights reserved.</div>
 
-      <div class="footer-social">
-        <a href="https://www.instagram.com/yventures_official/" target="_blank" rel="noopener" aria-label="Instagram">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="5"/>
-            <circle cx="12" cy="12" r="4"/>
-            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
-          </svg>
-        </a>
-        <a href="https://www.linkedin.com/company/yventuresyonsei/" target="_blank" rel="noopener" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
-          </svg>
-        </a>
-        <a href="https://open.kakao.com/o/gb8I1Rff" target="_blank" rel="noopener" aria-label="KakaoTalk 오픈채팅">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.84 1.86 5.33 4.66 6.74l-1.18 4.3c-.11.4.33.72.69.5l5.13-3.4c.23.01.46.02.7.02 5.52 0 10-3.58 10-8s-4.48-7.16-10-7.16z"/>
-          </svg>
-        </a>
-      </div>
-
       <div class="footer-bottom">
         <div class="footer-legal">
-          <a href="#">Terms of Use</a>
-          <span class="footer-divider">|</span>
-          <a href="#">Privacy</a>
+          <a href="../privacy/">개인정보 처리방침</a>
         </div>
       </div>
     </div>
@@ -121,10 +128,85 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   </script>
-  <!-- auth: nav login/logout -->
+  <!-- auth + board -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/nav-auth.js"></script>
+  <script src="/js/insights-api.js"></script>
+  <script>
+    (function () {
+      var esc = yvInsights.esc;
+      var body = document.getElementById('boardBody');
+      var pager = document.getElementById('pager');
+      var countEl = document.getElementById('insightCount');
+
+      function pageFromUrl() {
+        var p = parseInt(new URLSearchParams(location.search).get('page'), 10);
+        return (p && p > 0) ? p : 1;
+      }
+
+      function renderRows(posts) {
+        if (!posts.length) {
+          body.innerHTML = '<tr><td colspan="6" class="insight-loading">아직 게시글이 없습니다.</td></tr>';
+          return;
+        }
+        body.innerHTML = posts.map(function (p) {
+          return '<tr>' +
+            '<td class="insight-no">' + p.no + '</td>' +
+            '<td class="insight-title"><a href="post.html?no=' + p.no + '">' + esc(p.title) + '</a></td>' +
+            '<td class="insight-author">' + esc(p.author) + '</td>' +
+            '<td class="insight-date">' + p.date + '</td>' +
+            '<td class="insight-views">' + p.views + '</td>' +
+            '<td class="insight-reacts">♥ ' + p.likes + ' · 💬 ' + p.comments + '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      /* 번호형 페이저: ← 1 … 4 5 6 … 12 → */
+      function renderPager(page, totalPages) {
+        if (totalPages <= 1) { pager.innerHTML = ''; return; }
+        var parts = [];
+        function link(p, label, cls) {
+          if (p === null) return '<span class="pager-gap">…</span>';
+          return '<a href="?page=' + p + '" class="pager-num ' + (cls || '') + '">' + label + '</a>';
+        }
+        parts.push(page > 1 ? link(page - 1, '←', 'pager-arrow') : '<span class="pager-num pager-arrow is-disabled">←</span>');
+        var lo = Math.max(1, page - 2), hi = Math.min(totalPages, page + 2);
+        if (lo > 1) { parts.push(link(1, '1')); if (lo > 2) parts.push(link(null)); }
+        for (var i = lo; i <= hi; i++) {
+          parts.push(i === page ? '<span class="pager-num is-current">' + i + '</span>' : link(i, String(i)));
+        }
+        if (hi < totalPages) { if (hi < totalPages - 1) parts.push(link(null)); parts.push(link(totalPages, String(totalPages))); }
+        parts.push(page < totalPages ? link(page + 1, '→', 'pager-arrow') : '<span class="pager-num pager-arrow is-disabled">→</span>');
+        pager.innerHTML = parts.join('');
+      }
+
+      async function load() {
+        var page = pageFromUrl();
+        try {
+          var r = await yvInsights.listPosts(page);
+          if (r.total > 0 && page > r.totalPages) { location.search = '?page=' + r.totalPages; return; }
+          renderRows(r.posts);
+          renderPager(page, r.totalPages);
+          countEl.textContent = '총 ' + r.total + '개';
+        } catch (e) {
+          console.error(e);
+          document.getElementById('boardError').hidden = false;
+          document.getElementById('boardTable').hidden = true;
+        }
+      }
+
+      async function showWriteIfMember() {
+        try {
+          var me = await yvInsights.getMyProfile();
+          if (me && me.is_member) document.getElementById('writeBtn').hidden = false;
+        } catch (e) {}
+      }
+
+      load();
+      showWriteIfMember();
+    })();
+  </script>
 </body>
 </html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>게시글 작성 — Y-VENTURES Insights</title>
+  <meta name="description" content="Y-VENTURES 학회원 전용 인사이트 작성 페이지입니다." />
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body class="theme-mono">
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item">
+        <a href="../about/">ABOUT</a>
+        <div class="dropdown">
+          <a href="../about/#greetings">Greetings</a>
+          <a href="../about/#who-we-are">Who we are</a>
+          <a href="../about/#history">History</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../programs/">PROGRAMS</a>
+        <div class="dropdown">
+          <a href="../y-startup/">Y-Startup</a>
+          <a href="../boost/">Boost Program</a>
+          <a href="../vc-career/">VC Career Session</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../network/">NETWORK</a>
+        <div class="dropdown">
+          <a href="../team/">Our Team</a>
+          <a href="../partners/">Our Partners</a>
+          <a href="../yonsei/">Yonsei Ecosystem</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../scouts/" class="active">SCOUTS</a>
+        <div class="dropdown">
+          <a href="../curriculum/">Curriculum</a>
+          <a href="../recruiting/">Recruiting</a>
+          <a href="./">Insights</a>
+        </div>
+      </li>
+      <li class="nav-item"><a href="../contact/">CONTACT</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="insight-write-wrap">
+
+    <!-- 학회원 아님 안내 -->
+    <div class="insight-write-gate" id="memberGate" hidden>
+      <h1>학회원 전용</h1>
+      <p>게시글 작성은 승인된 학회원만 가능합니다.<br>학회원이신데 작성이 안 되면 <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>로 알려주세요.</p>
+      <a href="./" class="btn btn-outline">목록으로</a>
+    </div>
+
+    <!-- 작성 폼 -->
+    <div class="insight-write-box" id="writeBox" hidden>
+      <a href="./" class="insight-back">← Insights</a>
+      <h1 class="insight-write-heading">게시글 작성</h1>
+
+      <input type="text" id="postTitleInput" class="insight-title-input" maxlength="300" placeholder="제목을 입력하세요" />
+
+      <div id="editorToolbar">
+        <span class="ql-formats">
+          <select class="ql-header">
+            <option value="2">제목</option>
+            <option value="3">소제목</option>
+            <option selected>본문</option>
+          </select>
+          <select class="ql-size">
+            <option value="small">작게</option>
+            <option selected>보통</option>
+            <option value="large">크게</option>
+            <option value="huge">아주 크게</option>
+          </select>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-underline"></button>
+          <button class="ql-strike"></button>
+        </span>
+        <span class="ql-formats">
+          <select class="ql-color"></select>
+          <select class="ql-background"></select>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-list" value="ordered"></button>
+          <button class="ql-list" value="bullet"></button>
+          <button class="ql-blockquote"></button>
+          <button class="ql-align" value=""></button>
+          <button class="ql-align" value="center"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-link"></button>
+          <button class="ql-image"></button>
+          <button class="ql-clean"></button>
+        </span>
+      </div>
+      <div id="editor"></div>
+
+      <div class="insight-write-actions">
+        <button type="button" class="btn btn-outline" id="previewBtn">미리보기</button>
+        <button type="button" class="btn btn-black" id="submitBtn">등록</button>
+        <span class="insight-write-status" id="writeStatus"></span>
+      </div>
+    </div>
+
+    <!-- 미리보기 -->
+    <div class="insight-preview" id="previewPane" hidden>
+      <div class="insight-preview-bar">
+        <span>미리보기 — 실제 게시 화면과 동일합니다</span>
+        <button type="button" class="btn btn-outline" id="backToEditBtn">← 수정으로 돌아가기</button>
+      </div>
+      <article class="insight-article">
+        <header class="insight-article-head">
+          <h1 class="insight-article-title" id="pvTitle"></h1>
+          <div class="insight-article-meta" id="pvMeta"></div>
+        </header>
+        <div class="insight-body" id="pvBody"></div>
+      </article>
+      <div class="insight-preview-actions">
+        <button type="button" class="btn btn-black" id="confirmSubmitBtn">이대로 등록</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <a href="../index.html" class="footer-logo" aria-label="Y-VENTURES 홈">
+          <img src="../assets/logo.png" alt="Y-VENTURES" />
+        </a>
+        <ul class="footer-nav">
+          <li><a href="../about/">ABOUT</a></li>
+          <li><a href="../programs/">PROGRAMS</a></li>
+          <li><a href="../network/">NETWORK</a></li>
+          <li><a href="../scouts/">SCOUTS</a></li>
+          <li><a href="../contact/">CONTACT</a></li>
+        </ul>
+      </div>
+      <div class="footer-meta">
+        <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
+        <span class="footer-loc">Seoul, South Korea</span>
+      </div>
+      <div class="footer-copy">© 2026 Y-VENTURES. All rights reserved.</div>
+      <div class="footer-bottom">
+        <div class="footer-legal">
+          <a href="../privacy/">개인정보 처리방침</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('navMenu');
+    hamburger.addEventListener('click', () => navMenu.classList.toggle('open'));
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav-auth.js"></script>
+  <script src="/js/insights-api.js"></script>
+  <script>
+    (async function () {
+      /* 로그인 필수 */
+      var user = await yvAuth.requireAuth();
+      if (!user) return;
+
+      /* 학회원 확인 */
+      var me = null;
+      try { me = await yvInsights.getMyProfile(); } catch (e) { console.error(e); }
+      if (!me || !me.is_member) {
+        document.getElementById('memberGate').hidden = false;
+        return;
+      }
+      document.getElementById('writeBox').hidden = false;
+
+      var authorName = me.display_name || (user.user_metadata && user.user_metadata.full_name) || user.email.split('@')[0];
+
+      /* Quill 에디터 */
+      var quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: '내용을 입력하세요. 이미지는 툴바의 그림 아이콘으로 삽입합니다.',
+        modules: { toolbar: '#editorToolbar' }
+      });
+
+      /* 이미지: 파일 선택 → Supabase Storage 업로드 → 본문 삽입 */
+      quill.getModule('toolbar').addHandler('image', function () {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async function () {
+          var file = input.files && input.files[0];
+          if (!file) return;
+          if (file.size > 8 * 1024 * 1024) { alert('이미지는 8MB 이하로 올려주세요.'); return; }
+          setStatus('이미지 업로드 중…');
+          try {
+            var url = await yvInsights.uploadImage(file);
+            var range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'image', url, 'user');
+            quill.setSelection(range.index + 1);
+            setStatus('');
+          } catch (e) {
+            console.error(e);
+            setStatus('');
+            alert('이미지 업로드에 실패했습니다.');
+          }
+        };
+        input.click();
+      });
+
+      function setStatus(t) { document.getElementById('writeStatus').textContent = t; }
+
+      function getDraft() {
+        return {
+          title: document.getElementById('postTitleInput').value.trim(),
+          html: quill.getSemanticHTML().trim(),
+          empty: quill.getText().trim().length === 0
+        };
+      }
+
+      function validate(d) {
+        if (!d.title) { alert('제목을 입력해주세요.'); return false; }
+        if (d.empty) { alert('내용을 입력해주세요.'); return false; }
+        return true;
+      }
+
+      /* 미리보기 ↔ 편집 전환 */
+      var writeBox = document.getElementById('writeBox');
+      var previewPane = document.getElementById('previewPane');
+
+      document.getElementById('previewBtn').addEventListener('click', function () {
+        var d = getDraft();
+        if (!validate(d)) return;
+        document.getElementById('pvTitle').textContent = d.title;
+        document.getElementById('pvMeta').innerHTML =
+          '<span>' + yvInsights.esc(authorName) + '</span><span class="dot">·</span>' +
+          '<span>' + new Date().toISOString().slice(0, 10) + '</span>';
+        document.getElementById('pvBody').innerHTML = yvInsights.sanitizeHtml(d.html);
+        writeBox.hidden = true;
+        previewPane.hidden = false;
+        window.scrollTo({ top: 0 });
+      });
+      document.getElementById('backToEditBtn').addEventListener('click', function () {
+        previewPane.hidden = true;
+        writeBox.hidden = false;
+      });
+
+      /* 등록 */
+      var submitting = false;
+      async function submit() {
+        var d = getDraft();
+        if (!validate(d)) return;
+        if (submitting) return;
+        submitting = true;
+        setStatus('등록 중…');
+        try {
+          var no = await yvInsights.createPost(user, d.title, d.html, authorName);
+          location.href = 'post.html?no=' + no;
+        } catch (e) {
+          console.error(e);
+          setStatus('');
+          alert('등록에 실패했습니다: ' + (e.message || e));
+          submitting = false;
+        }
+      }
+      document.getElementById('submitBtn').addEventListener('click', submit);
+      document.getElementById('confirmSubmitBtn').addEventListener('click', submit);
+
+      /* 이탈 방지 */
+      window.addEventListener('beforeunload', function (e) {
+        if (submitting) return;
+        var d = getDraft();
+        if (d.title || !d.empty) { e.preventDefault(); e.returnValue = ''; }
+      });
+    })();
+  </script>
+</body>
+</html>

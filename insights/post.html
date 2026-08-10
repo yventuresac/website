@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>Insights — Y-VENTURES</title>
+  <meta name="description" content="Y-VENTURES 학회원이 작성한 산업·시장 인사이트입니다." />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body class="theme-mono">
+
+  <nav id="nav">
+    <a href="../index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item">
+        <a href="../about/">ABOUT</a>
+        <div class="dropdown">
+          <a href="../about/#greetings">Greetings</a>
+          <a href="../about/#who-we-are">Who we are</a>
+          <a href="../about/#history">History</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../programs/">PROGRAMS</a>
+        <div class="dropdown">
+          <a href="../y-startup/">Y-Startup</a>
+          <a href="../boost/">Boost Program</a>
+          <a href="../vc-career/">VC Career Session</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../network/">NETWORK</a>
+        <div class="dropdown">
+          <a href="../team/">Our Team</a>
+          <a href="../partners/">Our Partners</a>
+          <a href="../yonsei/">Yonsei Ecosystem</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="../scouts/" class="active">SCOUTS</a>
+        <div class="dropdown">
+          <a href="../curriculum/">Curriculum</a>
+          <a href="../recruiting/">Recruiting</a>
+          <a href="./">Insights</a>
+        </div>
+      </li>
+      <li class="nav-item"><a href="../contact/">CONTACT</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="insight-article-wrap">
+    <article class="insight-article" id="articleBox">
+      <header class="insight-article-head">
+        <a href="./" class="insight-back">← Insights</a>
+        <h1 class="insight-article-title" id="postTitle">불러오는 중…</h1>
+        <div class="insight-article-meta" id="postMeta"></div>
+      </header>
+      <div class="insight-body" id="postBody"></div>
+
+      <div class="insight-react-bar">
+        <button type="button" class="insight-like-btn" id="likeBtn">
+          <span class="heart" id="likeHeart">♡</span>
+          <span id="likeCount">0</span>
+        </button>
+        <span class="insight-react-note" id="likeNote"></span>
+      </div>
+
+      <section class="insight-comments">
+        <h2 class="insight-comments-title">댓글 <span id="commentCount">0</span></h2>
+        <ul class="insight-comment-list" id="commentList"></ul>
+
+        <form class="insight-comment-form" id="commentForm" hidden>
+          <textarea id="commentBody" rows="3" maxlength="3000" placeholder="댓글을 입력하세요" required></textarea>
+          <button type="submit" class="btn btn-black">등록</button>
+        </form>
+        <p class="insight-comment-login" id="commentLogin" hidden>
+          댓글을 쓰려면 <a href="/auth/login.html">로그인</a>이 필요합니다.
+        </p>
+      </section>
+
+      <div class="insight-article-foot">
+        <a href="./" class="btn btn-outline">목록으로</a>
+      </div>
+    </article>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <a href="../index.html" class="footer-logo" aria-label="Y-VENTURES 홈">
+          <img src="../assets/logo.png" alt="Y-VENTURES" />
+        </a>
+        <ul class="footer-nav">
+          <li><a href="../about/">ABOUT</a></li>
+          <li><a href="../programs/">PROGRAMS</a></li>
+          <li><a href="../network/">NETWORK</a></li>
+          <li><a href="../scouts/">SCOUTS</a></li>
+          <li><a href="../contact/">CONTACT</a></li>
+        </ul>
+      </div>
+      <div class="footer-meta">
+        <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
+        <span class="footer-loc">Seoul, South Korea</span>
+      </div>
+      <div class="footer-copy">© 2026 Y-VENTURES. All rights reserved.</div>
+      <div class="footer-bottom">
+        <div class="footer-legal">
+          <a href="../privacy/">개인정보 처리방침</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('navMenu');
+    hamburger.addEventListener('click', () => navMenu.classList.toggle('open'));
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav-auth.js"></script>
+  <script src="/js/insights-api.js"></script>
+  <script>
+    (async function () {
+      var esc = yvInsights.esc;
+      var no = parseInt(new URLSearchParams(location.search).get('no'), 10);
+      var titleEl = document.getElementById('postTitle');
+      if (!no) { titleEl.textContent = '글을 찾을 수 없습니다.'; return; }
+
+      var user = await yvAuth.getUser();
+      var post;
+      try {
+        post = await yvInsights.getPost(no);
+      } catch (e) {
+        console.error(e);
+        titleEl.textContent = '게시판을 불러오지 못했습니다.';
+        return;
+      }
+      if (!post) { titleEl.textContent = '글을 찾을 수 없습니다.'; return; }
+
+      document.title = post.title + ' — Y-VENTURES Insights';
+      titleEl.textContent = post.title;
+      document.getElementById('postMeta').innerHTML =
+        '<span>' + esc(post.author_name) + '</span><span class="dot">·</span>' +
+        '<span>' + (post.created_at || '').slice(0, 10) + '</span><span class="dot">·</span>' +
+        '<span>No. ' + post.board_no + '</span><span class="dot">·</span>' +
+        '<span>조회 ' + (post.view_count + 1) + '</span>';
+      document.getElementById('postBody').innerHTML = yvInsights.sanitizeHtml(post.content_html);
+      yvInsights.incrementView(post.id);
+
+      /* ── 좋아요 ── */
+      var likeBtn = document.getElementById('likeBtn');
+      var likeHeart = document.getElementById('likeHeart');
+      var likeCountEl = document.getElementById('likeCount');
+      var likeNote = document.getElementById('likeNote');
+      var likes = (post.insight_likes && post.insight_likes[0] && post.insight_likes[0].count) || 0;
+      var myLike = user ? await yvInsights.getMyLike(post.id, user.id) : false;
+
+      function paintLike() {
+        likeCountEl.textContent = likes;
+        likeHeart.textContent = myLike ? '♥' : '♡';
+        likeBtn.classList.toggle('is-liked', myLike);
+      }
+      paintLike();
+
+      var likeBusy = false;
+      likeBtn.addEventListener('click', async function () {
+        if (!user) { likeNote.textContent = '좋아요는 로그인 후 가능합니다.'; return; }
+        if (likeBusy) return;
+        likeBusy = true;
+        try {
+          myLike = await yvInsights.toggleLike(post.id, user.id);
+          likes += myLike ? 1 : -1;
+          paintLike();
+        } catch (e) { console.error(e); }
+        likeBusy = false;
+      });
+
+      /* ── 댓글 ── */
+      var listEl = document.getElementById('commentList');
+      var countEl = document.getElementById('commentCount');
+
+      async function renderComments() {
+        var items = await yvInsights.listComments(post.id);
+        countEl.textContent = items.length;
+        listEl.innerHTML = items.map(function (c) {
+          var mine = user && c.user_id === user.id;
+          return '<li class="insight-comment" data-id="' + c.id + '">' +
+            '<div class="insight-comment-head">' +
+              '<span class="insight-comment-author">' + esc(c.author_name) + '</span>' +
+              '<span class="insight-comment-date">' + (c.created_at || '').slice(0, 10) + '</span>' +
+              (mine ? '<button type="button" class="insight-comment-del" data-del="' + c.id + '">삭제</button>' : '') +
+            '</div>' +
+            '<p class="insight-comment-body">' + esc(c.body).replace(/\n/g, '<br>') + '</p>' +
+          '</li>';
+        }).join('') || '<li class="insight-comment-empty">첫 댓글을 남겨보세요.</li>';
+      }
+      await renderComments();
+
+      listEl.addEventListener('click', async function (e) {
+        var id = e.target && e.target.getAttribute('data-del');
+        if (!id) return;
+        if (!confirm('댓글을 삭제할까요?')) return;
+        try { await yvInsights.deleteComment(parseInt(id, 10)); await renderComments(); }
+        catch (err) { console.error(err); }
+      });
+
+      if (user) {
+        document.getElementById('commentForm').hidden = false;
+        document.getElementById('commentForm').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var box = document.getElementById('commentBody');
+          var text = box.value.trim();
+          if (!text) return;
+          try {
+            await yvInsights.addComment(post.id, user, text);
+            box.value = '';
+            await renderComments();
+          } catch (err) { console.error(err); alert('댓글 등록에 실패했습니다.'); }
+        });
+      } else {
+        document.getElementById('commentLogin').hidden = false;
+      }
+    })();
+  </script>
+</body>
+</html>
