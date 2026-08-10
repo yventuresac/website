@@ -3528,11 +3528,60 @@ html.yv-gated body { visibility: hidden; }
   color: var(--text-2);
   transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.4s var(--bounce);
 }
-.steprail-item:hover .steprail-num {
-  transform: scale(1.06);
-  border-color: var(--blue-400);
-  color: var(--blue-300);
-  box-shadow: 0 0 20px -4px rgba(96, 165, 250, 0.65);
+/* 1주 → 5주로 불빛이 흘러간다. 마우스 위치와 무관하게 순서를 스스로 보여준다. */
+@media (prefers-reduced-motion: no-preference) {
+  /* fill-mode 를 두지 않는다. both/backwards 로 두면 지연 중인 항목이
+     0% 키프레임(켜진 상태)을 미리 보여줘 전부 켜진 것처럼 보인다. */
+  .steprail-num { animation: steprailFlow 5s linear infinite; }
+  .steprail-item:nth-child(1) .steprail-num { animation-delay: 0s; }
+  .steprail-item:nth-child(2) .steprail-num { animation-delay: 0.85s; }
+  .steprail-item:nth-child(3) .steprail-num { animation-delay: 1.7s; }
+  .steprail-item:nth-child(4) .steprail-num { animation-delay: 2.55s; }
+  .steprail-item:nth-child(5) .steprail-num { animation-delay: 3.4s; }
+
+  /* 5주는 평소에도 채워진 상태라 테두리 대신 빛의 세기로만 차례를 표시한다 */
+  .steprail-item.is-goal .steprail-num { animation-name: steprailFlowGoal; }
+
+  /* 연결선을 타고 내려가는 빛 */
+  .steprail::before {
+    background:
+      linear-gradient(180deg, transparent 0%, var(--blue-300) 50%, transparent 100%),
+      linear-gradient(180deg, var(--edge-hover), rgba(96, 165, 250, 0.55));
+    background-size: 100% 20%, 100% 100%;
+    background-repeat: no-repeat;
+    animation: steprailTrace 5s linear infinite;
+  }
+}
+
+@keyframes steprailFlow {
+  0%, 12% {
+    transform: scale(1.06);
+    border-color: var(--blue-400);
+    color: var(--blue-300);
+    box-shadow: 0 0 20px -4px rgba(96, 165, 250, 0.65);
+  }
+  26%, 100% {
+    transform: none;
+    border-color: var(--edge-hover);
+    color: var(--text-2);
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+  }
+}
+
+@keyframes steprailFlowGoal {
+  0%, 12% {
+    transform: scale(1.1);
+    box-shadow: 0 0 34px -2px rgba(96, 165, 250, 0.95);
+  }
+  26%, 100% {
+    transform: none;
+    box-shadow: 0 0 26px -4px rgba(96, 165, 250, 0.75);
+  }
+}
+
+@keyframes steprailTrace {
+  from { background-position: 0 -30%, 0 0; }
+  to   { background-position: 0 130%, 0 0; }
 }
 .steprail-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-1); }
 .steprail-body { margin-top: 8px; max-width: 660px; font-size: 14px; line-height: 1.75; color: var(--text-2); }
@@ -4934,3 +4983,21 @@ a.pager-num:hover { border-color: var(--edge-hover); color: var(--text-1); }
 .auth-privacy a:hover { color: var(--text-1); }
 
 .auth-privacy { margin-top: 12px; }
+
+/* 헤드라인 일부만 밑줄 강조 */
+.heading-underline {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.14em;
+  text-decoration-skip-ink: auto;
+}
+
+/* 본문 마지막 줄에 한 단어만 남는 것(위도우)을 막는다.
+   브라우저가 줄 길이를 고르게 나눠 잡아준다. */
+.section-text,
+.card-body,
+.journey-note,
+.specrow-note,
+.curri-next-desc,
+.eco-group-body,
+.activity-desc { text-wrap: pretty; }
