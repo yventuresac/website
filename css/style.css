@@ -4464,8 +4464,11 @@ a.pager-num:hover { border-color: var(--edge-hover); color: var(--text-1); }
    겹치지 않습니다. */
 .yvi-scene {
   position: absolute;
-  left: 43%;
-  right: 6%;
+  /* 사선 클립은 (39%,0)→(15%,100%). 가장 큰 씬의 상단(패널 높이 32% 지점)에서
+     사선은 31.3% 에 있으므로 37% 면 약 6%p 여유를 두고 잘리지 않는다.
+     left/right 를 같은 폭만큼 옮겨 씬 크기는 그대로 두고 위치만 왼쪽으로. */
+  left: 37%;
+  right: 12%;
   top: 50%;
   transform: translateY(-50%);
   text-align: center;
@@ -5001,3 +5004,219 @@ a.pager-num:hover { border-color: var(--edge-hover); color: var(--text-1); }
 .curri-next-desc,
 .eco-group-body,
 .activity-desc { text-wrap: pretty; }
+
+/* VC Career 타임테이블 — 좁은 화면에서는 시간과 내용을 위아래로 쌓는다.
+   220px 고정 칸 + 32px 간격을 유지하면 375px 화면에서 내용 칸에
+   75px 밖에 남지 않아 "Networking Reception" 같은 항목이 넘쳤다. */
+@media (max-width: 640px) {
+  .timetable-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 18px 16px;
+    align-items: start;
+  }
+  .timetable-time { font-size: 13px; }
+  .timetable-content { font-size: 14px; }
+}
+
+/* 모바일 탭 영역 — 손가락으로 누르는 버튼은 최소 48px.
+   43px 이던 지원 버튼이 기준(44px)에 못 미쳤다. */
+@media (max-width: 640px) {
+  .btn {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .deadline-pill { min-height: 40px; display: inline-flex; align-items: center; }
+  .recruit-contact a { display: inline-block; padding: 6px 2px; }
+}
+
+/* 본문 문장 구분용 줄바꿈은 좁은 화면에서 무시한다.
+   데스크톱에서 "문장마다 새 줄"로 잡아둔 <br> 이 모바일에서는
+   자연 줄바꿈과 겹쳐 한 단어짜리 줄을 만든다.
+   (앞에 공백을 넣어둔 덕에 숨겨도 문장이 붙지 않는다)
+   헤드라인의 <br> 은 의도된 디자인이라 그대로 둔다. */
+@media (max-width: 640px) {
+  .recruit-sub br,
+  .page-desc br,
+  .section-text br,
+  .eco-group-body br,
+  .curri-next-desc br,
+  .ys-compass-note br,
+  .yv-popup-desc br,
+  .network-hero p br,
+  .eco-hero p br { display: none; }
+}
+
+/* ── 맨 위로 버튼 ── */
+.to-top {
+  position: fixed;
+  right: 28px;
+  bottom: 88px;             /* 질문하기 버튼(28px + 48px) 위에 얹힌다 */
+  z-index: 60;              /* 푸터·프로그램 드롭다운(z-index 50)보다 위 */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--edge-hover);
+  background: rgba(14, 16, 22, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text-2);
+  cursor: pointer;
+  /* 평소에는 없는 것처럼 둔다 */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.25s, transform 0.25s, visibility 0.25s,
+              color 0.2s, border-color 0.2s, background 0.2s;
+}
+.to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
+.to-top:hover {
+  color: var(--text-1);
+  border-color: var(--blue-400);
+  background: rgba(20, 24, 34, 0.94);
+}
+.to-top:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+.to-top svg { display: block; }
+
+@media (max-width: 640px) {
+  .to-top { right: 16px; bottom: 74px; width: 46px; height: 46px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .to-top { transition: opacity 0.01s, visibility 0.01s; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   질문하기 — 우측 하단 떠 있는 버튼과 패널
+   ══════════════════════════════════════════════════════════ */
+.ask-fab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 61;
+  height: 48px;
+  padding: 0 20px 0 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--blue-400);
+  background: var(--blue-500);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -10px rgba(37, 99, 235, 0.7);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.ask-fab:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -12px rgba(37, 99, 235, 0.85); }
+.ask-fab:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+.ask-fab svg { flex: none; }
+.ask-fab-label { white-space: nowrap; }
+
+.ask-panel {
+  position: fixed;
+  right: 28px;
+  bottom: 88px;
+  z-index: 62;
+  width: min(360px, calc(100vw - 40px));
+  border-radius: 16px;
+  border: 1px solid var(--edge-hover);
+  background: rgba(16, 18, 24, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.ask-panel.is-open { opacity: 1; transform: none; }
+
+.ask-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--edge);
+}
+.ask-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.ask-sub { margin-top: 3px; font-size: 12px; color: var(--text-3); }
+.ask-close {
+  flex: none;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.ask-close:hover { background: rgba(255,255,255,0.07); color: var(--text-1); }
+
+.ask-body { padding: 16px 18px 18px; }
+.ask-note { font-size: 13px; line-height: 1.7; color: var(--text-2); margin: 0; word-break: keep-all; }
+.ask-alt { margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-3); }
+.ask-alt a { color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; }
+
+.ask-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 108px;
+  padding: 12px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--edge-hover);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text-1);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.ask-form textarea:focus { outline: none; border-color: var(--blue-400); }
+.ask-form textarea::placeholder { color: var(--text-3); }
+
+.ask-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.ask-from { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ask-actions { display: flex; gap: 8px; margin-top: 14px; }
+.ask-actions .btn { min-height: 40px; padding: 0 18px; font-size: 13px; }
+
+.ask-status { margin: 10px 0 0; font-size: 12px; color: var(--text-3); min-height: 1em; }
+.ask-status.is-error { color: #FCA5A5; }
+
+.ask-done { text-align: center; padding: 10px 0 4px; }
+.ask-done-mark {
+  width: 42px; height: 42px; margin: 0 auto 12px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid var(--blue-400);
+  color: var(--blue-300);
+  font-size: 20px;
+}
+.ask-done-title { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--text-1); }
+
+@media (max-width: 640px) {
+  .ask-fab { right: 16px; bottom: 16px; height: 46px; padding: 0 16px 0 13px; font-size: 13px; }
+  .ask-panel { right: 16px; left: 16px; bottom: 74px; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-fab, .ask-panel { transition: opacity 0.01s; transform: none; }
+  .ask-fab:hover { transform: none; }
+}
