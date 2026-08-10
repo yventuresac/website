@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
   <title>About — Y-VENTURES</title>
-  <link rel="stylesheet" href="../css/style.css?v=20260525" />
+  <meta name="description" content="Y-VENTURES 인사말, 단체 소개, 그리고 걸어온 길." />
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
 
@@ -17,9 +18,9 @@
       <li class="nav-item">
         <a href="./" class="active">ABOUT</a>
         <div class="dropdown">
-          <a href="./">Who we are</a>
-          <a href="../greetings/">Greetings</a>
-          <a href="../history/">History</a>
+          <a href="#greetings">Greetings</a>
+          <a href="#who-we-are">Who we are</a>
+          <a href="#history">History</a>
         </div>
       </li>
       <li class="nav-item">
@@ -42,8 +43,8 @@
         <a href="../scouts/">SCOUTS</a>
         <div class="dropdown">
           <a href="../curriculum/">Curriculum</a>
-          <a href="../insights/">Insights</a>
           <a href="../recruiting/">Recruiting</a>
+          <a href="../insights/">Insights</a>
         </div>
       </li>
       <li class="nav-item"><a href="../contact/">CONTACT</a></li>
@@ -53,36 +54,200 @@
     </button>
   </nav>
 
-  <section class="about-hero">
-    <div class="about-hero-inner">
-      <div class="about-photo-frame about-photo-frame-wide">
-        <img class="about-photo" src="../assets/YV%202-3.jpeg" alt="Y-VENTURES 팀" />
+  <div class="about-flow">
+
+    <nav class="about-subnav" aria-label="About 섹션">
+      <div class="about-subnav-inner">
+        <a href="#greetings" class="about-subnav-link" data-target="greetings">Greetings</a>
+        <a href="#who-we-are" class="about-subnav-link" data-target="who-we-are">Who we are</a>
+        <a href="#history" class="about-subnav-link" data-target="history">History</a>
       </div>
-      <h1 class="about-hero-title">Who We Are</h1>
-      <p class="about-hero-desc">연세대학교 학생 창업가의 첫 번째 파트너. Y-VENTURES는 가장 이른 시점부터 가장 가까이에서 함께합니다.</p>
-    </div>
-  </section>
+    </nav>
 
-  <section class="about-intro">
-    <div class="about-intro-inner">
-      <hr class="about-intro-divider" />
-      <p class="about-intro-lead">Y-VENTURES는 2023년 연세대학교 학생 주도 액셀러레이터로 출범한 비영리 단체입니다.</p>
-      <p class="about-intro-line">연세 캠퍼스 안에서 가장 이른 단계의 학생 창업가를 먼저 발견하고, 아이디어부터 시장 진입까지 가장 가까운 자리에서 함께합니다. 연세 동문 VC와 후속 투자자로 이어지는 네트워크를 통해 자본 시장으로 학생 창업가를 직접 연결합니다.</p>
-      <p class="about-intro-line"><strong>학생창업자 대상 멘토링을 통한 성장 지원</strong>과 <strong>학생창업 문화 및 생태계 확산</strong>이라는 두 가지 목표를 두고 있습니다.</p>
-      <p class="about-intro-line">이전까지 스타트업 현장에서 부족했던 연세대학 출신들 간의 네트워크를 견고히 다지고, 훌륭한 연세 학생창업팀을 양성 및 발굴하여 지원함으로서 <strong>학교와 초기 VC 사이의 중요 연결다리</strong>를 만들기 위해 설립되었습니다.</p>
-    </div>
-  </section>
+    <!-- ── 1. GREETINGS ── -->
+    <section id="greetings" class="section about-anchor about-band-first">
+      <div class="greetings-layout">
+        <div class="greetings-copy">
+          <div class="eyebrow">Greetings</div>
+          <h1 class="section-heading">연세대학교를<br>창업의 허브로</h1>
+          <p class="section-text">
+            Y-VENTURES는 연세대학교를 창업의 허브로 만들고자 합니다. 연세인의 창업 여정에서 불필요한 시행착오를 줄이고, 성장에 집중할 수 있도록 초기 창업가와 팀들을 최선을 다해 돕고 있습니다. Y-VENTURES를 운영하는 일 자체가 창업이라고 생각합니다.
+          </p>
+          <p class="section-text" style="margin-top: 24px;">
+            저희는 도전하는 연세인들의 가능성을 믿고, 사람과 사람을 잇는 연대의 힘을 바탕으로 연세대학교의 창업 생태계를 성장시키기 위해 할 수 있는 모든 일에 도전하고 있습니다.
+          </p>
+        </div>
+        <div class="about-photo-frame greetings-photo">
+          <img class="about-photo" src="../assets/YV%202-3.jpeg" alt="Y-VENTURES 팀" />
+        </div>
+      </div>
+    </section>
 
-  <section class="about-manifesto">
-    <div class="manifesto-inner">
-      <p class="manifesto-line" data-step="1">가장 먼저 발견하고,</p>
-      <p class="manifesto-line" data-step="2">가장 가까이에서 돕고,</p>
-      <p class="manifesto-line manifesto-accent" data-step="3">가장 멀리 보냅니다.</p>
-    </div>
-  </section>
+    <section class="section about-band-letters">
+      <div class="letter-block">
+        <div class="letter-meta">
+          <div class="letter-role">Partner</div>
+          <div class="letter-name">한명규</div>
+          <div class="letter-name-en">Myeonggyu Han</div>
+        </div>
+        <div class="letter-body">
+          <p class="lead">"창업자가 성장 그 자체에 집중할 수 있는 환경을 만듭니다."</p>
+          <p>
+            Y-VENTURES는 기존에 약하다고 평가받던 연세대학교 내의 창업 네트워크를 강화하고, 학생 창업 문화를 확산시키기 위해 끊임없이 노력하겠습니다.
+          </p>
+          <p>
+            창업자가 마주하는 장애물을 줄이고, 성장에 온전히 집중할 수 있는 환경을 만드는 것이 우리의 출발점입니다. 연세대학교 동문 네트워크를 견고히 다지고 새로운 창업가들이 더 빠르게, 더 멀리 갈 수 있도록 함께하겠습니다.
+          </p>
+          <p class="signature">Partner of Y-VENTURES</p>
+        </div>
+      </div>
+
+      <div class="letter-block">
+        <div class="letter-meta">
+          <div class="letter-role">Founder</div>
+          <div class="letter-name">박선우</div>
+          <div class="letter-name-en">Sunwoo Park</div>
+        </div>
+        <div class="letter-body">
+          <p class="lead">"Y-VENTURES는 연결의 힘을 믿습니다."</p>
+          <p>
+            Y-VENTURES는 2023년 3월, 창업과 벤처캐피탈, 전략 업계 경험을 가진 학생 창업자들이 모여 만든 연세대학교 학생 주도 엑셀러레이터입니다.
+          </p>
+          <p>
+            우리는 세 가지 연결의 힘을 믿습니다. 학생 창업자 간의 협업, 연세 동문 네트워크의 강화, 그리고 사람과 사람 사이의 연결입니다. 또한 Y-VENTURES를 통해 연세대학교 학생들만을 위한 VC 커리어 네트워크를 제공합니다.
+          </p>
+          <p>
+            이전까지 스타트업 현장에 부족했던 연세 동문 간의 네트워크를 견고히 다지고, 훌륭한 연세 학생 창업팀을 양성·발굴·지원함으로써 학교와 시드 단계 VC 사이의 중요한 연결다리를 만드는 것이 우리의 목표입니다.
+          </p>
+          <p class="signature">Founder of Y-VENTURES</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. WHO WE ARE ── -->
+    <section id="who-we-are" class="about-intro about-intro-flow about-anchor">
+      <div class="about-intro-inner">
+        <div class="eyebrow">Who we are</div>
+        <hr class="about-intro-divider" />
+        <p class="about-intro-lead">Y-VENTURES는 2023년 연세대학교 학생 주도 엑셀러레이터로 출범한 비영리 단체입니다.</p>
+        <p class="about-intro-line">연세 캠퍼스에서 이른 단계의 학생 창업가를 먼저 찾습니다. 아이디어부터 시장 진입까지 함께합니다. 연세 동문 VC와 후속 투자자로 이어지는 네트워크를 통해 자본 시장으로 학생 창업가를 직접 연결합니다.</p>
+        <p class="about-intro-line"><strong>학생 창업자 대상 멘토링을 통한 성장 지원</strong>과 <strong>학생 창업 문화 및 생태계 확산</strong>이라는 두 가지를 목표로 합니다.</p>
+        <p class="about-intro-line">이전까지 스타트업 현장에서 부족했던 연세대 출신 간의 네트워크를 견고히 다지고, 훌륭한 연세 학생 창업팀을 양성·발굴하고 지원함으로써 <strong>학교와 초기 VC 사이의 중요 연결다리</strong>를 만들기 위해 설립되었습니다.</p>
+      </div>
+    </section>
+
+    <section class="about-manifesto">
+      <div class="manifesto-inner">
+        <p class="manifesto-line" data-step="1">아이디어 단계에서 만나고,</p>
+        <p class="manifesto-line" data-step="2">검증까지 같이 뛰고,</p>
+        <p class="manifesto-line manifesto-accent" data-step="3">투자자에게 연결합니다.</p>
+      </div>
+    </section>
+
+    <!-- ── 3. HISTORY ── -->
+    <section id="history" class="history-section about-anchor">
+      <div class="history-intro">
+        <div class="eyebrow">History</div>
+        <h2 class="section-heading" style="margin-top: 14px;">연세 학생 창업 생태계와<br>함께 성장해온 시간</h2>
+      </div>
+
+      <div class="year-group">
+        <div class="year-label">2026</div>
+        <div class="event-list">
+          <div class="event-item">
+            <div class="event-date">07.22</div>
+            <div class="event-title">Boost Program 4기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">06.30</div>
+            <div class="event-title">Y-VENTURES Accelerator &amp; Academia 통합</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">06.04</div>
+            <div class="event-title">VC Career Session 2026 개최</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">03.03</div>
+            <div class="event-title">Y-VENTURES Academia 3기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">01.10</div>
+            <div class="event-title">Y-Startup Program 3기 런칭</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="year-group">
+        <div class="year-label">2025</div>
+        <div class="event-list">
+          <div class="event-item">
+            <div class="event-date">11.22</div>
+            <div class="event-title">Y-VENTURES Network Party 2025 개최</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">09.04</div>
+            <div class="event-title">Y-VENTURES Academia 2기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">07.09</div>
+            <div class="event-title">Boost Program 3기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">06.04</div>
+            <div class="event-title">VC Career Session 2025 개최</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">02.17</div>
+            <div class="event-title">Y-VENTURES Academia 1기 런칭</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="year-group">
+        <div class="year-label">2024</div>
+        <div class="event-list">
+          <div class="event-item">
+            <div class="event-date">12.10</div>
+            <div class="event-title">VC Career Session 2024 개최</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">11.02</div>
+            <div class="event-title">Y-Startup Program 2기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">06.29</div>
+            <div class="event-title">Boost Program 2기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">05.25</div>
+            <div class="event-title">Y-VENTURES Networking Party 최초 개최</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="year-group">
+        <div class="year-label">2023</div>
+        <div class="event-list">
+          <div class="event-item">
+            <div class="event-date">10.28</div>
+            <div class="event-title">Y-Startup Program 1기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">07.15</div>
+            <div class="event-title">Boost Program 1기 런칭</div>
+          </div>
+          <div class="event-item">
+            <div class="event-date">03.03</div>
+            <div class="event-title">Y-VENTURES 단체 설립</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
 
   <section class="about-cta">
-    <h2 class="about-cta-title">연세 창업 생태계의<br>첫 번째 자리에 함께하세요.</h2>
+    <h2 class="about-cta-title">연세 창업 생태계에 함께하세요</h2>
     <div class="about-cta-actions">
       <a href="../programs/" class="btn btn-black">프로그램 보기</a>
       <a href="../contact/" class="btn btn-outline">Contact</a>
@@ -106,7 +271,6 @@
 
       <div class="footer-meta">
         <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
-        <a href="mailto:academia@yventures.ac">academia@yventures.ac</a>
         <span class="footer-loc">Seoul, South Korea</span>
       </div>
 
@@ -134,9 +298,7 @@
 
       <div class="footer-bottom">
         <div class="footer-legal">
-          <a href="#">Terms of Use</a>
-          <span class="footer-divider">|</span>
-          <a href="#">Privacy</a>
+          <a href="../privacy/">개인정보 처리방침</a>
         </div>
       </div>
     </div>
@@ -152,7 +314,7 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    const revealSelectors = ['.about-photo-frame', '.about-hero-title', '.about-hero-desc', '.about-intro-divider', '.about-intro-lead', '.about-intro-line', '.manifesto-line', '.about-cta-title', '.about-cta-actions', '.btn'];
+    const revealSelectors = ['.about-photo-frame', '.about-hero-title', '.about-hero-desc', '.eyebrow', '.section-heading', '.section-text', '.letter-block', '.about-intro-divider', '.about-intro-lead', '.about-intro-line', '.manifesto-line', '.year-group', '.about-cta-title', '.about-cta-actions'];
     const revealTargets = document.querySelectorAll(revealSelectors.join(','));
     revealTargets.forEach((el) => {
       el.classList.add('reveal');
@@ -168,6 +330,22 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealTargets.forEach((el) => io.observe(el));
+
+    // section switcher — highlight the band currently in view
+    const spySections = ['greetings', 'who-we-are', 'history']
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+    const spyLinks = document.querySelectorAll('.about-subnav-link');
+    const spy = () => {
+      let current = spySections[0];
+      spySections.forEach((s) => {
+        if (s.getBoundingClientRect().top <= 160) current = s;
+      });
+      spyLinks.forEach((a) => a.classList.toggle('active', a.dataset.target === current.id));
+    };
+    window.addEventListener('scroll', spy, { passive: true });
+    window.addEventListener('resize', spy, { passive: true });
+    spy();
   </script>
   <!-- auth: nav login/logout -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

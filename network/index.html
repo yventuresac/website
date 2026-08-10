@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
   <title>Network — Y-VENTURES</title>
+  <meta name="description" content="동문 VC, 유니콘 창업자, 교수진, 창업지원단까지. Y-VENTURES가 잇는 연세 안팎의 창업·투자 네트워크입니다." />
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body class="accent-network">
@@ -17,9 +18,9 @@
       <li class="nav-item">
         <a href="../about/">ABOUT</a>
         <div class="dropdown">
-          <a href="../about/">Who we are</a>
-          <a href="../greetings/">Greetings</a>
-          <a href="../history/">History</a>
+          <a href="../about/#greetings">Greetings</a>
+          <a href="../about/#who-we-are">Who we are</a>
+          <a href="../about/#history">History</a>
         </div>
       </li>
       <li class="nav-item">
@@ -42,8 +43,8 @@
         <a href="../scouts/">SCOUTS</a>
         <div class="dropdown">
           <a href="../curriculum/">Curriculum</a>
-          <a href="../insights/">Insights</a>
           <a href="../recruiting/">Recruiting</a>
+          <a href="../insights/">Insights</a>
         </div>
       </li>
       <li class="nav-item"><a href="../contact/">CONTACT</a></li>
@@ -55,8 +56,8 @@
 
   <section class="network-hero">
     <div class="eyebrow">Network</div>
-    <h1>연세를 중심으로,<br>가장 넓게 연결됩니다.</h1>
-    <p>학생 창업팀부터 동문 VC, 유니콘 창업자, 교수진, 창업지원단, 그리고 외부 파트너까지. Y-VENTURES는 연세 안팎의 모든 스타트업·VC 노드를 하나로 잇습니다.</p>
+    <h1>연세를 중심으로,<br>가장 넓게 연결됩니다</h1>
+    <p>학생 창업팀부터 동문 VC, 유니콘 창업자, 교수진, 창업지원단, 그리고 외부 파트너까지. Y-VENTURES는 연세 안팎의 창업·투자 주체를 하나로 잇습니다.</p>
   </section>
 
   <section class="network-canvas">
@@ -147,6 +148,29 @@
     </div>
   </section>
 
+  <section class="network-hub">
+    <div class="eyebrow">Explore</div>
+    <h2 class="section-heading">네트워크 들여다보기</h2>
+
+    <div class="network-hub-grid">
+      <a href="../team/" class="network-hub-card">
+        <div class="network-hub-title">Our Team</div>
+        <p class="network-hub-desc">Y-VENTURES를 움직이는 파트너, 리더십, 어드바이저를 소개합니다.</p>
+        <span class="network-hub-cta">자세히 보기 <span class="arrow">→</span></span>
+      </a>
+      <a href="../partners/" class="network-hub-card">
+        <div class="network-hub-title">Our Partners</div>
+        <p class="network-hub-desc">학생 창업팀의 성장을 함께 만드는 파트너 VC와 파트너사를 소개합니다.</p>
+        <span class="network-hub-cta">자세히 보기 <span class="arrow">→</span></span>
+      </a>
+      <a href="../yonsei/" class="network-hub-card">
+        <div class="network-hub-title">Yonsei Ecosystem</div>
+        <p class="network-hub-desc">동문 VC, 유니콘 창업자, 교수진, 학회까지 연세 창업 생태계를 잇습니다.</p>
+        <span class="network-hub-cta">자세히 보기 <span class="arrow">→</span></span>
+      </a>
+    </div>
+  </section>
+
   <footer>
     <div class="footer-inner">
       <div class="footer-top">
@@ -164,7 +188,6 @@
 
       <div class="footer-meta">
         <a href="mailto:accelerator@yventures.ac">accelerator@yventures.ac</a>
-        <a href="mailto:academia@yventures.ac">academia@yventures.ac</a>
         <span class="footer-loc">Seoul, South Korea</span>
       </div>
 
@@ -192,9 +215,7 @@
 
       <div class="footer-bottom">
         <div class="footer-legal">
-          <a href="#">Terms of Use</a>
-          <span class="footer-divider">|</span>
-          <a href="#">Privacy</a>
+          <a href="../privacy/">개인정보 처리방침</a>
         </div>
       </div>
     </div>
@@ -210,18 +231,41 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    const revealTargets = document.querySelectorAll('.network-hero h1, .network-hero p, .network-stat, .net-node');
+    const revealTargets = document.querySelectorAll('.network-hero h1, .network-hero p, .network-stat, .network-hub .eyebrow, .network-hub .section-heading, .network-hub-card');
     revealTargets.forEach((el, i) => {
       el.classList.add('reveal');
       const d = i % 3;
       if (d > 0) el.setAttribute('data-delay', String(d));
     });
+
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealTargets.forEach((el) => io.observe(el));
+
+    // SVG 노드는 transform="translate(x,y)" 속성으로 배치돼 있습니다.
+    // .reveal 의 CSS transform 이 그 속성을 덮어써 노드가 원점에 겹치므로 투명도만 페이드하고,
+    // 노드 하나하나가 아니라 다이어그램 전체를 관찰해 한 번에 순차로 나타냅니다.
+    const canvas = document.querySelector('.network-canvas');
+    const netNodes = [...document.querySelectorAll('.net-node')];
+    netNodes.forEach((el, i) => {
+      el.classList.add('fade-reveal');
+      el.style.transitionDelay = (i * 0.07).toFixed(2) + 's';
+    });
+    if (canvas) {
+      const canvasIO = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          netNodes.forEach((el) => el.classList.add('in-view'));
+          canvasIO.disconnect();
+        });
+      }, { threshold: 0.1 });
+      canvasIO.observe(canvas);
+    } else {
+      netNodes.forEach((el) => el.classList.add('in-view'));
+    }
   </script>
   <!-- auth: nav login/logout -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
