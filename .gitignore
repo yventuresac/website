@@ -1,3 +1,6 @@
 .DS_Store
 *.log
 node_modules/
+
+# Claude Code 로컬 설정 (PC마다 다름)
+.claude/settings.local.json
