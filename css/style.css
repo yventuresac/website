@@ -5220,3 +5220,273 @@ a.pager-num:hover { border-color: var(--edge-hover); color: var(--text-1); }
   .ask-fab, .ask-panel { transition: opacity 0.01s; transform: none; }
   .ask-fab:hover { transform: none; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   NEWSLETTER — 주간 다이제스트
+   읽는 지면이 아니라 훑는 지면이다. 한 아이템은 제목 한 줄 + 요약 한 줄 +
+   출처가 전부이고, 더 읽고 싶은 사람은 출처로 나간다.
+   그래서 여백을 '문단 사이'가 아니라 '코너 사이'에 몰아준다.
+   ══════════════════════════════════════════════════════════ */
+
+body.accent-newsletter .page-header::before {
+  background: radial-gradient(ellipse at 35% 45%, rgba(96, 165, 250, 0.14) 0%, transparent 60%);
+}
+
+/* ── 구독 안내 ──
+   아카이브와 같은 780px 축에 맞춘다. 축이 둘이면 페이지가 흔들려 보인다. */
+.nl-subscribe {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--glow);
+  text-align: center;
+}
+.nl-subscribe h2 {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--text-h3);
+  letter-spacing: var(--ls-snug);
+  color: var(--text-1);
+}
+/* 안내 문구도 p 라서, 이 규칙을 전체 p 에 걸면 아래 .nl-subscribe-note 의
+   margin-top 을 특이도로 덮어써 버튼과 0px 로 붙어버린다. 리드 문단만 잡는다. */
+.nl-subscribe p:not(.nl-subscribe-note) { margin: 0 0 var(--space-sm); color: var(--text-2); line-height: var(--lh-normal); }
+.nl-subscribe .btn:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+.nl-subscribe-note { margin: var(--space-sm) 0 0; font-size: var(--text-body-sm); color: var(--text-3); }
+
+/* 구독자 수 — 뉴스레터 지면에서 가장 강한 설득 재료다.
+   숫자를 손으로 적으면 반드시 낡으므로 메일리에서 읽어와 채운다. */
+/* inline-flex 로 두면 바로 뒤의 버튼(inline-block)과 같은 줄에 붙는다.
+   블록으로 만들되 폭은 내용만큼만 잡고 가운데로 민다. */
+.nl-proof {
+  display: flex; align-items: center; gap: 8px;
+  width: fit-content;
+  margin: 0 auto var(--space-md);
+  padding: 6px 14px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  font-size: var(--text-body-sm);
+  color: var(--text-2);
+}
+.nl-proof-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue-300); flex: none;
+}
+.nl-proof strong { color: var(--text-1); font-weight: var(--fw-semibold); }
+
+/* ── 아카이브 목록 ── */
+.nl-archive { max-width: 780px; margin: 0 auto; display: grid; gap: 12px; }
+.nl-issue-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--bg-card);
+  text-decoration: none;
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+}
+/* 대표 사진은 메일리에서 내려받아 저장소에 둔 것이다. 남의 CDN 을 링크하면
+   계정이나 이미지가 사라지는 순간 아카이브가 통째로 깨진다.
+   aspect-ratio 를 박아두는 이유는 지연 로딩 때문이다 — 크기를 모르면
+   사진이 도착하는 순간 목록 전체가 아래로 밀린다. */
+.nl-issue-thumb {
+  flex: 0 0 104px;
+  aspect-ratio: 104 / 72;
+  border-radius: 10px; overflow: hidden;
+  background: var(--bg-elevated);
+}
+.nl-issue-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.35s var(--ease-out);
+}
+.nl-issue-body { min-width: 0; flex: 1; }
+
+.nl-issue-card:hover { border-color: var(--edge-hover); box-shadow: var(--glow-hover); transform: translateY(-2px); }
+.nl-issue-card:hover .nl-issue-thumb img { transform: scale(1.05); }
+/* 키보드로도 지금 어디에 있는지 보여야 한다. 사이트 공통 규칙과 같은 표시를 쓴다. */
+.nl-issue-card:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+
+.nl-issue-meta {
+  display: flex; gap: var(--space-xs); align-items: center;
+  font-size: 12px; letter-spacing: var(--ls-wide);
+  color: rgba(255, 255, 255, 0.55); margin-bottom: 6px;
+}
+.nl-issue-card h3 { margin: 0 0 6px; font-size: var(--text-body-lg); color: var(--text-1); letter-spacing: var(--ls-snug); line-height: var(--lh-snug); }
+.nl-issue-card p { margin: 0; font-size: var(--text-body-sm); color: var(--text-2); line-height: var(--lh-normal); }
+.nl-empty {
+  max-width: 780px; margin: 0 auto; padding: var(--space-2xl) var(--space-md);
+  text-align: center; color: var(--text-3); border: 1px dashed var(--edge); border-radius: 12px;
+}
+/* 아카이브 섹션 제목은 구독 CTA 보다 한 단계 낮다.
+   둘 다 36px 이면 무엇이 이 페이지의 주된 행동인지 알 수 없다. */
+.nl-archive-head { max-width: 780px; margin: 0 auto var(--space-lg); }
+.nl-archive-head .eyebrow { margin-bottom: var(--space-xs); }
+.nl-archive-head h2 {
+  margin: 0 0 6px; font-size: 26px; line-height: var(--lh-snug);
+  letter-spacing: var(--ls-snug); color: var(--text-1); font-weight: var(--fw-bold);
+}
+.nl-archive-head p { margin: 0; font-size: var(--text-body-sm); color: var(--text-3); line-height: var(--lh-normal); }
+
+/* 섹션 둘이 붙으면 120+120 = 240px 가 비어 흐름이 끊긴다 */
+.section.nl-cta { padding-top: var(--space-3xl); }
+
+/* 무엇이 담기는지 — 구독을 결정하는 데 필요한 정보라 버튼 바로 위에 둔다 */
+.nl-what {
+  list-style: none;
+  margin: var(--space-lg) 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  text-align: left;
+}
+.nl-what li {
+  padding: 14px 16px;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--bg-base);
+  font-size: var(--text-body-sm);
+  color: var(--text-2);
+  line-height: var(--lh-normal);
+}
+.nl-what strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--text-body);
+  font-weight: var(--fw-semibold);
+  color: var(--text-1);
+}
+.nl-subscribe .eyebrow { margin-bottom: var(--space-xs); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nl-issue-card, .nl-issue-thumb img { transition: none; }
+  .nl-issue-card:hover { transform: none; }
+  .nl-issue-card:hover .nl-issue-thumb img { transform: none; }
+}
+
+/* ── 호 본문 ── */
+.nl-issue { max-width: 720px; margin: 0 auto; }
+
+/* 시안임을 숨기지 않는다 */
+.nl-draft-banner {
+  max-width: 720px; margin: 0 auto var(--space-xl);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #FCD34D;
+  font-size: var(--text-body-sm);
+  line-height: var(--lh-normal);
+}
+
+.nl-issue-head { margin-bottom: var(--space-2xl); padding-bottom: var(--space-md); border-bottom: 1px solid var(--edge); }
+.nl-readtime { font-size: var(--text-body-sm); color: var(--text-3); }
+
+/* ── 코너 ──
+   코너 하나가 큰 패널이고 그 안에 아이템 카드가 쌓인다.
+   패널 제목 끝의 숫자에만 색을 준다 — 눈이 먼저 걸리는 지점을 하나만 만든다. */
+.nl-corner {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-lg);
+  border: 1px solid var(--edge);
+  border-radius: 20px;
+  background: var(--bg-section);
+}
+.nl-corner-head { margin-bottom: var(--space-md); }
+.nl-corner-head h2 {
+  margin: 0 0 4px;
+  font-size: var(--text-h3);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-snug);
+  color: var(--text-1);
+  font-weight: var(--fw-bold);
+}
+.nl-count { color: var(--blue-300); }
+.nl-corner-sub { font-size: var(--text-body-sm); color: var(--text-3); }
+
+/* ── 아이템 카드 ── */
+.nl-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.nl-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--bg-card);
+  transition: border-color 0.2s var(--ease-out);
+}
+.nl-card:hover { border-color: var(--edge-hover); }
+
+/* 원형 슬롯.
+   자체 생성 이미지를 넣으면 img 가 슬롯을 덮고, 없으면 코너 표식 글자가 그대로 보인다.
+   언론사 사진은 넣지 않는다 — 저작권 분쟁이 잦은 영역이라 학회가 질 위험이 아니다. */
+.nl-thumb {
+  flex: 0 0 52px; width: 52px; height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: var(--fw-bold); letter-spacing: -0.02em;
+  text-align: center; line-height: 1.1;
+  background: rgba(255, 255, 255, 0.08); color: var(--text-2);
+}
+.nl-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nl-thumb.is-kr      { background: rgba(96, 165, 250, 0.16);  color: #93C5FD; }
+.nl-thumb.is-global  { background: rgba(167, 139, 250, 0.16); color: #C4B5FD; }
+.nl-thumb.is-funding { background: rgba(52, 211, 153, 0.16);  color: #6EE7B7; }
+.nl-thumb.is-student { background: rgba(251, 191, 36, 0.16);  color: #FCD34D; }
+.nl-thumb.is-faculty { background: rgba(244, 114, 182, 0.16); color: #F9A8D4; }
+
+.nl-card-body { min-width: 0; flex: 1; }
+.nl-item-title {
+  margin: 0 0 6px;
+  font-size: var(--text-body-lg); font-weight: var(--fw-bold);
+  line-height: var(--lh-snug); letter-spacing: var(--ls-snug); color: var(--text-1);
+}
+.nl-item-line { margin: 0 0 8px; font-size: var(--text-body-sm); line-height: var(--lh-normal); color: var(--text-2); }
+
+/* 메타 줄 — 점 하나로 시선을 잡고 출처를 붙인다 */
+.nl-item-src { display: flex; align-items: center; gap: 7px; font-size: var(--text-body-sm); color: var(--text-3); }
+.nl-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-300); flex: 0 0 auto; }
+
+/* ── Y-VENTURES 코멘트 — 주당 2~3건만. 흔해지면 힘을 잃는다 ── */
+.nl-comment {
+  margin-top: var(--space-xs);
+  padding: 10px 14px;
+  border-left: 2px solid var(--blue-400);
+  background: rgba(37, 99, 235, 0.07);
+  border-radius: 0 8px 8px 0;
+  font-size: var(--text-body-sm);
+  line-height: var(--lh-normal);
+  color: var(--text-2);
+}
+.nl-comment strong { color: var(--blue-300); font-weight: var(--fw-semibold); }
+
+/* ── 투자 라운드 표 — 훑기에 가장 강한 형식 ── */
+.nl-table-wrap { overflow-x: auto; }
+.nl-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
+.nl-table th, .nl-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+.nl-table th { font-size: var(--text-eyebrow); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--text-3); font-weight: var(--fw-medium); }
+.nl-table td { color: var(--text-2); }
+.nl-table td:first-child { color: var(--text-1); font-weight: var(--fw-medium); }
+.nl-table .nl-campus { color: var(--blue-300); }
+
+.nl-foot {
+  max-width: 720px; margin: var(--space-2xl) auto 0; padding-top: var(--space-md);
+  border-top: 1px solid var(--edge); font-size: var(--text-body-sm); color: var(--text-3); line-height: var(--lh-normal);
+}
+
+/* 좁은 화면에서는 패널 여백과 카드 여백이 겹쳐 본문 폭을 잡아먹는다.
+   제목이 들어갈 자리를 먼저 확보하고 나머지를 줄인다. */
+@media (max-width: 640px) {
+  .nl-what { grid-template-columns: 1fr; margin: var(--space-md) 0; }
+  .nl-issue-card { gap: 12px; }
+  .nl-issue-thumb { flex-basis: 84px; height: 58px; }
+  .nl-corner { margin-bottom: var(--space-md); padding: var(--space-md) 14px; border-radius: 16px; }
+  .nl-corner-head h2 { font-size: 22px; }
+  .nl-card { padding: 12px; gap: 10px; border-radius: 12px; }
+  .nl-thumb { flex-basis: 40px; width: 40px; height: 40px; font-size: 10px; }
+  .nl-item-title { font-size: var(--text-body); }
+}

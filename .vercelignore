@@ -1,0 +1,2 @@
+# 수집 파이프라인은 GitHub Actions 에서만 돌아간다. 사이트로 배포할 필요가 없다.
+pipeline/
