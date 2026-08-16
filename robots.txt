@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# 로그인·회원 전용 페이지와 내부 자료는 검색 결과에 뜰 이유가 없습니다.
+Disallow: /auth/
+Disallow: /members/
+Disallow: /admin-tools/
+Disallow: /imweb/
+
+Sitemap: https://www.yventures.ac/sitemap.xml

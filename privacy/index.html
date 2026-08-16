@@ -236,8 +236,8 @@
             </tr>
             <tr>
               <td>Vercel, Inc.</td>
-              <td>홈페이지 호스팅</td>
-              <td>접속 기록(IP 주소, 접속 일시, 브라우저 정보)</td>
+              <td>홈페이지 호스팅, 방문 통계 집계</td>
+              <td>접속 기록(IP 주소, 접속 일시, 브라우저 정보), 방문한 페이지 주소·유입 경로·국가·기기 종류</td>
               <td>미국 / 홈페이지 접속 시점에 / 네트워크를 통한 전송</td>
             </tr>
             <tr>
@@ -301,9 +301,14 @@
     <section class="legal-section">
       <h2>9. 쿠키 등 자동 수집 장치의 운영</h2>
       <p>
-        학회는 광고나 이용자 행태 분석을 위한 쿠키를 사용하지 않습니다.
+        학회는 광고나 이용자 행태 추적을 위한 쿠키를 사용하지 않습니다.
         다만 로그인 상태를 유지하기 위해 브라우저의 저장 공간에 인증 정보를 보관합니다.
         브라우저 설정에서 이 정보를 삭제할 수 있으며, 삭제하면 로그아웃됩니다.
+      </p>
+      <p>
+        어떤 페이지가 얼마나 열람되는지 파악하기 위해 방문 통계를 집계합니다.
+        이 집계에는 쿠키를 사용하지 않으며, 개인을 식별하거나 방문자를 여러 사이트에 걸쳐
+        추적하지 않습니다. 수집 항목과 처리 위탁은 위 &lsquo;5. 처리 위탁&rsquo;에 적어 두었습니다.
       </p>
     </section>
 
@@ -389,5 +394,7 @@
   <script src="/js/nav-auth.js"></script>
   <script src="/js/to-top.js" defer></script>
   <script src="/js/ask.js" defer></script>
+  <!-- 방문 통계 (Vercel Web Analytics · 쿠키 없음) -->
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
