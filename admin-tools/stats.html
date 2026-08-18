@@ -12,22 +12,38 @@
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
   <style>
-    .stat-wrap { max-width: 780px; margin: 0 auto; }
+    .stat-wrap { max-width: 880px; margin: 0 auto; }
     .stat-total {
-      display: flex; align-items: baseline; gap: 12px;
+      display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
       padding: var(--space-lg); margin-bottom: var(--space-md);
       border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
     }
     .stat-total b { font-size: 44px; letter-spacing: var(--ls-tight); color: var(--text-1); line-height: 1; }
     .stat-total span { font-size: var(--text-body-sm); color: var(--text-3); }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-card {
+      padding: var(--space-md); border: 1px solid var(--edge);
+      border-radius: 14px; background: var(--bg-card); min-width: 0;
+    }
+    .stat-card h3 {
+      margin: 0 0 12px; font-size: var(--text-eyebrow); letter-spacing: var(--ls-eyebrow);
+      text-transform: uppercase; color: var(--text-3); font-weight: var(--fw-semibold);
+    }
     .stat-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
-    .stat-table th, .stat-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--edge); }
-    .stat-table th { font-size: var(--text-eyebrow); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--text-3); font-weight: var(--fw-medium); }
-    .stat-table td { color: var(--text-2); }
-    .stat-table td:first-child { color: var(--text-1); font-weight: var(--fw-medium); }
-    .stat-table td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: var(--fw-semibold); }
-    .stat-msg { padding: var(--space-2xl) var(--space-md); text-align: center; color: var(--text-3);
+    .stat-table th, .stat-table td { padding: 9px 8px; text-align: left; border-bottom: 1px solid var(--edge); }
+    .stat-table th { font-size: 11px; letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--text-3); font-weight: var(--fw-medium); }
+    .stat-table td { color: var(--text-2); word-break: break-all; }
+    .stat-table td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: var(--fw-semibold); white-space: nowrap; }
+    .stat-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
                 border: 1px dashed var(--edge); border-radius: 12px; }
+    .stat-note { margin-top: 10px; font-size: var(--text-body-sm); color: var(--text-3); }
+    .stat-sec { margin-top: var(--space-2xl); }
+    /* 일자별 막대 — 라이브러리 없이 폭 비율로만 그린다 */
+    .bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
+    .bars .bar { flex: 1; background: var(--blue-500); border-radius: 3px 3px 0 0; min-height: 2px; opacity: 0.85; }
+    .bars .bar:hover { opacity: 1; }
+    .bars-x { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-3); }
+    @media (max-width: 640px) { .stat-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="theme-mono">
@@ -41,136 +57,159 @@
   <div class="page-header">
     <div class="page-tag">Admin</div>
     <h1 class="page-title">통계</h1>
-    <p class="page-desc">관리자만 볼 수 있습니다. 지원서 양식 다운로드 클릭 수를 집계합니다.</p>
+    <p class="page-desc">관리자만 볼 수 있습니다.</p>
   </div>
 
   <section class="section">
-    <div class="stat-wrap">
-      <div class="eyebrow" style="margin-bottom:12px">방문</div>
-      <div id="visits"><div class="stat-msg">불러오는 중…</div></div>
-
-      <div class="eyebrow" style="margin:var(--space-2xl) 0 12px">지원서 양식 다운로드</div>
-      <div id="wrap"><div class="stat-msg" id="msg">불러오는 중…</div></div>
+    <div class="stat-wrap" id="root">
+      <div class="stat-msg">불러오는 중…</div>
     </div>
   </section>
 
   <script>
     (function () {
-      var wrap = document.getElementById("wrap");
-      var msg = document.getElementById("msg");
+      var root = document.getElementById("root");
 
-      function show(html) { wrap.innerHTML = html; }
+      /* 버튼 slug 를 사람이 읽는 이름으로. 화면에만 쓰고 저장값은 그대로 둔다. */
+      var CLICK_NAMES = {
+        "application-form-2026fall": "지원서 양식 다운로드",
+        "apply-email-2026fall": "지원서 보내기",
+        "curriculum-view": "커리큘럼 보기"
+      };
+
       function esc(s) {
         return String(s == null ? "" : s)
           .replace(/&/g, "&amp;").replace(/</g, "&lt;")
           .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
       }
+      function n(v) { return v == null ? "-" : Number(v).toLocaleString("ko-KR"); }
       function fmtDate(s) {
         var d = new Date(s);
         if (isNaN(d)) return "";
-        var p = function (n) { return String(n).padStart(2, "0"); };
+        var p = function (x) { return String(x).padStart(2, "0"); };
         return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+      }
+      function msg(t) { return '<div class="stat-msg">' + esc(t) + '</div>'; }
+
+      /* 항목 목록 카드. 값이 없으면 왜 없는지 적어준다. */
+      function listCard(title, rows, keyName, valKey, emptyText) {
+        var body;
+        if (rows === null) body = msg("불러오지 못했습니다.");
+        else if (!rows.length) body = '<p class="stat-note">' + esc(emptyText) + '</p>';
+        else {
+          body = '<table class="stat-table"><tbody>' + rows.map(function (r) {
+            var label = r[keyName];
+            if (label === "" || label == null) label = "(직접 방문)";
+            return '<tr><td>' + esc(label) + '</td><td class="num">' + n(r[valKey]) + '</td></tr>';
+          }).join("") + '</tbody></table>';
+        }
+        return '<div class="stat-card"><h3>' + esc(title) + '</h3>' + body + '</div>';
+      }
+
+      function dailyCard(rows) {
+        if (!rows || !rows.length) return "";
+        var max = Math.max.apply(null, rows.map(function (r) { return Number(r.pageviews || 0); })) || 1;
+        var bars = rows.map(function (r) {
+          var h = Math.round((Number(r.pageviews || 0) / max) * 100);
+          var d = String(r.timestamp || "").slice(5, 10);
+          return '<div class="bar" style="height:' + Math.max(h, 2) + '%" title="' + esc(d) + ' · ' + n(r.pageviews) + '뷰"></div>';
+        }).join("");
+        var first = String(rows[0].timestamp || "").slice(5, 10);
+        var last = String(rows[rows.length - 1].timestamp || "").slice(5, 10);
+        return '<div class="stat-card stat-sec"><h3>일자별 페이지뷰</h3><div class="bars">' + bars + '</div>' +
+               '<div class="bars-x"><span>' + esc(first) + '</span><span>' + esc(last) + '</span></div></div>';
+      }
+
+      function renderVisits(j) {
+        var t = j.total || {};
+        var html =
+          '<div class="stat-total"><b>' + n(t.visitors) + '</b>' +
+          '<span>명이 방문했습니다 · 페이지뷰 ' + n(t.pageviews) + ' (누적)</span></div>';
+
+        html += dailyCard(j.daily);
+
+        var empty = j.since + " ~ " + j.until + " 구간에 기록이 없습니다.";
+        html += '<div class="stat-grid stat-sec">' +
+          listCard("유입 경로", j.referrers, "referrerHostname", "visitors", empty) +
+          listCard("많이 본 페이지", j.pages, "requestPath", "pageviews", empty) +
+          '</div>';
+        html += '<div class="stat-grid" style="margin-top:12px">' +
+          listCard("국가", j.countries, "country", "visitors", empty) +
+          listCard("기기", j.devices, "deviceType", "visitors", empty) +
+          '</div>';
+        html += '<div class="stat-grid" style="margin-top:12px">' +
+          listCard("브라우저", j.browsers, "browserName", "visitors", empty) +
+          '</div>';
+        html += '<p class="stat-note">누적 수치를 뺀 나머지는 ' + esc(j.since) + ' ~ ' + esc(j.until) +
+                ' 기준입니다. 무료 요금제는 조회 기간이 1개월입니다.</p>';
+        return html;
+      }
+
+      function renderClicks(rows) {
+        if (!rows.length) return msg("아직 집계된 클릭이 없습니다.");
+        var total = rows.reduce(function (a, x) { return a + Number(x.count || 0); }, 0);
+        var last = rows.map(function (x) { return x.updated_at; }).sort().pop();
+        return '<div class="stat-total"><b>' + n(total) + '</b>' +
+               '<span>번 눌렸습니다' + (last ? ' · 마지막 ' + esc(fmtDate(last)) : '') + '</span></div>' +
+               '<table class="stat-table"><thead><tr><th>버튼</th><th>위치</th>' +
+               '<th style="text-align:right">클릭</th><th>최근</th></tr></thead><tbody>' +
+               rows.map(function (x) {
+                 return '<tr><td>' + esc(CLICK_NAMES[x.slug] || x.slug) + '</td>' +
+                        '<td>' + esc(x.label || "-") + '</td>' +
+                        '<td class="num">' + n(x.count) + '</td>' +
+                        '<td>' + esc(fmtDate(x.updated_at)) + '</td></tr>';
+               }).join("") + '</tbody></table>';
+      }
+
+      function section(title, inner) {
+        return '<div class="eyebrow stat-sec" style="margin-bottom:12px">' + esc(title) + '</div>' + inner;
+      }
+
+      /* Vercel 방문 통계. 토큰은 서버리스 함수 뒤에 있고 여기로는 숫자만 온다. */
+      function loadVisits(db) {
+        return db.auth.getSession().then(function (s) {
+          var tok = s && s.data && s.data.session ? s.data.session.access_token : null;
+          if (!tok) return msg("로그인이 필요합니다.");
+          return fetch("/api/site-stats", { headers: { Authorization: "Bearer " + tok } })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (r) { return r.ok ? renderVisits(r.j) : msg(r.j.error || "불러오지 못했습니다."); },
+                  function (e) { return msg("불러오지 못했습니다: " + e); });
+        });
+      }
+
+      function loadClicks(db) {
+        return db.from("download_counts")
+          .select("slug, label, count, updated_at")
+          .order("count", { ascending: false })
+          .then(function (r) {
+            if (r.error) return msg("불러오지 못했습니다: " + r.error.message);
+            var rows = (r.data || []).filter(function (x) { return x.slug.indexOf("__") !== 0; });
+            return renderClicks(rows);
+          }, function (e) { return msg("불러오지 못했습니다: " + e); });
       }
 
       window.addEventListener("DOMContentLoaded", function () {
-        if (!window.yvAuth) { msg.textContent = "설정이 완료되지 않았습니다."; return; }
+        if (!window.yvAuth) { root.innerHTML = msg("설정이 완료되지 않았습니다."); return; }
         var db = window.yvAuth.client;
 
         /* RLS 로 값이 막히면 '권한 없음'과 '데이터 없음'이 똑같이 빈 배열로 온다.
            둘을 구분해 주지 않으면 무엇을 고쳐야 할지 알 수 없으므로 권한을 먼저 본다. */
         db.auth.getUser().then(function (u) {
           var user = u && u.data ? u.data.user : null;
-          if (!user) { msg.textContent = "로그인이 필요합니다."; return; }
-          return db.from("profiles").select("is_admin, display_name").eq("id", user.id).maybeSingle()
+          if (!user) { root.innerHTML = msg("로그인이 필요합니다."); return; }
+
+          return db.from("profiles").select("is_admin").eq("id", user.id).maybeSingle()
             .then(function (pr) {
-              var isAdmin = pr && pr.data && pr.data.is_admin;
-              if (!isAdmin) {
-                show('<div class="stat-msg">이 계정에는 관리자 권한이 없습니다.<br />' +
-                     '지금 로그인한 계정: ' + esc(user.email || "") + '</div>');
+              if (!pr || !pr.data || !pr.data.is_admin) {
+                root.innerHTML = msg("이 계정에는 관리자 권한이 없습니다. (" + (user.email || "") + ")");
                 return;
               }
-              loadVisits(db);
-              return loadCounts(db);
+              return Promise.all([loadVisits(db), loadClicks(db)]).then(function (parts) {
+                root.innerHTML = section("방문", parts[0]) + section("버튼 클릭", parts[1]);
+              });
             });
         });
       });
-
-      /* Vercel 방문 통계. 토큰은 서버리스 함수 뒤에 있고 여기로는 숫자만 온다. */
-      function loadVisits(db) {
-        var box = document.getElementById("visits");
-        function note(t) { box.innerHTML = '<div class="stat-msg">' + esc(t) + '</div>'; }
-        return db.auth.getSession().then(function (s) {
-          var tok = s && s.data && s.data.session ? s.data.session.access_token : null;
-          if (!tok) { note("로그인이 필요합니다."); return; }
-          return fetch("/api/site-stats", { headers: { Authorization: "Bearer " + tok } })
-            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-            .then(function (r) {
-              if (!r.ok) { note(r.j.error || "불러오지 못했습니다."); return; }
-              var t = r.j.total || {};
-              var html =
-                '<div class="stat-total"><b>' + (t.visitors != null ? t.visitors : "-") + '</b>' +
-                '<span>명이 방문했습니다 · 페이지뷰 ' + (t.pageviews != null ? t.pageviews : "-") + ' (누적)</span></div>';
-              if (!r.j.pages || !r.j.pages.length) {
-                /* 누적 수치는 왔는데 목록만 비는 경우가 있다. 왜 비었는지 알려주지 않으면
-                   데이터가 없는 건지 요청이 잘못된 건지 구분할 수 없다. */
-                html += '<p style="margin-top:12px;font-size:var(--text-body-sm);color:var(--text-3)">' +
-                        '페이지별 집계는 ' + esc(r.j.since) + ' ~ ' + esc(r.j.until) +
-                        ' 구간에 기록이 없어 표시할 것이 없습니다.</p>';
-              }
-              if (r.j.pages && r.j.pages.length) {
-                html += '<table class="stat-table"><thead><tr><th>페이지</th>' +
-                        '<th style="text-align:right">조회</th><th style="text-align:right">방문자</th></tr></thead><tbody>' +
-                        r.j.pages.map(function (p) {
-                          return '<tr><td>' + esc(p.requestPath || "-") + '</td>' +
-                                 '<td class="num">' + (p.pageviews != null ? p.pageviews : "-") + '</td>' +
-                                 '<td class="num">' + (p.visitors != null ? p.visitors : "-") + '</td></tr>';
-                        }).join("") +
-                        '</tbody></table>' +
-                        '<p style="margin-top:10px;font-size:var(--text-body-sm);color:var(--text-3)">' +
-                        '페이지별 수치는 ' + esc(r.j.since) + ' ~ ' + esc(r.j.until) +
-                        ' 기준입니다. 무료 요금제는 조회 기간이 1개월입니다.</p>';
-              }
-              box.innerHTML = html;
-            }, function (e) { note("불러오지 못했습니다: " + e); });
-        });
-      }
-
-      function loadCounts(db) {
-        var wrap = document.getElementById("wrap");
-        var msg = document.getElementById("msg");
-        return db.from("download_counts")
-          .select("slug, label, count, updated_at")
-          .order("count", { ascending: false })
-          .then(function (r) {
-            if (r.error) { wrap.textContent = "불러오지 못했습니다: " + r.error.message; return; }
-            var rows = (r.data || []).filter(function (x) { return x.slug.indexOf("__") !== 0; });
-
-            if (!rows.length) {
-              /* RLS 로 관리자만 조회된다. 값이 비면 아직 클릭이 없거나 관리자가 아니다. */
-              show('<div class="stat-msg">관리자로 확인되었습니다.<br />아직 집계된 클릭이 없습니다.</div>');
-              return;
-            }
-
-            var total = rows.reduce(function (a, x) { return a + Number(x.count || 0); }, 0);
-            var last = rows.map(function (x) { return x.updated_at; }).sort().pop();
-
-            var html =
-              '<div class="stat-total"><b>' + total + '</b>' +
-              '<span>번 눌렸습니다' + (last ? ' · 마지막 ' + esc(fmtDate(last)) : '') + '</span></div>' +
-              '<table class="stat-table"><thead><tr>' +
-              '<th>항목</th><th>위치</th><th style="text-align:right">클릭</th><th>최근</th>' +
-              '</tr></thead><tbody>' +
-              rows.map(function (x) {
-                return '<tr><td>' + esc(x.slug) + '</td><td>' + esc(x.label || "-") + '</td>' +
-                       '<td class="num">' + Number(x.count || 0) + '</td>' +
-                       '<td>' + esc(fmtDate(x.updated_at)) + '</td></tr>';
-              }).join("") +
-              '</tbody></table>';
-            show(html);
-          }, function (e) {
-            wrap.textContent = "불러오지 못했습니다: " + e;
-          });
-      }
     })();
   </script>
 </body>

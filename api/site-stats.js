@@ -79,22 +79,33 @@ module.exports = async (req, res) => {
     const since = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
     const day = (d) => d.toISOString().slice(0, 10);
 
-    const [total, topPages] = await Promise.all([
-      vercelQuery('visits/count', {}),
-      vercelQuery('visits/aggregate', {
-        since: day(since),
-        until: day(until),
-        by: 'requestPath',
-        limit: '10',
-      }),
+    const range = { since: day(since), until: day(until) };
+    const agg = (by, limit) => vercelQuery('visits/aggregate', { ...range, by, limit: String(limit) });
+
+    // 한 항목이 실패해도 나머지는 보여준다. 전부 막히는 것보다 낫다.
+    const settle = (p) => p.then((r) => (Array.isArray(r.data) ? r.data : []), () => null);
+
+    const [total, pages, daily, referrers, countries, devices, browsers] = await Promise.all([
+      vercelQuery('visits/count', {}).then((r) => r.data || null, () => null),
+      settle(agg('requestPath', 10)),
+      settle(agg('day', 31)),
+      settle(agg('referrerHostname', 8)),
+      settle(agg('country', 8)),
+      settle(agg('deviceType', 5)),
+      settle(agg('browserName', 5)),
     ]);
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
-      total: total.data || null,
+      total,
       since: day(since),
       until: day(now),
-      pages: Array.isArray(topPages.data) ? topPages.data : [],
+      pages: pages || [],
+      daily: daily || [],
+      referrers: referrers || [],
+      countries: countries || [],
+      devices: devices || [],
+      browsers: browsers || [],
     });
   } catch (e) {
     return res.status(502).json({ error: String(e.message || e) });
