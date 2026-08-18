@@ -72,17 +72,37 @@
         if (!window.yvAuth) { msg.textContent = "설정이 완료되지 않았습니다."; return; }
         var db = window.yvAuth.client;
 
-        db.from("download_counts")
+        /* RLS 로 값이 막히면 '권한 없음'과 '데이터 없음'이 똑같이 빈 배열로 온다.
+           둘을 구분해 주지 않으면 무엇을 고쳐야 할지 알 수 없으므로 권한을 먼저 본다. */
+        db.auth.getUser().then(function (u) {
+          var user = u && u.data ? u.data.user : null;
+          if (!user) { msg.textContent = "로그인이 필요합니다."; return; }
+          return db.from("profiles").select("is_admin, display_name").eq("id", user.id).maybeSingle()
+            .then(function (pr) {
+              var isAdmin = pr && pr.data && pr.data.is_admin;
+              if (!isAdmin) {
+                show('<div class="stat-msg">이 계정에는 관리자 권한이 없습니다.<br />' +
+                     '지금 로그인한 계정: ' + esc(user.email || "") + '</div>');
+                return;
+              }
+              return loadCounts(db);
+            });
+        });
+      });
+
+      function loadCounts(db) {
+        var wrap = document.getElementById("wrap");
+        var msg = document.getElementById("msg");
+        return db.from("download_counts")
           .select("slug, label, count, updated_at")
           .order("count", { ascending: false })
           .then(function (r) {
-            if (r.error) { msg.textContent = "불러오지 못했습니다: " + r.error.message; return; }
+            if (r.error) { wrap.textContent = "불러오지 못했습니다: " + r.error.message; return; }
             var rows = (r.data || []).filter(function (x) { return x.slug.indexOf("__") !== 0; });
 
             if (!rows.length) {
               /* RLS 로 관리자만 조회된다. 값이 비면 아직 클릭이 없거나 관리자가 아니다. */
-              show('<div class="stat-msg">아직 집계된 클릭이 없습니다.<br />' +
-                   '관리자 계정으로 로그인했는데도 비어 있다면 프로필의 관리자 권한을 확인하세요.</div>');
+              show('<div class="stat-msg">관리자로 확인되었습니다.<br />아직 집계된 클릭이 없습니다.</div>');
               return;
             }
 
@@ -103,9 +123,9 @@
               '</tbody></table>';
             show(html);
           }, function (e) {
-            msg.textContent = "불러오지 못했습니다: " + e;
+            wrap.textContent = "불러오지 못했습니다: " + e;
           });
-      });
+      }
     })();
   </script>
 </body>
