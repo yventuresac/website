@@ -79,7 +79,7 @@
 
     <div class="recruit-actions">
       <a href="../assets/forms/2026Fall_Yventures_Application.docx" class="btn btn-outline"
-         download="2026Fall_지원자이름_Yventures.docx">지원서 양식 다운로드</a>
+         download="2026Fall_지원자이름_Yventures.docx" data-download="application-form-2026fall" data-download-label="상단">지원서 양식 다운로드</a>
       <a href="mailto:accelerator@yventures.ac?subject=%5BY-VENTURES%204%EA%B8%B0%5D%20%EC%A7%80%EC%9B%90%EC%84%9C%20%EC%A0%9C%EC%B6%9C" class="btn btn-black">지원서 보내기</a>
       <span class="deadline-pill">서류 마감 8/25(화) 23:59</span>
     </div>
@@ -256,7 +256,7 @@
     <h2 class="about-cta-title">Y-VENTURES 4기,<br>여기서 시작해보세요</h2>
     <div class="recruit-actions">
       <a href="../assets/forms/2026Fall_Yventures_Application.docx" class="btn btn-outline"
-         download="2026Fall_지원자이름_Yventures.docx">지원서 양식 다운로드</a>
+         download="2026Fall_지원자이름_Yventures.docx" data-download="application-form-2026fall" data-download-label="하단">지원서 양식 다운로드</a>
       <a href="mailto:accelerator@yventures.ac?subject=%5BY-VENTURES%204%EA%B8%B0%5D%20%EC%A7%80%EC%9B%90%EC%84%9C%20%EC%A0%9C%EC%B6%9C" class="btn btn-black">지원서 보내기</a>
       <a href="../curriculum/" class="btn btn-outline">커리큘럼 보기</a>
     </div>
@@ -358,6 +358,33 @@
   <script src="/js/nav-auth.js"></script>
   <script src="/js/to-top.js" defer></script>
   <script src="/js/ask.js" defer></script>
+  <script>
+    /* 다운로드 클릭 집계.
+       Vercel 커스텀 이벤트는 Pro 전용이라 이미 쓰고 있는 Supabase 로 센다.
+       집계가 실패해도 다운로드 자체는 그대로 진행돼야 하므로 전부 삼킨다.
+       download 속성이 있어 페이지 이동이 없으니 요청이 중간에 끊기지 않는다. */
+    (function () {
+      var links = document.querySelectorAll("[data-download]");
+      if (!links.length || !window.yvAuth || !window.yvAuth.client) return;
+      var db = window.yvAuth.client;
+      [].forEach.call(links, function (a) {
+        a.addEventListener("click", function () {
+          try {
+            /* try/catch 는 동기 오류만 잡는다. 네트워크 실패는 Promise 거부로
+               오므로 catch 를 따로 달지 않으면 콘솔에 오류가 남는다. */
+            var req = db.rpc("increment_download", {
+              p_slug: a.getAttribute("data-download"),
+              p_label: a.getAttribute("data-download-label") || ""
+            });
+            if (req && typeof req.then === "function") {
+              req.then(null, function () {});
+            }
+          } catch (e) {}
+        });
+      });
+    })();
+  </script>
+
   <!-- 방문 통계 (Vercel Web Analytics · 쿠키 없음) -->
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
