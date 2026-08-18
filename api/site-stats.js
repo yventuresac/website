@@ -71,8 +71,12 @@ module.exports = async (req, res) => {
     }
 
     // Hobby 는 조회 기간이 1개월이라 그보다 길게 요청하면 빈 값이 온다.
-    const until = new Date();
-    const since = new Date(until.getTime() - 29 * 24 * 60 * 60 * 1000);
+    //
+    // until 을 '오늘'로 주면 오늘치가 통째로 빠진다(경계 미포함). 방문 기록이
+    // 대부분 오늘인 초기에는 결과가 0 으로만 나온다. 그래서 하루 뒤로 잡는다.
+    const now = new Date();
+    const until = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const since = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
     const day = (d) => d.toISOString().slice(0, 10);
 
     const [total, topPages] = await Promise.all([
@@ -89,7 +93,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       total: total.data || null,
       since: day(since),
-      until: day(until),
+      until: day(now),
       pages: Array.isArray(topPages.data) ? topPages.data : [],
     });
   } catch (e) {
