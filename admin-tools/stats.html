@@ -45,8 +45,12 @@
   </div>
 
   <section class="section">
-    <div class="stat-wrap" id="wrap">
-      <div class="stat-msg" id="msg">불러오는 중…</div>
+    <div class="stat-wrap">
+      <div class="eyebrow" style="margin-bottom:12px">방문</div>
+      <div id="visits"><div class="stat-msg">불러오는 중…</div></div>
+
+      <div class="eyebrow" style="margin:var(--space-2xl) 0 12px">지원서 양식 다운로드</div>
+      <div id="wrap"><div class="stat-msg" id="msg">불러오는 중…</div></div>
     </div>
   </section>
 
@@ -85,10 +89,44 @@
                      '지금 로그인한 계정: ' + esc(user.email || "") + '</div>');
                 return;
               }
+              loadVisits(db);
               return loadCounts(db);
             });
         });
       });
+
+      /* Vercel 방문 통계. 토큰은 서버리스 함수 뒤에 있고 여기로는 숫자만 온다. */
+      function loadVisits(db) {
+        var box = document.getElementById("visits");
+        function note(t) { box.innerHTML = '<div class="stat-msg">' + esc(t) + '</div>'; }
+        return db.auth.getSession().then(function (s) {
+          var tok = s && s.data && s.data.session ? s.data.session.access_token : null;
+          if (!tok) { note("로그인이 필요합니다."); return; }
+          return fetch("/api/site-stats", { headers: { Authorization: "Bearer " + tok } })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (r) {
+              if (!r.ok) { note(r.j.error || "불러오지 못했습니다."); return; }
+              var t = r.j.total || {};
+              var html =
+                '<div class="stat-total"><b>' + (t.visitors != null ? t.visitors : "-") + '</b>' +
+                '<span>명이 방문했습니다 · 페이지뷰 ' + (t.pageviews != null ? t.pageviews : "-") + ' (누적)</span></div>';
+              if (r.j.pages && r.j.pages.length) {
+                html += '<table class="stat-table"><thead><tr><th>페이지</th>' +
+                        '<th style="text-align:right">조회</th><th style="text-align:right">방문자</th></tr></thead><tbody>' +
+                        r.j.pages.map(function (p) {
+                          return '<tr><td>' + esc(p.requestPath || "-") + '</td>' +
+                                 '<td class="num">' + (p.pageviews != null ? p.pageviews : "-") + '</td>' +
+                                 '<td class="num">' + (p.visitors != null ? p.visitors : "-") + '</td></tr>';
+                        }).join("") +
+                        '</tbody></table>' +
+                        '<p style="margin-top:10px;font-size:var(--text-body-sm);color:var(--text-3)">' +
+                        '페이지별 수치는 ' + esc(r.j.since) + ' ~ ' + esc(r.j.until) +
+                        ' 기준입니다. 무료 요금제는 조회 기간이 1개월입니다.</p>';
+              }
+              box.innerHTML = html;
+            }, function (e) { note("불러오지 못했습니다: " + e); });
+        });
+      }
 
       function loadCounts(db) {
         var wrap = document.getElementById("wrap");
