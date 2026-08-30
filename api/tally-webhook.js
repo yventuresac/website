@@ -74,7 +74,9 @@ module.exports = async (req, res) => {
     };
     if (!row.submission_id) return res.status(400).json({ error: 'no submission id' });
 
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/applications`, {
+    // on_conflict 지정이 없으면 PostgREST 는 기본키 충돌만 무시한다.
+    // submission_id 는 별도 unique 제약이라 명시해야 재전송이 409 로 터지지 않는다.
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/applications?on_conflict=submission_id`, {
       method: 'POST',
       headers: {
         apikey: key,
