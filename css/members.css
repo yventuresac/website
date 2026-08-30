@@ -1,0 +1,104 @@
+/* ──────────────────────────────────────────────────────────────
+   학회원 페이지 공용 디자인 레이어
+
+   허브(members/index.html)에서 정한 언어를 나머지 학회원 페이지로 잇는다.
+   각 페이지는 body 에 acc-* 클래스 하나로 자기 색을 받는다 — 허브 카드의
+   아이콘 색과 같은 색이라, 카드를 눌러 들어온 페이지가 같은 색으로 이어진다.
+
+   style.css 뒤에 로드된다. 같은 특이도면 이 파일이 이긴다.
+   ────────────────────────────────────────────────────────────── */
+
+body.acc-green  { --acc: #6EE7B7; --acc-rgb: 52, 211, 153; }
+body.acc-pink   { --acc: #F9A8D4; --acc-rgb: 244, 114, 182; }
+body.acc-yellow { --acc: #FCD34D; --acc-rgb: 251, 191, 36; }
+body.acc-orange { --acc: #FDBA74; --acc-rgb: 251, 146, 60; }
+body.acc-cyan   { --acc: #67E8F9; --acc-rgb: 34, 211, 238; }
+body.acc-blue   { --acc: #93C5FD; --acc-rgb: 96, 165, 250; }
+
+/* 히어로에 페이지 색을 은은하게 */
+body[class*="acc-"] .page-header::before {
+  background: radial-gradient(ellipse at 22% 45%, rgba(var(--acc-rgb), 0.13) 0%, transparent 60%);
+}
+body[class*="acc-"] .page-tag { color: var(--acc); }
+
+/* ── 입장 모션 — 허브와 같은 리듬으로 떠오른다 ── */
+@keyframes mxRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.rs-tabs, .rs-list > *, .rs-form,
+.an-list > *, .an-form,
+.ac-item, .ac-form, .ac-career,
+.as-item, .as-form,
+.al-grid > *, .al-req,
+.ap-card, .aa-tabs, .aa-table-wrap {
+  animation: mxRise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.rs-list > *:nth-child(2), .an-list > *:nth-child(2), .al-grid > *:nth-child(2), .as-item:nth-of-type(2) { animation-delay: 45ms; }
+.rs-list > *:nth-child(3), .an-list > *:nth-child(3), .al-grid > *:nth-child(3), .as-item:nth-of-type(3) { animation-delay: 90ms; }
+.rs-list > *:nth-child(4), .an-list > *:nth-child(4), .al-grid > *:nth-child(4), .as-item:nth-of-type(4) { animation-delay: 135ms; }
+.rs-list > *:nth-child(5), .an-list > *:nth-child(5), .al-grid > *:nth-child(5), .as-item:nth-of-type(5) { animation-delay: 180ms; }
+.rs-list > *:nth-child(6), .an-list > *:nth-child(6), .al-grid > *:nth-child(6), .as-item:nth-of-type(6) { animation-delay: 225ms; }
+.rs-form, .an-form, .ac-form, .as-form, .al-req { animation-delay: 160ms; }
+.ac-career { animation-delay: 220ms; }
+
+/* ── 목록 카드 — 허브 카드와 같은 호버 (링크인 것만 떠오른다) ── */
+a.rs-item { transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1), transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1); }
+a.rs-item:hover { border-color: var(--edge-hover); transform: translateY(-2px); box-shadow: var(--glow-hover); }
+.an-item, .ac-item, .as-item, .al-card, .ap-card { transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1); }
+.an-item:hover, .ac-item:hover, .as-item:hover, .al-card:hover { border-color: var(--edge-hover); }
+
+/* 카테고리·기수 뱃지에 페이지 색 */
+.rs-cat { border-color: rgba(var(--acc-rgb), 0.35); color: var(--acc); }
+.an-company { color: var(--acc); }
+.al-card h3 small { color: var(--acc); }
+
+/* ── 탭 — 선택된 것이 페이지 색을 입는다 ── */
+.rs-tab.on, .aa-tab.on {
+  border-color: rgba(var(--acc-rgb), 0.55);
+  color: var(--acc);
+  background: rgba(var(--acc-rgb), 0.08);
+}
+
+/* ── 폼 — 허브 인사 카드처럼 좌상단 라디얼 틴트 + 제목 앞 색 점 ── */
+.rs-form, .an-form, .ac-form, .ac-career, .as-form {
+  background:
+    radial-gradient(ellipse 420px 200px at 8% -25%, rgba(var(--acc-rgb), 0.09), transparent 65%),
+    var(--bg-card);
+}
+.rs-form h2::before, .an-form h2::before, .ac-form h2::before,
+.ac-career h2::before, .as-form h2::before, .al-req h2::before {
+  content: "";
+  display: inline-block;
+  width: 9px; height: 9px; border-radius: 3px;
+  background: var(--acc);
+  margin-right: 10px;
+  vertical-align: 1px;
+}
+
+/* 입력 포커스에도 페이지 색 */
+.rs-form input:focus, .rs-form select:focus,
+.an-form input:focus,
+.ac-form input:focus, .ac-career input:focus,
+.as-form input:focus, .as-form select:focus,
+.as-submit input:focus,
+.al-dialog textarea:focus {
+  border-color: rgba(var(--acc-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.12);
+}
+
+/* 지원 현황 진행 바 — 페이지 색으로 찬다 */
+.ap-step.on { background: var(--acc); }
+.ap-status.docs_pass, .ap-status.interview { border-color: rgba(var(--acc-rgb), 0.45); color: var(--acc); }
+
+/* 접근성 — 인터랙티브 전반에 보이는 포커스 */
+a.rs-item:focus-visible, .rs-tab:focus-visible, .aa-tab:focus-visible,
+.al-card button:focus-visible, .as-submit .btn:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-tabs, .rs-list > *, .rs-form, .an-list > *, .an-form,
+  .ac-item, .ac-form, .ac-career, .as-item, .as-form,
+  .al-grid > *, .al-req, .ap-card, .aa-tabs, .aa-table-wrap { animation: none; }
+  a.rs-item { transition: none; }
+  a.rs-item:hover { transform: none; }
+}
