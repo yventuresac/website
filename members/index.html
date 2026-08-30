@@ -13,43 +13,105 @@
   <script src="/js/auth-guard.js"></script>
   <style>
     .mb-wrap { max-width: 880px; margin: 0 auto; }
+
+    /* ── 인사 카드 ──
+       시그니처는 기수 워터마크다. 이 시스템의 축이 기수라서
+       장식이 아니라 내용이다. */
     .mb-hello {
-      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-      padding: var(--space-lg); margin-bottom: var(--space-lg);
-      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      padding: var(--space-xl) var(--space-lg);
+      margin-bottom: var(--space-xl);
+      border: 1px solid var(--edge); border-radius: 20px;
+      background:
+        radial-gradient(ellipse 480px 260px at 12% -30%, rgba(96,165,250,0.10), transparent 65%),
+        var(--bg-card);
+      box-shadow: var(--glow);
     }
-    .mb-hello h2 { margin: 0 0 6px; font-size: var(--text-h3); letter-spacing: var(--ls-snug); color: var(--text-1); }
-    .mb-hello p { margin: 0; font-size: var(--text-body-sm); color: var(--text-3); }
-    .mb-badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px;
-                font-size: 12px; letter-spacing: var(--ls-wide); vertical-align: 3px;
+    .mb-mark {
+      position: absolute; right: 18px; bottom: -34px;
+      font-size: 150px; font-weight: 800; line-height: 1;
+      letter-spacing: -0.06em; color: rgba(255,255,255,0.045);
+      user-select: none; pointer-events: none; white-space: nowrap;
+    }
+    .mb-avatar {
+      flex: none; width: 58px; height: 58px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700;
+      background: rgba(96,165,250,0.16); color: #93C5FD;
+      border: 1px solid rgba(96,165,250,0.35);
+    }
+    .mb-avatar.member { background: rgba(110,231,183,0.14); color: #6EE7B7; border-color: rgba(110,231,183,0.32); }
+    .mb-hello-body { flex: 1; min-width: 0; position: relative; }
+    .mb-hello h2 { margin: 0 0 4px; font-size: clamp(24px, 4vw, 32px); letter-spacing: var(--ls-snug); color: var(--text-1); }
+    .mb-hello .sub { margin: 0; font-size: var(--text-body-sm); color: var(--text-3); }
+    .mb-badge { display: inline-block; margin-left: 10px; padding: 3px 11px; border-radius: 999px;
+                font-size: 12px; letter-spacing: var(--ls-wide); vertical-align: 6px;
                 border: 1px solid rgba(110,231,183,.4); color: #6EE7B7; }
     .mb-badge.outside { border-color: var(--edge); color: var(--text-3); }
     .mb-badge.admin { border-color: rgba(96,165,250,.5); color: #93C5FD; }
+    .mb-hello .btn { position: relative; }
+
+    /* ── 기능 카드 ── */
+    .mb-eyebrow {
+      font-size: var(--text-eyebrow); font-weight: var(--fw-semibold);
+      letter-spacing: var(--ls-eyebrow); text-transform: uppercase;
+      color: var(--text-3); margin: 0 0 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .mb-eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--edge); }
     .mb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .mb-card {
-      display: block; padding: var(--space-md);
-      border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card);
+      position: relative;
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 18px;
+      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
       text-decoration: none;
-      transition: border-color 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+      transition: border-color 0.22s var(--ease-out), transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
     }
-    a.mb-card:hover { border-color: var(--edge-hover); transform: translateY(-2px); }
+    a.mb-card:hover { border-color: var(--edge-hover); transform: translateY(-3px); box-shadow: var(--glow-hover); }
     a.mb-card:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
-    .mb-card h3 { margin: 0 0 6px; font-size: var(--text-body-lg); color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .mb-ico {
+      flex: none; width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mb-ico svg { width: 20px; height: 20px; }
+    /* 역할별 틴트 — 뉴스레터 지면과 같은 팔레트를 잇는다 */
+    .t-blue   { background: rgba(96,165,250,0.13);  color: #93C5FD; }
+    .t-purple { background: rgba(167,139,250,0.13); color: #C4B5FD; }
+    .t-green  { background: rgba(52,211,153,0.13);  color: #6EE7B7; }
+    .t-pink   { background: rgba(244,114,182,0.13); color: #F9A8D4; }
+    .t-yellow { background: rgba(251,191,36,0.13);  color: #FCD34D; }
+    .t-orange { background: rgba(251,146,60,0.13);  color: #FDBA74; }
+    .t-cyan   { background: rgba(34,211,238,0.13);  color: #67E8F9; }
+    .mb-card-body { min-width: 0; flex: 1; }
+    .mb-card h3 {
+      margin: 0 0 5px; font-size: var(--text-body-lg); color: var(--text-1);
+      letter-spacing: var(--ls-snug);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .mb-card h3 .arr { opacity: 0; transform: translateX(-4px); transition: opacity 0.2s, transform 0.2s var(--ease-out); color: var(--text-3); }
+    a.mb-card:hover h3 .arr { opacity: 1; transform: translateX(0); }
     .mb-card p { margin: 0; font-size: var(--text-body-sm); color: var(--text-2); line-height: var(--lh-normal); }
-    .mb-card.soon { opacity: 0.55; }
-    .mb-card.soon h3::after {
-      content: "준비 중"; margin-left: 8px; font-size: 11px; letter-spacing: var(--ls-wide);
-      color: var(--text-3); border: 1px solid var(--edge); border-radius: 999px; padding: 2px 8px;
-      vertical-align: 2px; font-weight: 400;
-    }
+
+    /* 입장 모션 — 카드가 순서대로 떠오른다 */
+    @keyframes mbRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .mb-hello, .mb-card, .mb-eyebrow { animation: mbRise 0.45s var(--ease-out) both; }
+
     .mb-gate {
-      padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
-      border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed);
+      padding: var(--space-2xl) var(--space-md); text-align: center; color: var(--text-3);
+      border: 1px dashed var(--edge); border-radius: 16px; line-height: var(--lh-relaxed);
     }
+    .mb-gate a { color: #93C5FD; }
     .mb-admin { margin-top: var(--space-2xl); }
-    @media (max-width: 640px) { .mb-grid { grid-template-columns: 1fr; } }
+
+    @media (max-width: 640px) {
+      .mb-grid { grid-template-columns: 1fr; }
+      .mb-mark { font-size: 110px; bottom: -26px; right: 10px; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      a.mb-card { transition: none; }
+      .mb-hello, .mb-card, .mb-eyebrow { animation: none; }
+      a.mb-card, .mb-card h3 .arr { transition: none; }
       a.mb-card:hover { transform: none; }
     }
   </style>
@@ -84,39 +146,70 @@
           .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
       }
 
+      /* 스트로크 아이콘. 이모지는 플랫폼마다 제각각이라 쓰지 않는다. */
+      var I = {
+        pen:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+        board:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+        folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+        mega:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-8-8 18-2-8Z"/></svg>',
+        clock:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+        upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>',
+        users:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        gear:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>',
+        chart:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>',
+        inbox:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.4 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1z"/></svg>'
+      };
+
+      function card(href, tint, icon, title, desc) {
+        return '<a class="mb-card" href="' + href + '">' +
+          '<span class="mb-ico ' + tint + '">' + I[icon] + '</span>' +
+          '<span class="mb-card-body"><h3>' + title +
+          '<span class="arr" aria-hidden="true">→</span></h3>' +
+          '<p>' + desc + '</p></span></a>';
+      }
+
       function helloHtml(p, user) {
         var name = p && p.display_name ? p.display_name
                  : (user.user_metadata && user.user_metadata.full_name) || user.email.split("@")[0];
-        var badge;
-        if (p && p.is_admin) badge = '<span class="mb-badge admin">운영진</span>';
-        else if (p && p.is_member) badge = '<span class="mb-badge">' + (p.generation != null ? p.generation + "기 " : "") + (p.is_alumni ? "알럼" : "학회원") + '</span>';
-        else badge = '<span class="mb-badge outside">승인 대기</span>';
-        return '<div class="mb-hello"><div>' +
-               '<h2>' + esc(name) + '님' + badge + '</h2>' +
-               '<p>' + esc(user.email || "") + '</p>' +
-               '</div><button type="button" class="btn btn-outline" id="logoutBtn">로그아웃</button></div>';
+        var badge, avatarCls = "mb-avatar", mark;
+        if (p && p.is_admin) {
+          badge = '<span class="mb-badge admin">운영진</span>';
+          mark = p.generation != null ? p.generation + "기" : "YV";
+        } else if (p && p.is_member) {
+          badge = '<span class="mb-badge">' + (p.generation != null ? p.generation + "기 " : "") + (p.is_alumni ? "알럼" : "학회원") + '</span>';
+          avatarCls += " member";
+          mark = p.generation != null ? p.generation + "기" : "YV";
+        } else {
+          badge = '<span class="mb-badge outside">승인 대기</span>';
+          mark = "YV";
+        }
+        var initial = (name || "Y").trim().charAt(0).toUpperCase();
+        return '<div class="mb-hello">' +
+          '<div class="mb-mark" aria-hidden="true">' + esc(mark) + '</div>' +
+          '<div class="' + avatarCls + '" aria-hidden="true">' + esc(initial) + '</div>' +
+          '<div class="mb-hello-body"><h2>' + esc(name) + '님' + badge + '</h2>' +
+          '<p class="sub">' + esc(user.email || "") + '</p></div>' +
+          '<button type="button" class="btn btn-outline" id="logoutBtn">로그아웃</button>' +
+          '</div>';
       }
 
-      /* 학회원 기능. 열려 있는 것은 링크, 나머지는 준비 중 표시.
-         '준비 중' 카드를 미리 보여주는 이유: 무엇이 생길지 알아야 다시 온다. */
       function memberCards() {
-        return '<div class="mb-grid">' +
-          '<a class="mb-card" href="/insights/write.html"><h3>Insights 글쓰기</h3><p>산업·시장 인사이트를 작성해 게시판에 올립니다.</p></a>' +
-          '<a class="mb-card" href="/insights/"><h3>Insights 게시판</h3><p>학회원들이 쓴 글을 읽고 반응을 남깁니다.</p></a>' +
-          '<a class="mb-card" href="/members/resources.html"><h3>기수별 자료실</h3><p>세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.</p></a>' +
-          '<a class="mb-card" href="/members/alumni-news.html"><h3>동문 창업가 제보</h3><p>선배 창업가 소식을 알게 되면 공유하는 창구. 뉴스레터 재료가 됩니다.</p></a>' +
-          '<a class="mb-card" href="/members/activity.html"><h3>내 활동 기록</h3><p>참여한 프로그램과 역할을 기록해 이력으로 활용합니다.</p></a>' +
-          '<a class="mb-card" href="/members/assignments.html"><h3>과제 제출</h3><p>커리큘럼 과제를 링크로 제출합니다.</p></a>' +
-          '<a class="mb-card" href="/members/alumni.html"><h3>알럼 디렉터리</h3><p>기수별 알럼을 찾아보고 연결을 요청합니다.</p></a>' +
+        return '<p class="mb-eyebrow">Workspace</p><div class="mb-grid">' +
+          card("/insights/write.html", "t-blue",   "pen",    "Insights 글쓰기", "산업·시장 인사이트를 작성해 게시판에 올립니다.") +
+          card("/insights/",           "t-purple", "board",  "Insights 게시판", "학회원들이 쓴 글을 읽고 반응을 남깁니다.") +
+          card("/members/resources.html", "t-green", "folder", "기수별 자료실", "세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.") +
+          card("/members/alumni-news.html", "t-pink", "mega", "동문 창업가 제보", "선배 창업가 소식을 공유하는 창구. 뉴스레터 재료가 됩니다.") +
+          card("/members/activity.html", "t-yellow", "clock", "내 활동 기록", "참여한 프로그램과 역할을 기록해 이력으로 활용합니다.") +
+          card("/members/assignments.html", "t-orange", "upload", "과제 제출", "커리큘럼 과제를 링크로 제출합니다.") +
+          card("/members/alumni.html", "t-cyan", "users", "알럼 디렉터리", "기수별 알럼을 찾아보고 연결을 요청합니다.") +
           '</div>';
       }
 
       function adminCards() {
-        return '<div class="mb-admin"><div class="eyebrow" style="margin-bottom:12px">운영진</div>' +
-          '<div class="mb-grid">' +
-          '<a class="mb-card" href="/admin-tools/users.html"><h3>회원 관리</h3><p>가입 승인, 기수 지정, 등급 변경.</p></a>' +
-          '<a class="mb-card" href="/admin-tools/stats.html"><h3>사이트 통계</h3><p>방문·유입 경로·버튼 클릭 집계.</p></a>' +
-          '<a class="mb-card" href="/admin-tools/applications.html"><h3>지원서 관리</h3><p>Tally 접수분 열람과 심사 상태 변경.</p></a>' +
+        return '<div class="mb-admin"><p class="mb-eyebrow">Admin</p><div class="mb-grid">' +
+          card("/admin-tools/users.html", "t-blue", "gear", "회원 관리", "가입 승인, 기수 지정, 등급 변경.") +
+          card("/admin-tools/applications.html", "t-blue", "inbox", "지원서 관리", "Tally 접수분 열람과 심사 상태 변경.") +
+          card("/admin-tools/stats.html", "t-blue", "chart", "사이트 통계", "방문·유입 경로·버튼 클릭 집계.") +
           '</div></div>';
       }
 
@@ -124,8 +217,14 @@
         return '<div class="mb-gate">' +
           '계정은 만들어졌지만 아직 학회원 승인 전입니다.<br />' +
           'Y-VENTURES 학회원이라면 운영진에게 가입 이메일(' + esc(user.email || "") + ')을 알려주세요.<br /><br />' +
-          '프로그램에 지원하셨다면 <a href="/apply/status.html" style="color:#93C5FD">지원 현황</a>에서 진행 상황을 볼 수 있습니다.' +
+          '프로그램에 지원하셨다면 <a href="/apply/status.html">지원 현황</a>에서 진행 상황을 볼 수 있습니다.' +
           '</div>';
+      }
+
+      /* 카드가 위에서부터 순서대로 떠오르게 지연을 배분한다 */
+      function stagger() {
+        var els = root.querySelectorAll(".mb-hello, .mb-eyebrow, .mb-card");
+        for (var i = 0; i < els.length; i++) els[i].style.animationDelay = (i * 45) + "ms";
       }
 
       window.addEventListener("DOMContentLoaded", async function () {
@@ -149,6 +248,7 @@
           html += gateHtml(user);
         }
         root.innerHTML = html;
+        stagger();
 
         document.getElementById("logoutBtn").addEventListener("click", async function () {
           await yvAuth.signOut();
