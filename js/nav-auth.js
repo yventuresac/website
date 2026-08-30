@@ -20,12 +20,9 @@
 
   yvAuth.getUser().then(function (user) {
     if (!user) return;
-    a.textContent = "Logout";
-    a.href = "#";
-    a.addEventListener("click", async function (e) {
-      e.preventDefault();
-      await yvAuth.signOut();
-      window.location.reload();
-    });
+    /* 로그인 상태면 학회원 허브로 안내한다. 로그아웃은 허브 안에 있다 —
+       네비의 한 칸을 로그아웃에 쓰는 것보다 갈 곳을 보여주는 쪽이 낫다. */
+    a.textContent = "MY PAGE";
+    a.href = "/members/";
   });
 })();

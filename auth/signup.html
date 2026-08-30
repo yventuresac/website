@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
   <title>회원가입 — Y-VENTURES</title>
-  <link rel="stylesheet" href="../css/style.css?v=20260812d" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
 </head>
 <body>
 
@@ -38,6 +38,17 @@
           <span>비밀번호 확인</span>
           <input type="password" name="password2" autocomplete="new-password" required minlength="6" placeholder="••••••••" />
         </label>
+        <label class="auth-field">
+          <span>Y-VENTURES 기수 <em>(해당하는 경우만)</em></span>
+          <select name="generation">
+            <option value="">해당 없음 · 외부 방문자</option>
+            <option value="1">1기</option>
+            <option value="2">2기</option>
+            <option value="3">3기</option>
+            <option value="4">4기</option>
+          </select>
+        </label>
+        <p class="auth-note">기수를 선택해도 학회원 권한은 운영진 확인 후에 열립니다.</p>
 
         <div class="auth-msg" id="authMsg" role="alert"></div>
 
@@ -80,7 +91,8 @@
         if (password !== password2) { showMsg('비밀번호가 일치하지 않습니다.', false); return; }
 
         btn.disabled = true; btn.textContent = '가입 중…'; showMsg('', true);
-        var res = await yvAuth.signUp(email, password, name);
+        var gen = form.generation ? form.generation.value : "";
+        var res = await yvAuth.signUp(email, password, name, gen ? { generation: gen } : null);
         if (res.error) {
           showMsg('가입 실패: ' + res.error.message, false);
           btn.disabled = false; btn.textContent = '회원가입';

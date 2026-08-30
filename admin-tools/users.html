@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>회원 관리 — Y-VENTURES 관리</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .um-wrap { max-width: 980px; margin: 0 auto; }
+    .um-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; }
+    .um-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .um-toolbar input[type="search"] {
+      flex: 1; min-width: 200px; padding: 10px 14px; font-size: 14px;
+      font-family: 'Pretendard', sans-serif; color: var(--text-1);
+      background: var(--bg-base); border: 1px solid var(--edge); border-radius: 10px;
+    }
+    .um-toolbar input[type="search"]:focus { outline: none; border-color: var(--edge-hover); }
+    .um-count { font-size: var(--text-body-sm); color: var(--text-3); white-space: nowrap; }
+    .um-table-wrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); }
+    .um-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
+    .um-table th, .um-table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+    .um-table tr:last-child td { border-bottom: 0; }
+    .um-table th { font-size: 11px; letter-spacing: var(--ls-wide); text-transform: uppercase;
+                   color: var(--text-3); font-weight: var(--fw-medium); position: sticky; top: 0; background: var(--bg-card); }
+    .um-table td { color: var(--text-2); }
+    .um-table td.who { color: var(--text-1); font-weight: var(--fw-medium); }
+    .um-table td.who small { display: block; font-weight: 400; color: var(--text-3); }
+    .um-table select {
+      padding: 6px 8px; font-size: 13px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 8px; cursor: pointer;
+    }
+    .um-table input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--blue-400); cursor: pointer; }
+    .um-state { font-size: 12px; color: var(--text-3); min-width: 64px; display: inline-block; }
+    .um-state.ok { color: #6EE7B7; }
+    .um-state.err { color: #FCA5A5; }
+    .um-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px;
+                letter-spacing: var(--ls-wide); border: 1px solid var(--edge); color: var(--text-3); }
+    .um-badge.admin  { border-color: rgba(96,165,250,.5);  color: #93C5FD; }
+    .um-badge.member { border-color: rgba(110,231,183,.4); color: #6EE7B7; }
+    .um-badge.alumni { border-color: rgba(252,211,77,.4);  color: #FCD34D; }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Admin</div>
+    <h1 class="page-title">회원 관리</h1>
+    <p class="page-desc">가입자를 승인하고 기수와 등급을 지정합니다. 바꾸면 바로 저장됩니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="um-wrap" id="root">
+      <div class="um-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var db = null;
+      var all = [];
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="um-msg">' + esc(t) + '</div>'; }
+
+      function badges(p) {
+        var out = [];
+        if (p.is_admin) out.push('<span class="um-badge admin">운영진</span>');
+        if (p.is_member) out.push('<span class="um-badge member">학회원</span>');
+        if (p.is_alumni) out.push('<span class="um-badge alumni">알럼</span>');
+        if (!out.length) out.push('<span class="um-badge">외부</span>');
+        return out.join(" ");
+      }
+
+      function genOptions(sel) {
+        var html = '<option value="">-</option>';
+        for (var g = 1; g <= 6; g++) {
+          html += '<option value="' + g + '"' + (sel === g ? " selected" : "") + '>' + g + '기</option>';
+        }
+        return html;
+      }
+
+      function rowHtml(p) {
+        return '<tr data-id="' + esc(p.id) + '">' +
+          '<td class="who">' + esc(p.display_name || "(이름 없음)") +
+            '<small>' + esc(p.email || "") + '</small></td>' +
+          '<td>' + badges(p) + '</td>' +
+          '<td><select data-field="generation">' + genOptions(p.generation) + '</select></td>' +
+          '<td><input type="checkbox" data-field="is_member" ' + (p.is_member ? "checked" : "") + ' aria-label="학회원" /></td>' +
+          '<td><input type="checkbox" data-field="is_alumni" ' + (p.is_alumni ? "checked" : "") + ' aria-label="알럼" /></td>' +
+          '<td><input type="checkbox" data-field="is_admin" ' + (p.is_admin ? "checked" : "") + ' aria-label="운영진" /></td>' +
+          '<td><span class="um-state"></span></td>' +
+          '</tr>';
+      }
+
+      function render(list) {
+        var html =
+          '<div class="um-toolbar">' +
+            '<input type="search" id="q" placeholder="이름·이메일 검색" />' +
+            '<span class="um-count" id="count"></span>' +
+          '</div>' +
+          '<div class="um-table-wrap"><table class="um-table"><thead><tr>' +
+          '<th>이름 / 이메일</th><th>현재</th><th>기수</th><th>학회원</th><th>알럼</th><th>운영진</th><th>저장</th>' +
+          '</tr></thead><tbody id="tbody">' +
+          list.map(rowHtml).join("") +
+          '</tbody></table></div>' +
+          '<p class="stat-note" style="margin-top:10px;color:var(--text-3);font-size:13px">' +
+          '가입 시 본인이 고른 기수는 신고값입니다. 실제 학회원인지 확인한 뒤 학회원에 체크하세요. ' +
+          '운영진 권한은 통계·회원 관리·게시판 관리 전체를 포함합니다.</p>';
+        root.innerHTML = html;
+
+        document.getElementById("count").textContent = list.length + "명";
+
+        document.getElementById("q").addEventListener("input", function (e) {
+          var q = e.target.value.trim().toLowerCase();
+          var filtered = !q ? all : all.filter(function (p) {
+            return (p.display_name || "").toLowerCase().indexOf(q) >= 0 ||
+                   (p.email || "").toLowerCase().indexOf(q) >= 0;
+          });
+          document.getElementById("tbody").innerHTML = filtered.map(rowHtml).join("");
+          document.getElementById("count").textContent = filtered.length + "명";
+        });
+
+        /* 체크박스·기수 변경 즉시 저장. 행 단위 위임이라 검색으로 다시 그려도 동작한다 */
+        root.addEventListener("change", function (e) {
+          var field = e.target.getAttribute("data-field");
+          if (!field) return;
+          var tr = e.target.closest("tr");
+          var id = tr.getAttribute("data-id");
+          var state = tr.querySelector(".um-state");
+
+          var value;
+          if (field === "generation") value = e.target.value === "" ? null : Number(e.target.value);
+          else value = e.target.checked;
+
+          var patch = {};
+          patch[field] = value;
+          state.textContent = "저장 중…"; state.className = "um-state";
+
+          db.from("profiles").update(patch).eq("id", id).then(function (r) {
+            if (r.error) {
+              state.textContent = "실패: " + r.error.message; state.className = "um-state err";
+              return;
+            }
+            /* 메모리의 값도 갱신해 검색 재렌더 시 옛값으로 돌아가지 않게 한다 */
+            for (var i = 0; i < all.length; i++) {
+              if (all[i].id === id) { all[i][field] = value; break; }
+            }
+            state.textContent = "저장됨"; state.className = "um-state ok";
+            var cur = tr.children[1];
+            for (var j = 0; j < all.length; j++) if (all[j].id === id) cur.innerHTML = badges(all[j]);
+          }, function (err) {
+            state.textContent = "실패: " + err; state.className = "um-state err";
+          });
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        if (!window.yvAuth) { msg("설정이 완료되지 않았습니다."); return; }
+        db = window.yvAuth.client;
+
+        db.auth.getUser().then(function (u) {
+          var user = u && u.data ? u.data.user : null;
+          if (!user) { msg("로그인이 필요합니다."); return; }
+
+          return db.from("profiles").select("is_admin").eq("id", user.id).maybeSingle()
+            .then(function (pr) {
+              if (!pr || !pr.data || !pr.data.is_admin) {
+                msg("이 계정에는 관리자 권한이 없습니다. (" + (user.email || "") + ")");
+                return;
+              }
+              return db.from("profiles")
+                .select("id, email, display_name, generation, is_member, is_alumni, is_admin, created_at")
+                .order("created_at", { ascending: false })
+                .then(function (r) {
+                  if (r.error) {
+                    /* email 컬럼이 없으면 마이그레이션 미실행이다. 그걸 그대로 알려준다 */
+                    msg("불러오지 못했습니다: " + r.error.message +
+                        " — migration-members.sql 을 실행했는지 확인하세요.");
+                    return;
+                  }
+                  all = r.data || [];
+                  if (!all.length) { msg("가입자가 없습니다."); return; }
+                  render(all);
+                });
+            });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

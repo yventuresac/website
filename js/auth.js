@@ -41,12 +41,14 @@
     client: client,
     safeNext: safeNext,
 
-    /* 회원가입. name 은 user_metadata.full_name 으로 저장 */
-    async signUp(email, password, name) {
+    /* 회원가입. name 은 user_metadata.full_name 으로 저장.
+       extra 는 가입 트리거가 프로필로 옮기는 부가 정보(기수 등). 없어도 된다. */
+    async signUp(email, password, name, extra) {
+      var data = Object.assign({ full_name: name || "" }, extra || {});
       return await client.auth.signUp({
         email: email,
         password: password,
-        options: { data: { full_name: name || "" } }
+        options: { data: data }
       });
     },
 

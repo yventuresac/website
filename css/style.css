@@ -2917,7 +2917,8 @@ html.yv-gated body { visibility: hidden; }
   color: var(--text-2);
 }
 .auth-field > span em { font-style: normal; color: var(--text-3); font-weight: 500; }
-.auth-field input {
+.auth-field input,
+.auth-field select {
   width: 100%;
   padding: 14px 16px;
   font-size: 15px;
@@ -2929,11 +2930,13 @@ html.yv-gated body { visibility: hidden; }
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 .auth-field input::placeholder { color: rgba(255,255,255,0.28); }
-.auth-field input:focus {
+.auth-field input:focus,
+.auth-field select:focus {
   outline: none;
   border-color: var(--edge-hover);
   box-shadow: var(--glow-hover);
 }
+.auth-note { margin: -6px 0 0; font-size: 13px; color: var(--text-3); }
 .auth-submit { width: 100%; margin-top: 6px; text-align: center; }
 .auth-submit:disabled { opacity: 0.6; cursor: default; transform: none; }
 .auth-msg {
