@@ -89,7 +89,7 @@
                  : (user.user_metadata && user.user_metadata.full_name) || user.email.split("@")[0];
         var badge;
         if (p && p.is_admin) badge = '<span class="mb-badge admin">운영진</span>';
-        else if (p && p.is_member) badge = '<span class="mb-badge">' + (p.generation ? p.generation + "기 " : "") + (p.is_alumni ? "알럼" : "학회원") + '</span>';
+        else if (p && p.is_member) badge = '<span class="mb-badge">' + (p.generation != null ? p.generation + "기 " : "") + (p.is_alumni ? "알럼" : "학회원") + '</span>';
         else badge = '<span class="mb-badge outside">승인 대기</span>';
         return '<div class="mb-hello"><div>' +
                '<h2>' + esc(name) + '님' + badge + '</h2>' +

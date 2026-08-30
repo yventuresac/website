@@ -92,7 +92,7 @@
 
       function genOptions(sel) {
         var html = '<option value="">-</option>';
-        for (var g = 1; g <= 6; g++) {
+        for (var g = 0; g <= 6; g++) {
           html += '<option value="' + g + '"' + (sel === g ? " selected" : "") + '>' + g + '기</option>';
         }
         return html;
