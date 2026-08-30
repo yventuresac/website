@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>지원서 관리 — Y-VENTURES 관리</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .aa-wrap { max-width: 980px; margin: 0 auto; }
+    .aa-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .aa-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .aa-tab { padding: 7px 14px; border: 1px solid var(--edge); border-radius: 999px;
+              background: none; color: var(--text-2); font-size: 13px; cursor: pointer;
+              font-family: 'Pretendard', sans-serif; }
+    .aa-tab.on { border-color: var(--blue-400); color: #93C5FD; }
+    .aa-table-wrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); }
+    .aa-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
+    .aa-table th, .aa-table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+    .aa-table th { font-size: 11px; letter-spacing: var(--ls-wide); text-transform: uppercase;
+                   color: var(--text-3); font-weight: var(--fw-medium); }
+    .aa-table td { color: var(--text-2); }
+    .aa-table td.who { color: var(--text-1); font-weight: var(--fw-medium); }
+    .aa-table td.who small { display: block; font-weight: 400; color: var(--text-3); }
+    .aa-table select {
+      padding: 6px 8px; font-size: 13px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 8px; cursor: pointer;
+    }
+    .aa-view { background: none; border: none; color: #93C5FD; font-size: 13px; cursor: pointer;
+               padding: 0; font-family: 'Pretendard', sans-serif; }
+    .aa-optin { color: #6EE7B7; font-size: 12px; }
+    .aa-state { font-size: 12px; color: var(--text-3); min-width: 56px; display: inline-block; }
+    .aa-state.ok { color: #6EE7B7; }
+    .aa-state.err { color: #FCA5A5; }
+    /* 응답 전체 보기 */
+    .aa-detail td { white-space: normal; }
+    .aa-detail dl { margin: 0; display: grid; grid-template-columns: 220px 1fr; gap: 6px 14px; font-size: 13px; }
+    .aa-detail dt { color: var(--text-3); }
+    .aa-detail dd { margin: 0; color: var(--text-2); word-break: break-word; white-space: pre-wrap; }
+    @media (max-width: 640px) { .aa-detail dl { grid-template-columns: 1fr; gap: 2px; } }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Admin</div>
+    <h1 class="page-title">지원서 관리</h1>
+    <p class="page-desc">Tally 로 접수된 지원서를 한 곳에서 봅니다. 상태를 바꾸면 지원자의 지원 현황 화면에도 반영됩니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="aa-wrap" id="root">
+      <div class="aa-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var STATUS = { received: "접수됨", docs_pass: "서류 통과", interview: "면접 대상", accepted: "최종 선정", rejected: "미선정" };
+      var db = null, all = [], curProgram = "all", openId = null;
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="aa-msg">' + t + '</div>'; }
+      function fmtDate(s) {
+        var d = new Date(s); if (isNaN(d)) return "";
+        return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
+      }
+      function fieldText(v) {
+        if (v == null) return "";
+        if (Array.isArray(v)) return v.map(fieldText).filter(Boolean).join(", ");
+        if (typeof v === "object") return fieldText(v.text != null ? v.text : (v.value != null ? v.value : (v.label != null ? v.label : "")));
+        return String(v);
+      }
+
+      function statusSelect(a) {
+        return '<select data-status="' + a.id + '">' +
+          Object.keys(STATUS).map(function (k) {
+            return '<option value="' + k + '"' + (a.status === k ? " selected" : "") + '>' + STATUS[k] + '</option>';
+          }).join("") + '</select>';
+      }
+
+      function detailHtml(a) {
+        var fields = (a.payload && a.payload.fields) || [];
+        var rows = fields.map(function (f) {
+          var v = fieldText(f.value);
+          if (!v) return "";
+          return '<dt>' + esc(f.label || f.key || "") + '</dt><dd>' + esc(v) + '</dd>';
+        }).filter(Boolean).join("");
+        return '<tr class="aa-detail"><td colspan="6"><dl>' + (rows || "<dt>응답</dt><dd>비어 있음</dd>") + '</dl></td></tr>';
+      }
+
+      function rowHtml(a) {
+        return '<tr>' +
+          '<td class="who">' + esc(a.team_name || a.applicant_name || "(이름 없음)") +
+            '<small>' + esc(a.applicant_email || "") + '</small></td>' +
+          '<td>' + esc(a.program) + '</td>' +
+          '<td>' + esc(fmtDate(a.submitted_at || a.created_at)) + '</td>' +
+          '<td>' + statusSelect(a) + '</td>' +
+          '<td>' + (a.marketing_opt_in ? '<span class="aa-optin">안내 동의</span>' : "") + '</td>' +
+          '<td><button type="button" class="aa-view" data-view="' + a.id + '">' +
+            (openId === a.id ? "접기" : "응답 보기") + '</button> <span class="aa-state" data-state="' + a.id + '"></span></td>' +
+          '</tr>' + (openId === a.id ? detailHtml(a) : "");
+      }
+
+      function render() {
+        var programs = {};
+        all.forEach(function (a) { programs[a.program] = (programs[a.program] || 0) + 1; });
+
+        var tabs = '<button type="button" class="aa-tab' + (curProgram === "all" ? " on" : "") + '" data-tab="all">전체 (' + all.length + ')</button>' +
+          Object.keys(programs).sort().map(function (p) {
+            return '<button type="button" class="aa-tab' + (curProgram === p ? " on" : "") + '" data-tab="' + esc(p) + '">' +
+                   esc(p) + ' (' + programs[p] + ')</button>';
+          }).join("");
+
+        var rows = curProgram === "all" ? all : all.filter(function (a) { return a.program === curProgram; });
+        var table = rows.length
+          ? '<div class="aa-table-wrap"><table class="aa-table"><thead><tr>' +
+            '<th>팀 / 지원자</th><th>프로그램</th><th>제출일</th><th>상태</th><th>동의</th><th></th>' +
+            '</tr></thead><tbody>' + rows.map(rowHtml).join("") + '</tbody></table></div>'
+          : '<div class="aa-msg">이 조건에 지원서가 없습니다.</div>';
+
+        root.innerHTML = '<div class="aa-tabs">' + tabs + '</div>' + table +
+          '<p style="margin-top:10px;font-size:13px;color:var(--text-3)">' +
+          "'안내 동의'는 지원서에서 추후 프로그램 안내 수신에 동의한 경우에만 표시됩니다. " +
+          '동의 표시가 없는 지원자에게는 이 지원 건 외의 연락을 보내지 마세요.</p>';
+
+        root.querySelectorAll(".aa-tab").forEach(function (b) {
+          b.addEventListener("click", function () { curProgram = b.getAttribute("data-tab"); openId = null; render(); });
+        });
+        root.querySelectorAll("[data-view]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var id = Number(b.getAttribute("data-view"));
+            openId = openId === id ? null : id;
+            render();
+          });
+        });
+        root.querySelectorAll("[data-status]").forEach(function (sel) {
+          sel.addEventListener("change", function () {
+            var id = Number(sel.getAttribute("data-status"));
+            var state = root.querySelector('[data-state="' + id + '"]');
+            state.textContent = "저장 중…"; state.className = "aa-state";
+            db.from("applications").update({ status: sel.value }).eq("id", id).then(function (r) {
+              if (r.error) { state.textContent = "실패"; state.className = "aa-state err"; return; }
+              for (var i = 0; i < all.length; i++) if (all[i].id === id) all[i].status = sel.value;
+              state.textContent = "저장됨"; state.className = "aa-state ok";
+            });
+          });
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        if (!window.yvAuth) { msg("설정이 완료되지 않았습니다."); return; }
+        db = yvAuth.client;
+
+        db.auth.getUser().then(function (u) {
+          var user = u && u.data ? u.data.user : null;
+          if (!user) { msg("로그인이 필요합니다."); return; }
+          return db.from("profiles").select("is_admin").eq("id", user.id).maybeSingle()
+            .then(function (pr) {
+              if (!pr || !pr.data || !pr.data.is_admin) {
+                msg("이 계정에는 관리자 권한이 없습니다. (" + esc(user.email || "") + ")");
+                return;
+              }
+              return db.from("applications").select("*").order("created_at", { ascending: false })
+                .then(function (r) {
+                  if (r.error) {
+                    msg("불러오지 못했습니다: " + esc(r.error.message) +
+                        "<br />migration-applications.sql 을 실행했는지 확인하세요.");
+                    return;
+                  }
+                  all = r.data || [];
+                  if (!all.length) {
+                    msg("아직 접수된 지원서가 없습니다.<br />" +
+                        "Tally 폼의 Integrations → Webhooks 에 주소를 등록하면 새 제출부터 쌓입니다.");
+                    return;
+                  }
+                  render();
+                });
+            });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

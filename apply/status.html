@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>지원 현황 — Y-VENTURES</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .ap-wrap { max-width: 720px; margin: 0 auto; }
+    .ap-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .ap-card {
+      padding: var(--space-lg); margin-bottom: 12px;
+      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
+    }
+    .ap-card .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .ap-card h2 { margin: 0; font-size: 20px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .ap-card .meta { margin: 6px 0 0; font-size: 13px; color: var(--text-3); }
+    .ap-status { padding: 4px 12px; border-radius: 999px; font-size: 13px; border: 1px solid var(--edge); color: var(--text-2); }
+    .ap-status.accepted  { border-color: rgba(110,231,183,.5); color: #6EE7B7; }
+    .ap-status.rejected  { border-color: rgba(252,165,165,.4); color: #FCA5A5; }
+    .ap-status.interview { border-color: rgba(96,165,250,.5);  color: #93C5FD; }
+    .ap-status.docs_pass { border-color: rgba(252,211,77,.4);  color: #FCD34D; }
+    /* 진행 단계 표시 — 지금 어디까지 왔는지 한눈에 */
+    .ap-steps { display: flex; gap: 6px; margin-top: 16px; }
+    .ap-step { flex: 1; height: 5px; border-radius: 3px; background: var(--bg-elevated); }
+    .ap-step.on { background: var(--blue-400); }
+    .ap-step.bad { background: rgba(252,165,165,.6); }
+    .ap-note { margin-top: 10px; font-size: 13px; color: var(--text-3); }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Apply</div>
+    <h1 class="page-title">지원 현황</h1>
+    <p class="page-desc">Y-VENTURES 프로그램에 낸 지원서의 진행 상황을 확인합니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="ap-wrap" id="root">
+      <div class="ap-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+
+      var STATUS = {
+        received:  { label: "접수됨",     step: 1 },
+        docs_pass: { label: "서류 통과",  step: 2 },
+        interview: { label: "면접 대상",  step: 3 },
+        accepted:  { label: "최종 선정",  step: 4 },
+        rejected:  { label: "미선정",     step: 0 }
+      };
+      /* program 코드 → 사람이 읽는 이름. 새 프로그램은 여기만 추가 */
+      var PROGRAMS = {
+        "boost-4": "Boost Program 4기",
+        "y-startup-4": "Y-Startup 4기",
+        "recruit-4": "Y-VENTURES 4기 리크루팅"
+      };
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function fmtDate(s) {
+        var d = new Date(s); if (isNaN(d)) return "";
+        return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
+      }
+
+      function stepsHtml(st) {
+        if (st === "rejected") return "";
+        var cur = (STATUS[st] || STATUS.received).step;
+        var html = '<div class="ap-steps">';
+        for (var i = 1; i <= 4; i++) html += '<div class="ap-step' + (i <= cur ? " on" : "") + '"></div>';
+        return html + '</div>';
+      }
+
+      function cardHtml(a) {
+        var st = STATUS[a.status] || STATUS.received;
+        return '<div class="ap-card">' +
+          '<div class="top"><h2>' + esc(PROGRAMS[a.program] || a.program) + '</h2>' +
+          '<span class="ap-status ' + esc(a.status) + '">' + esc(st.label) + '</span></div>' +
+          '<p class="meta">' + (a.team_name ? esc(a.team_name) + " · " : "") +
+          '제출 ' + esc(fmtDate(a.submitted_at || a.created_at)) + '</p>' +
+          stepsHtml(a.status) +
+          (a.status === "received" ? '<p class="ap-note">검토가 시작되면 단계가 올라갑니다. 개별 안내는 이메일로도 드립니다.</p>' : "") +
+          '</div>';
+      }
+
+      window.addEventListener("DOMContentLoaded", async function () {
+        if (!window.yvAuth) return;
+        var user = await yvAuth.requireAuth();
+        if (!user) return;
+        var db = yvAuth.client;
+
+        var r = await db.from("applications")
+          .select("program, team_name, status, submitted_at, created_at")
+          .order("created_at", { ascending: false });
+
+        if (r.error) {
+          root.innerHTML = '<div class="ap-msg">불러오지 못했습니다: ' + esc(r.error.message) + '</div>';
+          return;
+        }
+        var rows = r.data || [];
+        if (!rows.length) {
+          root.innerHTML = '<div class="ap-msg">' +
+            esc(user.email || "") + ' 이메일로 접수된 지원서가 없습니다.<br />' +
+            '지원서에 적은 이메일과 같은 주소로 가입해야 조회됩니다.<br />' +
+            '방금 제출했다면 반영까지 잠시 걸릴 수 있습니다.</div>';
+          return;
+        }
+        root.innerHTML = rows.map(cardHtml).join("");
+      });
+    })();
+  </script>
+</body>
+</html>

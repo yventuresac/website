@@ -115,13 +115,15 @@
           '<div class="mb-grid">' +
           '<a class="mb-card" href="/admin-tools/users.html"><h3>회원 관리</h3><p>가입 승인, 기수 지정, 등급 변경.</p></a>' +
           '<a class="mb-card" href="/admin-tools/stats.html"><h3>사이트 통계</h3><p>방문·유입 경로·버튼 클릭 집계.</p></a>' +
+          '<a class="mb-card" href="/admin-tools/applications.html"><h3>지원서 관리</h3><p>Tally 접수분 열람과 심사 상태 변경.</p></a>' +
           '</div></div>';
       }
 
       function gateHtml(user) {
         return '<div class="mb-gate">' +
           '계정은 만들어졌지만 아직 학회원 승인 전입니다.<br />' +
-          'Y-VENTURES 학회원이라면 운영진에게 가입 이메일(' + esc(user.email || "") + ')을 알려주세요.' +
+          'Y-VENTURES 학회원이라면 운영진에게 가입 이메일(' + esc(user.email || "") + ')을 알려주세요.<br /><br />' +
+          '프로그램에 지원하셨다면 <a href="/apply/status.html" style="color:#93C5FD">지원 현황</a>에서 진행 상황을 볼 수 있습니다.' +
           '</div>';
       }
 
