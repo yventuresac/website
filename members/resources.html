@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>기수별 자료실 — Y-VENTURES</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .rs-wrap { max-width: 880px; margin: 0 auto; }
+    .rs-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .rs-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .rs-tab {
+      padding: 7px 14px; border: 1px solid var(--edge); border-radius: 999px;
+      background: none; color: var(--text-2); font-size: 13px; cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .rs-tab.on { border-color: var(--blue-400); color: #93C5FD; }
+    .rs-tab:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 2px; }
+    .rs-list { display: grid; gap: 10px; }
+    .rs-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border: 1px solid var(--edge); border-radius: 12px;
+      background: var(--bg-card); text-decoration: none;
+      transition: border-color 0.2s var(--ease-out);
+    }
+    .rs-item:hover { border-color: var(--edge-hover); }
+    .rs-item:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+    .rs-cat {
+      flex: none; margin-top: 1px; padding: 2px 9px; border-radius: 999px;
+      font-size: 11px; letter-spacing: var(--ls-wide); border: 1px solid var(--edge); color: var(--text-3);
+    }
+    .rs-body { min-width: 0; flex: 1; }
+    .rs-body h3 { margin: 0 0 3px; font-size: var(--text-body); color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .rs-body p { margin: 0; font-size: 13px; color: var(--text-3); }
+    .rs-del {
+      flex: none; background: none; border: none; color: var(--text-3);
+      font-size: 12px; cursor: pointer; padding: 4px; font-family: 'Pretendard', sans-serif;
+    }
+    .rs-del:hover { color: #FCA5A5; }
+    .rs-form {
+      margin-top: var(--space-2xl); padding: var(--space-lg);
+      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
+    }
+    .rs-form h2 { margin: 0 0 var(--space-md); font-size: 20px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .rs-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .rs-form label { display: block; margin-bottom: 12px; }
+    .rs-form label span { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-2); }
+    .rs-form input, .rs-form select {
+      width: 100%; padding: 11px 14px; font-size: 14px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 10px;
+    }
+    .rs-form input:focus, .rs-form select:focus { outline: none; border-color: var(--edge-hover); }
+    .rs-form-msg { margin: 8px 0 0; font-size: 13px; min-height: 18px; }
+    .rs-form-msg.ok { color: #6EE7B7; }
+    .rs-form-msg.err { color: #FCA5A5; }
+    @media (max-width: 640px) { .rs-form .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Members</div>
+    <h1 class="page-title">기수별 자료실</h1>
+    <p class="page-desc">세션 자료·템플릿·노션·드라이브 링크를 기수별로 모아둡니다. 파일은 원래 있던 곳에 두고 주소만 등록하세요.</p>
+  </div>
+
+  <section class="section">
+    <div class="rs-wrap" id="root">
+      <div class="rs-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var CATS = { session: "세션·발표", template: "템플릿", notion: "노션", drive: "드라이브", etc: "기타" };
+      var db = null, me = null, all = [], curGen = "all";
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="rs-msg">' + t + '</div>'; }
+
+      /* http(s) 링크만 받는다. javascript: 등이 학회원 공간이라도 들어오면 안 된다 */
+      function safeUrl(u) { return /^https?:\/\//i.test(u) ? u : null; }
+
+      function genLabel(g) { return g == null ? "공통" : g + "기"; }
+
+      function tabsHtml() {
+        var gens = {};
+        all.forEach(function (r) { gens[r.generation == null ? "null" : r.generation] = true; });
+        var keys = Object.keys(gens).sort(function (a, b) {
+          if (a === "null") return -1; if (b === "null") return 1; return Number(a) - Number(b);
+        });
+        var html = '<button type="button" class="rs-tab' + (curGen === "all" ? " on" : "") + '" data-gen="all">전체</button>';
+        keys.forEach(function (k) {
+          html += '<button type="button" class="rs-tab' + (curGen === k ? " on" : "") + '" data-gen="' + k + '">' +
+                  genLabel(k === "null" ? null : Number(k)) + '</button>';
+        });
+        return '<div class="rs-tabs">' + html + '</div>';
+      }
+
+      function itemHtml(r) {
+        var mine = me && (r.author_id === me.id || me.is_admin);
+        var url = safeUrl(r.url);
+        return '<div style="display:flex;gap:0;align-items:stretch">' +
+          '<a class="rs-item" style="flex:1" href="' + (url ? esc(url) : "#") + '" target="_blank" rel="noopener">' +
+          '<span class="rs-cat">' + esc(genLabel(r.generation)) + ' · ' + esc(CATS[r.category] || r.category) + '</span>' +
+          '<span class="rs-body"><h3>' + esc(r.title) + '</h3>' +
+          '<p>' + esc(r.note || "") + (r.author_name ? (r.note ? " · " : "") + esc(r.author_name) : "") + '</p></span>' +
+          (mine ? '<button type="button" class="rs-del" data-del="' + r.id + '" aria-label="삭제">삭제</button>' : "") +
+          '</a></div>';
+      }
+
+      function listHtml() {
+        var rows = curGen === "all" ? all : all.filter(function (r) {
+          return String(r.generation == null ? "null" : r.generation) === curGen;
+        });
+        if (!rows.length) return '<div class="rs-msg">아직 등록된 자료가 없습니다. 아래에서 첫 링크를 올려보세요.</div>';
+        return '<div class="rs-list">' + rows.map(itemHtml).join("") + '</div>';
+      }
+
+      function formHtml() {
+        var genOpts = '<option value="">공통 (전 기수)</option>';
+        for (var g = 0; g <= 6; g++) genOpts += '<option value="' + g + '">' + g + '기</option>';
+        var catOpts = Object.keys(CATS).map(function (k) {
+          return '<option value="' + k + '">' + CATS[k] + '</option>';
+        }).join("");
+        return '<form class="rs-form" id="addForm">' +
+          '<h2>자료 등록</h2>' +
+          '<label><span>제목</span><input name="title" required maxlength="200" placeholder="예: 3기 시장분석 세션 자료" /></label>' +
+          '<label><span>링크 (노션·드라이브·슬라이드 등)</span><input name="url" type="url" required placeholder="https://..." /></label>' +
+          '<div class="row">' +
+          '<label><span>기수</span><select name="generation">' + genOpts + '</select></label>' +
+          '<label><span>분류</span><select name="category">' + catOpts + '</select></label>' +
+          '</div>' +
+          '<label><span>한 줄 설명 (선택)</span><input name="note" maxlength="200" placeholder="무엇이 들어있는지" /></label>' +
+          '<button type="submit" class="btn btn-black">등록</button>' +
+          '<p class="rs-form-msg" id="formMsg"></p>' +
+          '</form>';
+      }
+
+      function render() {
+        root.innerHTML = tabsHtml() + listHtml() + formHtml();
+
+        root.querySelectorAll(".rs-tab").forEach(function (b) {
+          b.addEventListener("click", function () { curGen = b.getAttribute("data-gen"); render(); });
+        });
+
+        root.querySelectorAll("[data-del]").forEach(function (b) {
+          b.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            if (!confirm("이 자료를 삭제할까요?")) return;
+            var id = Number(b.getAttribute("data-del"));
+            db.from("resources").delete().eq("id", id).then(function (r) {
+              if (r.error) { alert("삭제 실패: " + r.error.message); return; }
+              all = all.filter(function (x) { return x.id !== id; });
+              render();
+            });
+          });
+        });
+
+        var form = document.getElementById("addForm");
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var fm = document.getElementById("formMsg");
+          var url = form.url.value.trim();
+          if (!safeUrl(url)) { fm.textContent = "http:// 또는 https:// 로 시작하는 주소만 등록할 수 있습니다."; fm.className = "rs-form-msg err"; return; }
+          var row = {
+            title: form.title.value.trim(),
+            url: url,
+            generation: form.generation.value === "" ? null : Number(form.generation.value),
+            category: form.category.value,
+            note: form.note.value.trim(),
+            author_id: me.id,
+            author_name: me.display_name || ""
+          };
+          fm.textContent = "등록 중…"; fm.className = "rs-form-msg";
+          db.from("resources").insert(row).select().single().then(function (r) {
+            if (r.error) { fm.textContent = "등록 실패: " + r.error.message; fm.className = "rs-form-msg err"; return; }
+            all.unshift(r.data);
+            render();
+            var fm2 = document.getElementById("formMsg");
+            fm2.textContent = "등록됐습니다."; fm2.className = "rs-form-msg ok";
+          });
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", async function () {
+        if (!window.yvAuth) return;
+        var user = await yvAuth.requireAuth();
+        if (!user) return;
+        db = yvAuth.client;
+
+        var pr = await db.from("profiles").select("display_name, is_member, is_admin").eq("id", user.id).maybeSingle();
+        var p = pr.data;
+        if (!p || (!p.is_member && !p.is_admin)) {
+          msg("학회원 전용 공간입니다.<br />승인이 필요하면 운영진에게 가입 이메일(" + esc(user.email || "") + ")을 알려주세요.");
+          return;
+        }
+        me = { id: user.id, display_name: p.display_name, is_admin: p.is_admin };
+
+        var r = await db.from("resources").select("*").order("created_at", { ascending: false });
+        if (r.error) {
+          msg("불러오지 못했습니다: " + esc(r.error.message) + "<br />migration-resources.sql 을 실행했는지 확인하세요.");
+          return;
+        }
+        all = r.data || [];
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>

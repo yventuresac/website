@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>동문 창업가 제보 — Y-VENTURES</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .an-wrap { max-width: 880px; margin: 0 auto; }
+    .an-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .an-list { display: grid; gap: 10px; }
+    .an-item {
+      padding: 14px 16px; border: 1px solid var(--edge); border-radius: 12px; background: var(--bg-card);
+    }
+    .an-item .top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .an-item h3 { margin: 0; font-size: var(--text-body); color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .an-company { font-size: 13px; color: #93C5FD; }
+    .an-used { font-size: 11px; letter-spacing: var(--ls-wide); padding: 2px 9px; border-radius: 999px;
+               border: 1px solid rgba(110,231,183,.4); color: #6EE7B7; }
+    .an-item p { margin: 6px 0 0; font-size: 13px; color: var(--text-3); }
+    .an-item a { color: var(--text-2); font-size: 13px; }
+    .an-actions { margin-top: 8px; display: flex; gap: 12px; }
+    .an-actions button {
+      background: none; border: none; padding: 0; cursor: pointer;
+      font-size: 12px; color: var(--text-3); font-family: 'Pretendard', sans-serif;
+    }
+    .an-actions button:hover { color: var(--text-1); }
+    .an-form {
+      margin-top: var(--space-2xl); padding: var(--space-lg);
+      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
+    }
+    .an-form h2 { margin: 0 0 6px; font-size: 20px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .an-form .sub { margin: 0 0 var(--space-md); font-size: 13px; color: var(--text-3); }
+    .an-form label { display: block; margin-bottom: 12px; }
+    .an-form label span { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-2); }
+    .an-form input {
+      width: 100%; padding: 11px 14px; font-size: 14px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 10px;
+    }
+    .an-form input:focus { outline: none; border-color: var(--edge-hover); }
+    .an-form-msg { margin: 8px 0 0; font-size: 13px; min-height: 18px; }
+    .an-form-msg.ok { color: #6EE7B7; }
+    .an-form-msg.err { color: #FCA5A5; }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Members</div>
+    <h1 class="page-title">동문 창업가 제보</h1>
+    <p class="page-desc">연세 출신 창업가·선배 회사의 소식을 알게 되면 남겨주세요. 뉴스레터 재료가 됩니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="an-wrap" id="root">
+      <div class="an-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var db = null, me = null, all = [];
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="an-msg">' + t + '</div>'; }
+      function safeUrl(u) { return /^https?:\/\//i.test(u) ? u : null; }
+      function fmtDate(s) {
+        var d = new Date(s); if (isNaN(d)) return "";
+        return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
+      }
+
+      function itemHtml(r) {
+        var mine = me && (r.author_id === me.id || me.is_admin);
+        var url = safeUrl(r.url || "");
+        return '<div class="an-item">' +
+          '<div class="top">' +
+          '<span class="an-company">' + esc(r.company) + '</span>' +
+          '<h3>' + esc(r.title) + '</h3>' +
+          (r.status === "used" ? '<span class="an-used">뉴스레터 게재</span>' : "") +
+          '</div>' +
+          '<p>' + esc(fmtDate(r.created_at)) + (r.author_name ? " · " + esc(r.author_name) : "") +
+          (r.note ? " — " + esc(r.note) : "") + "</p>" +
+          (url ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener">기사 보기 ↗</a></p>' : "") +
+          (mine || (me && me.is_admin) ?
+            '<div class="an-actions">' +
+            (me.is_admin && r.status === "new" ? '<button type="button" data-used="' + r.id + '">게재 처리</button>' : "") +
+            (mine ? '<button type="button" data-del="' + r.id + '">삭제</button>' : "") +
+            '</div>' : "") +
+          '</div>';
+      }
+
+      function render() {
+        var list = all.length
+          ? '<div class="an-list">' + all.map(itemHtml).join("") + '</div>'
+          : '<div class="an-msg">아직 제보가 없습니다. 첫 소식을 남겨보세요.</div>';
+
+        root.innerHTML = list +
+          '<form class="an-form" id="addForm">' +
+          '<h2>소식 제보</h2>' +
+          '<p class="sub">기사가 없어도 됩니다. 들은 이야기면 그렇게 적어주세요 — 확인은 운영진이 합니다.</p>' +
+          '<label><span>회사·팀 이름</span><input name="company" required maxlength="100" placeholder="예: 에이블리" /></label>' +
+          '<label><span>무슨 소식인가요</span><input name="title" required maxlength="300" placeholder="예: 시리즈B 500억 투자 유치" /></label>' +
+          '<label><span>기사 링크 (선택)</span><input name="url" type="url" placeholder="https://..." /></label>' +
+          '<label><span>덧붙일 말 (선택)</span><input name="note" maxlength="200" placeholder="예: 대표가 경영 15학번 선배" /></label>' +
+          '<button type="submit" class="btn btn-black">제보하기</button>' +
+          '<p class="an-form-msg" id="formMsg"></p>' +
+          '</form>';
+
+        root.querySelectorAll("[data-del]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            if (!confirm("이 제보를 삭제할까요?")) return;
+            var id = Number(b.getAttribute("data-del"));
+            db.from("alumni_news").delete().eq("id", id).then(function (r) {
+              if (r.error) { alert("삭제 실패: " + r.error.message); return; }
+              all = all.filter(function (x) { return x.id !== id; });
+              render();
+            });
+          });
+        });
+
+        root.querySelectorAll("[data-used]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var id = Number(b.getAttribute("data-used"));
+            db.from("alumni_news").update({ status: "used" }).eq("id", id).then(function (r) {
+              if (r.error) { alert("실패: " + r.error.message); return; }
+              for (var i = 0; i < all.length; i++) if (all[i].id === id) all[i].status = "used";
+              render();
+            });
+          });
+        });
+
+        document.getElementById("addForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var form = e.target;
+          var fm = document.getElementById("formMsg");
+          var url = form.url.value.trim();
+          if (url && !safeUrl(url)) { fm.textContent = "링크는 http:// 또는 https:// 로 시작해야 합니다."; fm.className = "an-form-msg err"; return; }
+          var row = {
+            company: form.company.value.trim(),
+            title: form.title.value.trim(),
+            url: url,
+            note: form.note.value.trim(),
+            author_id: me.id,
+            author_name: me.display_name || ""
+          };
+          fm.textContent = "등록 중…"; fm.className = "an-form-msg";
+          db.from("alumni_news").insert(row).select().single().then(function (r) {
+            if (r.error) { fm.textContent = "등록 실패: " + r.error.message; fm.className = "an-form-msg err"; return; }
+            all.unshift(r.data);
+            render();
+            var fm2 = document.getElementById("formMsg");
+            fm2.textContent = "제보 감사합니다."; fm2.className = "an-form-msg ok";
+          });
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", async function () {
+        if (!window.yvAuth) return;
+        var user = await yvAuth.requireAuth();
+        if (!user) return;
+        db = yvAuth.client;
+
+        var pr = await db.from("profiles").select("display_name, is_member, is_admin").eq("id", user.id).maybeSingle();
+        var p = pr.data;
+        if (!p || (!p.is_member && !p.is_admin)) {
+          msg("학회원 전용 공간입니다.<br />승인이 필요하면 운영진에게 가입 이메일(" + esc(user.email || "") + ")을 알려주세요.");
+          return;
+        }
+        me = { id: user.id, display_name: p.display_name, is_admin: p.is_admin };
+
+        var r = await db.from("alumni_news").select("*").order("created_at", { ascending: false });
+        if (r.error) {
+          msg("불러오지 못했습니다: " + esc(r.error.message) + "<br />migration-resources.sql 을 실행했는지 확인하세요.");
+          return;
+        }
+        all = r.data || [];
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>
