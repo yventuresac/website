@@ -103,7 +103,7 @@
       border: 1px dashed var(--edge); border-radius: 16px; line-height: var(--lh-relaxed);
     }
     .mb-gate a { color: #93C5FD; }
-    .mb-admin { margin-top: var(--space-2xl); }
+    .mb-net, .mb-admin { margin-top: var(--space-2xl); }
 
     @media (max-width: 640px) {
       .mb-grid { grid-template-columns: 1fr; }
@@ -193,16 +193,22 @@
           '</div>';
       }
 
+      /* 두 구획으로 나눈다.
+         Workspace — 학기 중 매주 쓰는 것 (글·자료·과제)
+         Network & Records — 가끔 들르는 것 (사람·기록)
+         섞어두면 매주 쓸 네 개가 일곱 개 사이에 묻힌다. */
       function memberCards() {
         return '<p class="mb-eyebrow">Workspace</p><div class="mb-grid">' +
           card("/insights/write.html", "t-blue",   "pen",    "Insights 글쓰기", "산업·시장 인사이트를 작성해 게시판에 올립니다.") +
           card("/insights/",           "t-purple", "board",  "Insights 게시판", "학회원들이 쓴 글을 읽고 반응을 남깁니다.") +
           card("/members/resources.html", "t-green", "folder", "기수별 자료실", "세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.") +
+          card("/members/assignments.html", "t-orange", "upload", "과제 제출", "커리큘럼 과제를 링크로 제출합니다.") +
+          '</div>' +
+          '<div class="mb-net"><p class="mb-eyebrow">Network &amp; Records</p><div class="mb-grid">' +
+          card("/members/alumni.html", "t-cyan", "users", "알럼 디렉터리", "기수별 알럼을 찾아보고 연결을 요청합니다.") +
           card("/members/alumni-news.html", "t-pink", "mega", "동문 창업가 제보", "선배 창업가 소식을 공유하는 창구. 뉴스레터 재료가 됩니다.") +
           card("/members/activity.html", "t-yellow", "clock", "내 활동 기록", "참여한 프로그램과 역할을 기록해 이력으로 활용합니다.") +
-          card("/members/assignments.html", "t-orange", "upload", "과제 제출", "커리큘럼 과제를 링크로 제출합니다.") +
-          card("/members/alumni.html", "t-cyan", "users", "알럼 디렉터리", "기수별 알럼을 찾아보고 연결을 요청합니다.") +
-          '</div>';
+          '</div></div>';
       }
 
       function adminCards() {
