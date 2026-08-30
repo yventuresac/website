@@ -27,30 +27,6 @@
 </head>
 <body>
 
-  <!-- 2026 FALL RECRUITING 팝업 -->
-  <div class="yv-popup-overlay" id="recruitPopup" role="dialog" aria-modal="true" aria-label="Y-VENTURES 4기 학회원 모집">
-    <div class="yv-popup">
-      <button class="yv-popup-close" id="recruitPopupClose" aria-label="팝업 닫기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-      <a href="recruiting/" class="yv-popup-text" aria-label="리크루팅 페이지로 이동">
-        <div class="yv-popup-eyebrow">2026 Fall Recruiting</div>
-        <div class="yv-popup-title">4기 학회원을<br>모집합니다</div>
-        <p class="yv-popup-desc">연세대학교 Venture Scout 단체 Y-VENTURES. <br>학생 창업자와 스타트업의 성장을 곁에서 <br>돕는 사람을 찾습니다.</p>
-        <div class="yv-popup-dates">
-          <div><span>서류 접수</span><span>08.11 (화) 09:00 ~ 08.25 (화) 23:59</span></div>
-          <div><span>면접 일정 공지</span><span>08.26 (수)</span></div>
-          <div><span>면접</span><span>08.27 (목) ~ 08.29 (토)</span></div>
-          <div><span>합격 발표</span><span>08.30 (일) ~ 08.31 (월)</span></div>
-        </div>
-        <span class="deadline-pill">서류 마감 8/25(화) 23:59</span>
-      </a>
-      <div class="yv-popup-foot">
-        <button type="button" id="recruitPopupDismiss">오늘 하루 보지 않기</button>
-        <button type="button" class="yv-popup-apply" onclick="location.href='recruiting/'">지원 안내 보기</button>
-      </div>
-    </div>
-  </div>
 
   <nav id="nav">
     <a href="index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
@@ -244,10 +220,9 @@
              · deadline-pill 줄은 삭제
       -->
       <div class="hero-cta">
-        <a href="recruiting/" class="btn btn-black">4기 학회원 지원하기</a>
-        <a href="programs/" class="btn btn-outline">프로그램 보기</a>
+        <a href="programs/" class="btn btn-black">프로그램 보기</a>
+        <a href="contact/" class="btn btn-outline">문의하기</a>
       </div>
-      <span class="deadline-pill hero-deadline">서류 마감 8/25(화) 23:59</span>
       <!-- ══════ 히어로 CTA 끝 ══════ -->
     </div>
   </section>
@@ -492,24 +467,6 @@
       hero.addEventListener('mouseleave', () => hero.style.setProperty('--hero-bg-x', '100%'));
     }
 
-    // recruiting popup — shows once per day (dismissable)
-    (function () {
-      const overlay = document.getElementById('recruitPopup');
-      if (!overlay) return;
-      const KEY = 'yv-recruit26f-popup-dismissed';
-      const today = new Date().toISOString().slice(0, 10);
-      if (localStorage.getItem(KEY) === today) return;
-
-      const open = () => overlay.classList.add('open');
-      const close = () => overlay.classList.remove('open');
-      const dismissToday = () => { localStorage.setItem(KEY, today); close(); };
-
-      window.setTimeout(open, 900);
-      document.getElementById('recruitPopupClose').addEventListener('click', close);
-      document.getElementById('recruitPopupDismiss').addEventListener('click', dismissToday);
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-    })();
   </script>
   <!-- auth: nav login/logout -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
