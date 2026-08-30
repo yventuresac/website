@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>내 활동 기록 — Y-VENTURES</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .ac-wrap { max-width: 720px; margin: 0 auto; }
+    .ac-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .ac-item { padding: 14px 16px; border: 1px solid var(--edge); border-radius: 12px;
+               background: var(--bg-card); margin-bottom: 10px; }
+    .ac-item .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .ac-item h3 { margin: 0; font-size: var(--text-body); color: var(--text-1); }
+    .ac-item p { margin: 4px 0 0; font-size: 13px; color: var(--text-3); }
+    .ac-del { background: none; border: none; color: var(--text-3); font-size: 12px; cursor: pointer;
+              font-family: 'Pretendard', sans-serif; }
+    .ac-del:hover { color: #FCA5A5; }
+    .ac-form, .ac-career {
+      margin-top: var(--space-2xl); padding: var(--space-lg);
+      border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
+    }
+    .ac-form h2, .ac-career h2 { margin: 0 0 6px; font-size: 20px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .ac-form .sub, .ac-career .sub { margin: 0 0 var(--space-md); font-size: 13px; color: var(--text-3); }
+    .ac-form label, .ac-career label { display: block; margin-bottom: 12px; }
+    .ac-form label span, .ac-career label span { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-2); }
+    .ac-form input, .ac-career input {
+      width: 100%; padding: 11px 14px; font-size: 14px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 10px;
+    }
+    .ac-form input:focus, .ac-career input:focus { outline: none; border-color: var(--edge-hover); }
+    .ac-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fmsg { margin: 8px 0 0; font-size: 13px; min-height: 18px; }
+    .fmsg.ok { color: #6EE7B7; }
+    .fmsg.err { color: #FCA5A5; }
+    @media (max-width: 640px) { .ac-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Members</div>
+    <h1 class="page-title">내 활동 기록</h1>
+    <p class="page-desc">참여한 프로그램과 역할을 기록해 두면 나중에 이력으로 씁니다. 본인에게만 보입니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="ac-wrap" id="root">
+      <div class="ac-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var db = null, me = null, all = [], career = { company: "", job_title: "" };
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="ac-msg">' + t + '</div>'; }
+
+      function itemHtml(r) {
+        return '<div class="ac-item"><div class="top"><h3>' + esc(r.title) +
+          (r.role ? ' <span style="color:var(--text-3);font-weight:400">· ' + esc(r.role) + '</span>' : "") + '</h3>' +
+          '<button type="button" class="ac-del" data-del="' + r.id + '">삭제</button></div>' +
+          '<p>' + esc(r.period || "") + (r.note ? (r.period ? " — " : "") + esc(r.note) : "") + '</p></div>';
+      }
+
+      function render() {
+        var list = all.length
+          ? all.map(itemHtml).join("")
+          : '<div class="ac-msg">아직 기록이 없습니다. 아래에서 첫 활동을 추가해 보세요.</div>';
+
+        root.innerHTML = list +
+          '<form class="ac-form" id="addForm">' +
+          '<h2>활동 추가</h2>' +
+          '<p class="sub">프로그램·행사·직책 무엇이든. 예: Y-Startup 3기 운영, VC Career Session 기획</p>' +
+          '<label><span>활동</span><input name="title" required maxlength="200" placeholder="예: Y-Startup 3기" /></label>' +
+          '<div class="ac-row">' +
+          '<label><span>역할 (선택)</span><input name="role" maxlength="100" placeholder="예: 운영팀 리드" /></label>' +
+          '<label><span>기간 (선택)</span><input name="period" maxlength="60" placeholder="예: 2026.01 ~ 2026.02" /></label>' +
+          '</div>' +
+          '<label><span>메모 (선택)</span><input name="note" maxlength="300" placeholder="한 일, 성과 등" /></label>' +
+          '<button type="submit" class="btn btn-black">추가</button>' +
+          '<p class="fmsg" id="addMsg"></p>' +
+          '</form>' +
+          '<form class="ac-career" id="careerForm">' +
+          '<h2>현재 소속</h2>' +
+          '<p class="sub">알럼 디렉터리에 이름·기수와 함께 표시됩니다. 연락처는 표시되지 않습니다.</p>' +
+          '<div class="ac-row">' +
+          '<label><span>회사·소속</span><input name="company" maxlength="100" value="' + esc(career.company) + '" placeholder="예: 에이블리" /></label>' +
+          '<label><span>직무</span><input name="job_title" maxlength="100" value="' + esc(career.job_title) + '" placeholder="예: PM" /></label>' +
+          '</div>' +
+          '<button type="submit" class="btn btn-outline">저장</button>' +
+          '<p class="fmsg" id="careerMsg"></p>' +
+          '</form>';
+
+        root.querySelectorAll("[data-del]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            if (!confirm("이 기록을 삭제할까요?")) return;
+            var id = Number(b.getAttribute("data-del"));
+            db.from("activity_records").delete().eq("id", id).then(function (r) {
+              if (r.error) { alert("삭제 실패: " + r.error.message); return; }
+              all = all.filter(function (x) { return x.id !== id; });
+              render();
+            });
+          });
+        });
+
+        document.getElementById("addForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var f = e.target, fm = document.getElementById("addMsg");
+          fm.textContent = "저장 중…"; fm.className = "fmsg";
+          db.from("activity_records").insert({
+            user_id: me.id,
+            title: f.title.value.trim(),
+            role: f.role.value.trim(),
+            period: f.period.value.trim(),
+            note: f.note.value.trim()
+          }).select().single().then(function (r) {
+            if (r.error) { fm.textContent = "실패: " + r.error.message; fm.className = "fmsg err"; return; }
+            all.unshift(r.data);
+            render();
+          });
+        });
+
+        document.getElementById("careerForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var f = e.target, fm = document.getElementById("careerMsg");
+          career = { company: f.company.value.trim(), job_title: f.job_title.value.trim() };
+          fm.textContent = "저장 중…"; fm.className = "fmsg";
+          db.rpc("update_my_career", { p_company: career.company, p_job_title: career.job_title })
+            .then(function (r) {
+              if (r.error) { fm.textContent = "실패: " + r.error.message; fm.className = "fmsg err"; return; }
+              fm.textContent = "저장됐습니다."; fm.className = "fmsg ok";
+            });
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", async function () {
+        if (!window.yvAuth) return;
+        var user = await yvAuth.requireAuth();
+        if (!user) return;
+        db = yvAuth.client;
+
+        var pr = await db.from("profiles").select("display_name, company, job_title, is_member, is_admin").eq("id", user.id).maybeSingle();
+        var p = pr.data;
+        if (!p || (!p.is_member && !p.is_admin)) {
+          msg("학회원 전용 공간입니다.<br />승인이 필요하면 운영진에게 가입 이메일(" + esc(user.email || "") + ")을 알려주세요.");
+          return;
+        }
+        me = { id: user.id };
+        career = { company: p.company || "", job_title: p.job_title || "" };
+
+        var r = await db.from("activity_records").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+        if (r.error) {
+          msg("불러오지 못했습니다: " + esc(r.error.message) + "<br />migration-phase4.sql 을 실행했는지 확인하세요.");
+          return;
+        }
+        all = r.data || [];
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>

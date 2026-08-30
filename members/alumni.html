@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" class="yv-gated">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>알럼 디렉터리 — Y-VENTURES</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <style>
+    .al-wrap { max-width: 880px; margin: 0 auto; }
+    .al-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .al-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .al-card { padding: var(--space-md); border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); }
+    .al-card h3 { margin: 0 0 2px; font-size: var(--text-body-lg); color: var(--text-1); }
+    .al-card h3 small { font-weight: 400; font-size: 12px; color: #FCD34D; margin-left: 6px; }
+    .al-card p { margin: 0 0 10px; font-size: 13px; color: var(--text-3); }
+    .al-card button {
+      padding: 7px 14px; font-size: 13px; border-radius: 999px; cursor: pointer;
+      background: none; border: 1px solid var(--edge); color: var(--text-2);
+      font-family: 'Pretendard', sans-serif;
+    }
+    .al-card button:hover { border-color: var(--edge-hover); color: var(--text-1); }
+    .al-card .sent { font-size: 12px; color: #6EE7B7; }
+    /* 요청 작성 대화상자 */
+    .al-dialog { border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-elevated);
+                 color: var(--text-1); padding: var(--space-lg); max-width: 440px; width: 90vw; }
+    .al-dialog::backdrop { background: rgba(0,0,0,.6); }
+    .al-dialog h2 { margin: 0 0 6px; font-size: 18px; }
+    .al-dialog p { margin: 0 0 12px; font-size: 13px; color: var(--text-3); }
+    .al-dialog textarea {
+      width: 100%; min-height: 110px; padding: 11px 14px; font-size: 14px;
+      font-family: 'Pretendard', sans-serif; color: var(--text-1);
+      background: var(--bg-base); border: 1px solid var(--edge); border-radius: 10px; resize: vertical;
+    }
+    .al-dialog textarea:focus { outline: none; border-color: var(--edge-hover); }
+    .al-dialog .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    .al-req { margin-top: var(--space-2xl); }
+    .al-req h2 { margin: 0 0 12px; font-size: 20px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .al-req-item { padding: 12px 16px; border: 1px solid var(--edge); border-radius: 12px;
+                   background: var(--bg-card); margin-bottom: 8px; font-size: 13px; color: var(--text-2); }
+    .al-req-item .st { float: right; color: var(--text-3); }
+    .al-req-item .st.relayed { color: #6EE7B7; }
+    .al-req-item .st.declined { color: #FCA5A5; }
+    .al-req-item .admin-btns { margin-top: 8px; display: flex; gap: 10px; }
+    .al-req-item .admin-btns button { background: none; border: none; padding: 0; cursor: pointer;
+      font-size: 12px; color: #93C5FD; font-family: 'Pretendard', sans-serif; }
+    @media (max-width: 640px) { .al-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="../assets/logo.png" alt="Y-VENTURES" />
+    </a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Members</div>
+    <h1 class="page-title">알럼 디렉터리</h1>
+    <p class="page-desc">기수별 알럼을 찾아보고 연결을 요청합니다. 연락처는 공개되지 않으며, 요청은 운영진이 알럼에게 전달합니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="al-wrap" id="root">
+      <div class="al-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <dialog class="al-dialog" id="reqDialog">
+    <h2 id="reqTitle">연결 요청</h2>
+    <p>누구인지, 왜 연결되고 싶은지 적어주세요. 이 내용이 그대로 전달됩니다.</p>
+    <textarea id="reqMsg" maxlength="500" placeholder="예: 안녕하세요, 4기 ○○○입니다. 커머스 PM 직무가 궁금해서 커피챗을 요청드리고 싶습니다."></textarea>
+    <div class="btns">
+      <button type="button" class="btn btn-outline" id="reqCancel">취소</button>
+      <button type="button" class="btn btn-black" id="reqSend">요청 보내기</button>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      var db = null, me = null, alumni = [], myReqs = [], target = null;
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="al-msg">' + t + '</div>'; }
+      var ST = { pending: "전달 대기", relayed: "전달됨", declined: "진행 안 함" };
+
+      function pendingFor(id) {
+        return myReqs.some(function (r) { return r.target_id === id && r.status !== "declined"; });
+      }
+
+      function cardHtml(a) {
+        var line = [a.company, a.job_title].filter(Boolean).join(" · ");
+        return '<div class="al-card"><h3>' + esc(a.display_name || "(이름 없음)") +
+          '<small>' + (a.generation != null ? a.generation + "기" : "기수 미입력") + '</small></h3>' +
+          '<p>' + (line ? esc(line) : "소속 미입력") + '</p>' +
+          (a.id === me.id ? "" :
+            pendingFor(a.id)
+              ? '<span class="sent">연결 요청함</span>'
+              : '<button type="button" data-req="' + esc(a.id) + '" data-name="' + esc(a.display_name || "") + '">연결 요청</button>') +
+          '</div>';
+      }
+
+      function reqsHtml() {
+        if (!myReqs.length && !me.is_admin) return "";
+        var title = me.is_admin ? "연결 요청 관리 (운영진)" : "내가 보낸 요청";
+        var items = myReqs.map(function (r) {
+          var who = me.is_admin
+            ? esc(r.requester_name || "요청자") + " → " + esc(nameOf(r.target_id))
+            : esc(nameOf(r.target_id)) + "님에게";
+          return '<div class="al-req-item"><span class="st ' + esc(r.status) + '">' + ST[r.status] + '</span>' +
+            who + ' — "' + esc(r.message) + '"' +
+            (me.is_admin && r.status === "pending"
+              ? '<div class="admin-btns">' +
+                '<button type="button" data-relay="' + r.id + '">전달 완료로 표시</button>' +
+                '<button type="button" data-decline="' + r.id + '">진행 안 함</button></div>'
+              : "") +
+            '</div>';
+        }).join("");
+        return '<div class="al-req"><h2>' + title + '</h2>' +
+          (items || '<div class="al-msg">요청이 없습니다.</div>') +
+          (me.is_admin ? '<p style="font-size:13px;color:var(--text-3);margin-top:10px">요청자와 알럼 양쪽에 연락해 서로 동의하면 연결해 주세요. 알럼이 원치 않으면 진행 안 함으로 표시합니다.</p>' : "") +
+          '</div>';
+      }
+
+      function nameOf(id) {
+        for (var i = 0; i < alumni.length; i++) if (alumni[i].id === id) return alumni[i].display_name || "알럼";
+        return "알럼";
+      }
+
+      function render() {
+        var byGen = alumni.length
+          ? '<div class="al-grid">' + alumni.map(cardHtml).join("") + '</div>'
+          : '<div class="al-msg">아직 등록된 알럼이 없습니다.<br />운영진이 회원 관리에서 알럼으로 표시하면 여기에 나타납니다.</div>';
+        root.innerHTML = byGen + reqsHtml();
+
+        root.querySelectorAll("[data-req]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            target = { id: b.getAttribute("data-req"), name: b.getAttribute("data-name") };
+            document.getElementById("reqTitle").textContent = (target.name || "알럼") + "님에게 연결 요청";
+            document.getElementById("reqMsg").value = "";
+            document.getElementById("reqDialog").showModal();
+          });
+        });
+        root.querySelectorAll("[data-relay]").forEach(function (b) {
+          b.addEventListener("click", function () { setStatus(Number(b.getAttribute("data-relay")), "relayed"); });
+        });
+        root.querySelectorAll("[data-decline]").forEach(function (b) {
+          b.addEventListener("click", function () { setStatus(Number(b.getAttribute("data-decline")), "declined"); });
+        });
+      }
+
+      function setStatus(id, st) {
+        db.from("contact_requests").update({ status: st }).eq("id", id).then(function (r) {
+          if (r.error) { alert("실패: " + r.error.message); return; }
+          for (var i = 0; i < myReqs.length; i++) if (myReqs[i].id === id) myReqs[i].status = st;
+          render();
+        });
+      }
+
+      document.getElementById("reqCancel").addEventListener("click", function () {
+        document.getElementById("reqDialog").close();
+      });
+      document.getElementById("reqSend").addEventListener("click", function () {
+        var text = document.getElementById("reqMsg").value.trim();
+        if (text.length < 10) { alert("메시지를 10자 이상 적어주세요."); return; }
+        db.from("contact_requests").insert({
+          requester_id: me.id,
+          requester_name: me.display_name || "",
+          target_id: target.id,
+          message: text
+        }).select().single().then(function (r) {
+          if (r.error) { alert("요청 실패: " + r.error.message); return; }
+          myReqs.unshift(r.data);
+          document.getElementById("reqDialog").close();
+          render();
+        });
+      });
+
+      window.addEventListener("DOMContentLoaded", async function () {
+        if (!window.yvAuth) return;
+        var user = await yvAuth.requireAuth();
+        if (!user) return;
+        db = yvAuth.client;
+
+        var pr = await db.from("profiles").select("display_name, is_member, is_admin").eq("id", user.id).maybeSingle();
+        var p = pr.data;
+        if (!p || (!p.is_member && !p.is_admin)) {
+          msg("학회원 전용 공간입니다.<br />승인이 필요하면 운영진에게 가입 이메일(" + esc(user.email || "") + ")을 알려주세요.");
+          return;
+        }
+        me = { id: user.id, display_name: p.display_name, is_admin: p.is_admin };
+
+        var r = await db.rpc("list_alumni");
+        if (r.error) {
+          msg("불러오지 못했습니다: " + esc(r.error.message) + "<br />migration-phase4.sql 을 실행했는지 확인하세요.");
+          return;
+        }
+        alumni = r.data || [];
+
+        var q = db.from("contact_requests").select("*").order("created_at", { ascending: false });
+        if (!p.is_admin) q = q.eq("requester_id", user.id);
+        var rq = await q;
+        myReqs = rq.data || [];
+
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>
