@@ -162,7 +162,9 @@
       };
 
       function card(href, tint, icon, title, desc) {
-        return '<a class="mb-card" href="' + href + '">' +
+        /* 외부 문서(구글 시트 등)는 새 탭으로 — 허브를 떠나지 않게 한다 */
+        var ext = /^https?:\/\//.test(href) ? ' target="_blank" rel="noopener"' : '';
+        return '<a class="mb-card" href="' + href + '"' + ext + '>' +
           '<span class="mb-ico ' + tint + '">' + I[icon] + '</span>' +
           '<span class="mb-card-body"><h3>' + title +
           '<span class="arr" aria-hidden="true">→</span></h3>' +
