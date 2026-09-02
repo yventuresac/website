@@ -11,6 +11,7 @@
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
+  <script src="/js/nav-auth.js"></script>
   <style>
     .ap-wrap { max-width: 720px; margin: 0 auto; }
     .ap-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
@@ -40,8 +41,47 @@
 
   <nav id="nav" class="scrolled">
     <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
-      <img src="../assets/logo.png" alt="Y-VENTURES" />
+      <img src="/assets/logo.png" alt="Y-VENTURES" />
     </a>
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item">
+        <a href="/about/">ABOUT</a>
+        <div class="dropdown">
+          <a href="/about/#greetings">Greetings</a>
+          <a href="/about/#who-we-are">Who we are</a>
+          <a href="/about/#history">History</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/programs/">PROGRAMS</a>
+        <div class="dropdown">
+          <a href="/y-startup/">Y-Startup</a>
+          <a href="/boost/">Boost Program</a>
+          <a href="/vc-career/">VC Career Session</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/network/">NETWORK</a>
+        <div class="dropdown">
+          <a href="/team/">Our Team</a>
+          <a href="/partners/">Our Partners</a>
+          <a href="/yonsei/">Yonsei Ecosystem</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/scouts/">SCOUTS</a>
+        <div class="dropdown">
+          <a href="/curriculum/">Curriculum</a>
+          <a href="/recruiting/">Recruiting</a>
+          <a href="/insights/">Insights</a>
+        </div>
+      </li>
+      <li class="nav-item"><a href="/newsletter/">NEWSLETTER</a></li>
+      <li class="nav-item"><a href="/contact/">CONTACT</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <div class="page-header">
@@ -128,6 +168,13 @@
         }
         root.innerHTML = rows.map(cardHtml).join("");
       });
+    })();
+  </script>
+  <script>
+    (function () {
+      var hb = document.getElementById("hamburger");
+      var nm = document.getElementById("navMenu");
+      if (hb && nm) hb.addEventListener("click", function () { nm.classList.toggle("open"); });
     })();
   </script>
 </body>
