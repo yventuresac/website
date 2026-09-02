@@ -188,10 +188,10 @@
       var user = await yvAuth.requireAuth();
       if (!user) return;
 
-      /* 학회원 확인 */
+      /* 학회원·운영진 확인 */
       var me = null;
       try { me = await yvInsights.getMyProfile(); } catch (e) { console.error(e); }
-      if (!me || !me.is_member) {
+      if (!me || (!me.is_member && !me.is_admin)) {
         document.getElementById('memberGate').hidden = false;
         return;
       }
