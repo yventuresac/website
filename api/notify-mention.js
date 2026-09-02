@@ -94,9 +94,9 @@ module.exports = async (req, res) => {
       return res.status(403).json({ error: '본인이 등록한 일정의 태그만 알릴 수 있습니다.' });
     }
 
-    // 수신자는 일정에 실제로 태그된 사람으로 제한
+    // 수신자는 일정에 실제로 태그된 사람으로 제한 (본인 태그 포함)
     const mentioned = new Set((ev.mentions || []).map((m) => String(m && m.id)));
-    const targets = userIds.filter((id) => mentioned.has(id) && id !== gate.userId);
+    const targets = userIds.filter((id) => mentioned.has(id));
     if (!targets.length) return res.status(200).json({ ok: true, sent: 0 });
 
     const idList = targets.map((id) => encodeURIComponent(id)).join(',');

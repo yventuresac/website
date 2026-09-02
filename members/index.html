@@ -690,10 +690,11 @@
             detail: detail,
             mentions: mentions
           };
-          /* 이번에 새로 태그된 사람에게만 이메일 알림을 보낸다 */
+          /* 이번에 새로 태그된 사람에게만 이메일 알림을 보낸다.
+             본인 태그도 보낸다 — 스스로에게 리마인더 + 발송 테스트 경로 */
           var prevIds = cal.editing ? (cal.editing.mentions || []).map(function (m) { return m.id; }) : [];
           var newIds = mentions.map(function (m) { return m.id; })
-            .filter(function (id) { return prevIds.indexOf(id) < 0 && id !== cal.me.id; });
+            .filter(function (id) { return prevIds.indexOf(id) < 0; });
 
           fm.textContent = "저장 중…"; fm.className = "fmsg";
           var q;
