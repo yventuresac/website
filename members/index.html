@@ -38,6 +38,12 @@
     .cal-cell.out { background: rgba(255,255,255,0.015); }
     .cal-cell.out .d { opacity: .4; }
     .cal-cell.today .d { color: #93C5FD; font-weight: 700; }
+    /* 일요일·공휴일은 빨간 날 */
+    .cal-dow.sun { color: #F87171; }
+    .cal-cell .d.red { color: #F87171; }
+    .cal-cell .d .hname { font-size: 9px; font-weight: 400; color: #F87171; margin-left: 3px; }
+    .cal-day > h4 .hname { color: #F87171; font-weight: 400; margin-left: 6px; }
+    .cal-day.red > h4 { color: #F87171; }
     .cal-chip { display: block; width: 100%; text-align: left; margin-bottom: 3px; padding: 3px 6px 4px;
                 border: none; border-left: 2px solid; border-radius: 5px; cursor: pointer; font-family: 'Pretendard', sans-serif; }
     .cal-chip b { display: block; font-size: 11px; font-weight: 600; color: var(--text-1);
@@ -71,6 +77,9 @@
     }
     .cal-dialog textarea { min-height: 90px; resize: vertical; }
     .cal-dialog input:focus, .cal-dialog select:focus, .cal-dialog textarea:focus { outline: none; border-color: var(--edge-hover); }
+    /* label 의 display:block 이 hidden 속성을 덮어쓰지 않게 — 행사 종류가
+       분류와 무관하게 항상 보이던 버그의 원인 */
+    .cal-dialog [hidden] { display: none !important; }
     .cal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .cal-dialog .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
     .cal-sug { border: 1px solid var(--edge); border-radius: 10px; background: var(--bg-base); overflow: hidden; margin: -6px 0 12px; }
@@ -228,8 +237,11 @@
             <option value="boost">Boosting Program</option>
             <option value="y-startup">Y-Startup</option>
             <option value="networking">VC&amp;Startup Networking Party</option>
+            <option value="__custom">직접 입력…</option>
           </select></label>
       </div>
+      <label id="evTypeCustomWrap" hidden><span>행사 이름 (직접 입력)</span>
+        <input name="event_type_custom" maxlength="100" placeholder="예: 데모데이, 홈커밍" /></label>
       <label><span>제목</span><input name="title" required maxlength="200" placeholder="예: 3주차 스터디 세션" /></label>
       <div class="cal-row">
         <label><span>날짜</span><input name="starts_on" type="date" required /></label>
@@ -367,6 +379,23 @@
         "networking": "VC&Startup Networking Party"
       };
       var DOW = ["일", "월", "화", "수", "목", "금", "토"];
+      /* 대한민국 공휴일 — 법정 공휴일 + 대체공휴일. 연말에 다음 해 추가.
+         (2026년부터 제헌절 재지정. 임시공휴일이 생기면 여기 추가) */
+      var HOLIDAYS = {
+        "2026-01-01": "신정", "2026-02-16": "설날 연휴", "2026-02-17": "설날", "2026-02-18": "설날 연휴",
+        "2026-03-01": "삼일절", "2026-03-02": "대체공휴일", "2026-05-05": "어린이날",
+        "2026-05-24": "부처님오신날", "2026-05-25": "대체공휴일", "2026-06-03": "지방선거일",
+        "2026-06-06": "현충일", "2026-07-17": "제헌절", "2026-08-15": "광복절", "2026-08-17": "대체공휴일",
+        "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
+        "2026-10-03": "개천절", "2026-10-05": "대체공휴일", "2026-10-09": "한글날", "2026-12-25": "성탄절",
+        "2027-01-01": "신정", "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴",
+        "2027-02-09": "대체공휴일", "2027-03-01": "삼일절", "2027-05-05": "어린이날",
+        "2027-05-13": "부처님오신날", "2027-06-06": "현충일", "2027-07-17": "제헌절", "2027-07-19": "대체공휴일",
+        "2027-08-15": "광복절", "2027-08-16": "대체공휴일",
+        "2027-09-14": "추석 연휴", "2027-09-15": "추석", "2027-09-16": "추석 연휴",
+        "2027-10-03": "개천절", "2027-10-04": "대체공휴일", "2027-10-09": "한글날", "2027-12-25": "성탄절",
+        "2027-12-27": "대체공휴일"
+      };
       var cal = { db: null, me: null, view: "month", cursor: new Date(), events: [], members: null, editing: null };
 
       function ymd(d) {
@@ -406,7 +435,9 @@
       function evsOn(ds) { return cal.events.filter(function (ev) { return ev.starts_on === ds; }); }
 
       function typeLabel(ev) {
-        return ev.category === "event" && ETYPES[ev.event_type] ? ETYPES[ev.event_type] : CATS[ev.category].label;
+        /* 행사는 코드 매핑 → 없으면 직접 입력한 이름 그대로 */
+        if (ev.category === "event") return ETYPES[ev.event_type] || ev.event_type || "행사";
+        return CATS[ev.category].label;
       }
 
       /* @태그를 하이라이트해서 렌더 (텍스트는 먼저 escape) */
@@ -438,17 +469,23 @@
 
         var body, todayStr = ymd(new Date());
         if (cal.view === "month") {
-          var cells = DOW.map(function (d) { return '<div class="cal-dow">' + d + '</div>'; }).join("");
+          var cells = DOW.map(function (d, i) {
+            return '<div class="cal-dow' + (i === 0 ? " sun" : "") + '">' + d + '</div>';
+          }).join("");
           var d = new Date(rg[0]);
           while (d <= rg[1]) {
             var ds = ymd(d);
+            var hol = HOLIDAYS[ds];
             var cls = "cal-cell" + (d.getMonth() !== c.getMonth() ? " out" : "") + (ds === todayStr ? " today" : "");
+            var dCls = "d" + (hol || d.getDay() === 0 ? " red" : "");
             var chips = evsOn(ds).map(function (ev) {
               var sub = [ev.time_text, ev.detail].filter(Boolean).join(" · ");
               return '<button type="button" class="cal-chip ' + CATS[ev.category].chip + '" data-ev="' + ev.id + '">' +
                 '<b>' + esc(ev.title) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
             }).join("");
-            cells += '<div class="' + cls + '" data-day="' + ds + '" title="일정 등록"><div class="d">' + d.getDate() + '</div>' + chips + '</div>';
+            cells += '<div class="' + cls + '" data-day="' + ds + '" title="일정 등록">' +
+              '<div class="' + dCls + '">' + d.getDate() + (hol ? '<span class="hname">' + esc(hol) + '</span>' : '') + '</div>' +
+              chips + '</div>';
             d.setDate(d.getDate() + 1);
           }
           body = '<div class="cal-grid">' + cells + '</div>';
@@ -456,13 +493,15 @@
           var days = "", d2 = new Date(rg[0]);
           while (d2 <= rg[1]) {
             var ds2 = ymd(d2);
+            var hol2 = HOLIDAYS[ds2];
             var evs = evsOn(ds2).map(function (ev) {
               return '<div class="cal-ev ' + CATS[ev.category].chip + '" data-ev="' + ev.id + '" role="button" tabindex="0">' +
                 '<h5>' + esc(ev.title) + '<small>' + esc(typeLabel(ev)) + (ev.time_text ? " · " + esc(ev.time_text) : "") + '</small></h5>' +
                 (ev.detail ? '<p>' + detailHtml(ev) + '</p>' : '') + '</div>';
             }).join("");
-            days += '<div class="cal-day' + (ds2 === todayStr ? " today" : "") + '" data-day="' + ds2 + '">' +
-              '<h4>' + (d2.getMonth() + 1) + "." + d2.getDate() + " (" + DOW[d2.getDay()] + ')</h4>' +
+            days += '<div class="cal-day' + (ds2 === todayStr ? " today" : "") + (hol2 || d2.getDay() === 0 ? " red" : "") + '" data-day="' + ds2 + '">' +
+              '<h4>' + (d2.getMonth() + 1) + "." + d2.getDate() + " (" + DOW[d2.getDay()] + ')' +
+              (hol2 ? '<span class="hname">' + esc(hol2) + '</span>' : '') + '</h4>' +
               (evs || '<div class="none">일정 없음</div>') + '</div>';
             d2.setDate(d2.getDate() + 1);
           }
@@ -497,6 +536,21 @@
         });
       }
 
+      /* @태그 이메일 알림 — 실패해도 일정 저장에는 영향 없게 조용히 보낸다.
+         발송은 서버 함수가 하고, 서비스 키가 없으면 그냥 넘어간다 */
+      async function notifyMentions(eventId, ids) {
+        try {
+          var s = await cal.db.auth.getSession();
+          var token = s.data && s.data.session ? s.data.session.access_token : "";
+          if (!token) return;
+          fetch("/api/notify-mention", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ event_id: eventId, user_ids: ids })
+          }).catch(function () {});
+        } catch (e) {}
+      }
+
       /* @태그 자동완성용 학회원 이름 — 처음 등록 창을 열 때 한 번만 */
       async function ensureMembers() {
         if (cal.members) return;
@@ -506,17 +560,30 @@
         } catch (e) { cal.members = []; }
       }
 
+      /* 행사 종류 선택칸 표시 상태 — 분류가 행사일 때만, 직접 입력 칸은
+         드롭다운에서 '직접 입력…'을 골랐을 때만 */
+      function syncTypeFields() {
+        var f = document.getElementById("evForm");
+        var isEvent = f.category.value === "event";
+        document.getElementById("evTypeWrap").hidden = !isEvent;
+        document.getElementById("evTypeCustomWrap").hidden = !(isEvent && f.event_type.value === "__custom");
+      }
+
       function openEvForm(ev, dateStr) {
         cal.editing = ev || null;
         var f = document.getElementById("evForm");
         document.getElementById("evDlgTitle").textContent = ev ? "일정 수정" : "일정 등록";
         f.category.value = ev ? ev.category : "study";
-        f.event_type.value = ev && ev.event_type ? ev.event_type : "vc-career";
+        /* 저장된 행사 종류가 기본 4종이 아니면 직접 입력분이다 */
+        var known = ev && ETYPES[ev.event_type];
+        f.event_type.value = ev && ev.category === "event"
+          ? (known ? ev.event_type : "__custom") : "vc-career";
+        f.event_type_custom.value = ev && ev.category === "event" && !known ? (ev.event_type || "") : "";
         f.title.value = ev ? ev.title : "";
         f.starts_on.value = ev ? ev.starts_on : (dateStr || ymd(new Date()));
         f.time_text.value = ev ? ev.time_text : "";
         f.detail.value = ev ? ev.detail : "";
-        document.getElementById("evTypeWrap").hidden = f.category.value !== "event";
+        syncTypeFields();
         document.getElementById("evMsg").textContent = "";
         document.getElementById("evSug").hidden = true;
         ensureMembers();
@@ -560,9 +627,8 @@
         var f = document.getElementById("evForm");
         var ta = f.detail, box = document.getElementById("evSug");
 
-        f.category.addEventListener("change", function () {
-          document.getElementById("evTypeWrap").hidden = f.category.value !== "event";
-        });
+        f.category.addEventListener("change", syncTypeFields);
+        f.event_type.addEventListener("change", syncTypeFields);
         document.getElementById("evCancel").addEventListener("click", function () {
           document.getElementById("evDialog").close();
         });
@@ -603,22 +669,32 @@
             return m.display_name && detail.indexOf("@" + m.display_name) >= 0;
           }).map(function (m) { return { id: m.id, name: m.display_name }; });
 
+          var etype = "";
+          if (f.category.value === "event") {
+            etype = f.event_type.value === "__custom" ? f.event_type_custom.value.trim() : f.event_type.value;
+            if (!etype) { fm.textContent = "행사 이름을 입력해주세요."; fm.className = "fmsg err"; return; }
+          }
           var row = {
             category: f.category.value,
-            event_type: f.category.value === "event" ? f.event_type.value : "",
+            event_type: etype,
             title: f.title.value.trim(),
             starts_on: f.starts_on.value,
             time_text: f.time_text.value.trim(),
             detail: detail,
             mentions: mentions
           };
+          /* 이번에 새로 태그된 사람에게만 이메일 알림을 보낸다 */
+          var prevIds = cal.editing ? (cal.editing.mentions || []).map(function (m) { return m.id; }) : [];
+          var newIds = mentions.map(function (m) { return m.id; })
+            .filter(function (id) { return prevIds.indexOf(id) < 0 && id !== cal.me.id; });
+
           fm.textContent = "저장 중…"; fm.className = "fmsg";
           var q;
-          if (cal.editing) q = cal.db.from("calendar_events").update(row).eq("id", cal.editing.id);
+          if (cal.editing) q = cal.db.from("calendar_events").update(row).eq("id", cal.editing.id).select().single();
           else {
             row.author_id = cal.me.id;
             row.author_name = cal.me.name || "";
-            q = cal.db.from("calendar_events").insert(row);
+            q = cal.db.from("calendar_events").insert(row).select().single();
           }
           q.then(function (r) {
             if (r.error) {
@@ -627,6 +703,7 @@
               fm.className = "fmsg err";
               return;
             }
+            if (r.data && newIds.length) notifyMentions(r.data.id, newIds);
             document.getElementById("evDialog").close();
             calLoad();
           });
