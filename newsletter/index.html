@@ -24,6 +24,13 @@
   <meta name="twitter:image" content="https://www.yventures.ac/assets/og-cover-logo.jpg" />
   <link rel="canonical" href="https://www.yventures.ac/newsletter/" />
   <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <style>
+    /* 아카이브가 본문인 페이지라 히어로를 낮게 — 학회원 허브와 같은 비율 */
+    .page-header { padding: 118px var(--space-3xl) 42px; }
+    .page-title { font-size: clamp(30px, 5vw, 42px); }
+    .page-desc { margin-top: 10px; font-size: var(--text-body-sm); }
+    @media (max-width: 640px) { .page-header { padding: 96px 20px 34px; } }
+  </style>
 </head>
 <body class="accent-newsletter">
 
@@ -201,6 +208,10 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav-auth.js"></script>
   <script src="/js/to-top.js" defer></script>
   <!-- 방문 통계 (Vercel Web Analytics · 쿠키 없음) -->
   <script defer src="/_vercel/insights/script.js"></script>

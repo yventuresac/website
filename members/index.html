@@ -287,29 +287,23 @@
         for (var i = 0; i < els.length; i++) els[i].style.animationDelay = (i * 45) + "ms";
       }
 
-      /* ── 새 소식 ──
-         마지막으로 허브를 연 시각을 브라우저에 저장해 두고,
-         그 이후에 생긴 항목에만 NEW 를 붙인다. 한 번 보면 사라진다. */
+      /* ── 소식 등록 (운영진 전용) ──
+         학회원에게는 안 보인다 — 알림은 상단 네비의 벨이 담당한다.
+         여기는 벨에 흘려보낼 소식을 등록·정리하는 운영 도구다. */
       var KIND = { program: "프로그램", insight: "인사이트", newsletter: "뉴스레터", notice: "공지" };
 
-      function newsItemHtml(u, seen, isAdmin) {
-        var isNew = new Date(u.created_at).getTime() > seen;
+      function newsItemHtml(u) {
         var date = String(u.created_at).slice(0, 10).replace(/-/g, ".");
-        var url = /^(\/|https?:\/\/)/.test(u.url || "") ? u.url : "";
-        var ext = /^https?:\/\//.test(url) ? ' target="_blank" rel="noopener"' : '';
         var inner = '<span class="mb-news-kind k-' + esc(u.kind) + '">' + esc(KIND[u.kind] || u.kind) + '</span>' +
           '<span class="mb-news-title">' + esc(u.title) + '</span>' +
-          (isNew ? '<span class="mb-new">NEW</span>' : "") +
           '<span class="mb-news-date">' + esc(date) + '</span>' +
-          (isAdmin ? '<button type="button" class="mb-news-x" data-delnews="' + u.id + '" aria-label="소식 삭제">×</button>' : "");
-        return url
-          ? '<a class="mb-news-item" href="' + esc(url) + '"' + ext + '>' + inner + '</a>'
-          : '<div class="mb-news-item">' + inner + '</div>';
+          '<button type="button" class="mb-news-x" data-delnews="' + u.id + '" aria-label="소식 삭제">×</button>';
+        return '<div class="mb-news-item">' + inner + '</div>';
       }
 
       async function loadNews(db, user, isAdmin) {
         var slot = document.getElementById("newsSlot");
-        if (!slot) return;
+        if (!slot || !isAdmin) return;
         var r;
         try {
           r = await db.from("site_updates").select("*")
@@ -319,26 +313,19 @@
         if (!r || r.error) return;
         var rows = r.data || [];
 
-        var seen = 0;
-        try { seen = Number(localStorage.getItem("yv_updates_seen") || 0); } catch (e) {}
-
         function paint() {
-          var items = rows.map(function (u) { return newsItemHtml(u, seen, isAdmin); }).join("");
-          var listHtml = items
-            ? '<div class="mb-news-list">' + items + '</div>'
-            : (isAdmin ? '<p class="mb-news-msg">아직 소식이 없습니다. Insights 새 글은 자동으로 올라옵니다.</p>' : "");
-          var adminHtml = isAdmin
-            ? '<div style="margin-top:8px"><button type="button" class="mb-news-add-toggle" id="newsToggle">+ 소식 등록</button>' +
-              '<form class="mb-news-form" id="newsForm" hidden>' +
-              '<select name="kind"><option value="notice">공지</option><option value="program">프로그램</option><option value="newsletter">뉴스레터</option></select>' +
-              '<input class="f-title" name="title" required maxlength="200" placeholder="예: Boost Program 5기 모집 시작" />' +
-              '<input class="f-url" name="url" placeholder="링크 (선택) — /newsletter/ 또는 https://..." />' +
-              '<button type="submit" class="btn btn-black" style="padding:9px 16px;font-size:13px">등록</button>' +
-              '<p class="mb-news-msg" id="newsMsg"></p>' +
-              '</form></div>'
-            : "";
-          if (!items && !isAdmin) { slot.innerHTML = ""; return; }
-          slot.innerHTML = '<p class="mb-eyebrow">새 소식</p>' + listHtml + adminHtml;
+          var adminHtml =
+            '<div><button type="button" class="mb-news-add-toggle" id="newsToggle">+ 소식 등록 — 학회원 알림(벨)으로 나갑니다</button>' +
+            '<form class="mb-news-form" id="newsForm" hidden>' +
+            '<select name="kind"><option value="notice">공지</option><option value="program">프로그램</option><option value="newsletter">뉴스레터</option></select>' +
+            '<input class="f-title" name="title" required maxlength="200" placeholder="예: Boost Program 5기 모집 시작" />' +
+            '<input class="f-url" name="url" placeholder="링크 (선택) — /boost/ 또는 https://..." />' +
+            '<button type="submit" class="btn btn-black" style="padding:9px 16px;font-size:13px">등록</button>' +
+            '<p class="mb-news-msg" id="newsMsg">링크를 넣으면 그 메뉴에 배지가 붙습니다. Insights 새 글은 자동 등록됩니다.</p>' +
+            '</form>' +
+            (rows.length ? '<div class="mb-news-list" style="margin-top:10px">' + rows.map(newsItemHtml).join("") + '</div>' : '') +
+            '</div>';
+          slot.innerHTML = adminHtml;
 
           slot.querySelectorAll("[data-delnews]").forEach(function (b) {
             b.addEventListener("click", function (e) {
@@ -379,8 +366,6 @@
         }
 
         paint();
-        /* 이번 방문을 '봤음'으로 기록 — 다음에 새로 생긴 것만 NEW */
-        try { localStorage.setItem("yv_updates_seen", String(Date.now())); } catch (e) {}
       }
 
       window.addEventListener("DOMContentLoaded", async function () {
