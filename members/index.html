@@ -12,7 +12,55 @@
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
   <style>
+    /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
+       첫 화면에 카드가 보여야 한다 */
+    .page-header { padding: 118px var(--space-3xl) 42px; }
+    .page-title { font-size: clamp(30px, 5vw, 42px); }
+    .page-desc { margin-top: 10px; font-size: var(--text-body-sm); }
+    @media (max-width: 640px) { .page-header { padding: 96px 20px 34px; } }
+
     .mb-wrap { max-width: 880px; margin: 0 auto; }
+
+    /* ── 새 소식 — 마지막 방문 이후 생긴 항목에 NEW 가 붙는다 ── */
+    .mb-news { margin-bottom: var(--space-xl); }
+    .mb-news-list { display: grid; gap: 8px; }
+    .mb-news-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; border: 1px solid var(--edge); border-radius: 12px;
+      background: var(--bg-card); text-decoration: none;
+      font-size: 13px; color: var(--text-2);
+      transition: border-color 0.2s var(--ease-out);
+    }
+    a.mb-news-item:hover { border-color: var(--edge-hover); color: var(--text-1); }
+    a.mb-news-item:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+    .mb-news-kind { flex: none; font-size: 11px; letter-spacing: var(--ls-wide);
+                    padding: 2px 9px; border-radius: 999px; border: 1px solid var(--edge); color: var(--text-3); }
+    .mb-news-kind.k-program    { border-color: rgba(96,165,250,.4);  color: #93C5FD; }
+    .mb-news-kind.k-insight    { border-color: rgba(167,139,250,.4); color: #C4B5FD; }
+    .mb-news-kind.k-newsletter { border-color: rgba(52,211,153,.4);  color: #6EE7B7; }
+    .mb-news-kind.k-notice     { border-color: rgba(251,191,36,.4);  color: #FCD34D; }
+    .mb-news-title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mb-new { flex: none; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #FCA5A5; }
+    .mb-news-date { flex: none; font-size: 12px; color: var(--text-3); }
+    .mb-news-x { flex: none; background: none; border: none; padding: 0 2px; cursor: pointer;
+                 color: var(--text-3); font-size: 14px; line-height: 1; font-family: inherit; }
+    .mb-news-x:hover { color: #FCA5A5; }
+    /* 운영진용 소식 등록 폼 — 평소엔 접혀 있다 */
+    .mb-news-add-toggle { background: none; border: none; padding: 0; cursor: pointer;
+                          font-size: 12px; color: var(--text-3); font-family: 'Pretendard', sans-serif; }
+    .mb-news-add-toggle:hover { color: var(--text-1); }
+    .mb-news-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .mb-news-form[hidden] { display: none; }
+    .mb-news-form select, .mb-news-form input {
+      padding: 9px 12px; font-size: 13px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base);
+      border: 1px solid var(--edge); border-radius: 10px;
+    }
+    .mb-news-form input:focus, .mb-news-form select:focus { outline: none; border-color: var(--edge-hover); }
+    .mb-news-form .f-title { flex: 2; min-width: 180px; }
+    .mb-news-form .f-url { flex: 2; min-width: 160px; }
+    .mb-news-msg { width: 100%; margin: 2px 0 0; font-size: 12px; min-height: 16px; color: var(--text-3); }
+    .mb-news-msg.err { color: #FCA5A5; }
 
     /* ── 인사 카드 ──
        시그니처는 기수 워터마크다. 이 시스템의 축이 기수라서
@@ -237,6 +285,102 @@
         for (var i = 0; i < els.length; i++) els[i].style.animationDelay = (i * 45) + "ms";
       }
 
+      /* ── 새 소식 ──
+         마지막으로 허브를 연 시각을 브라우저에 저장해 두고,
+         그 이후에 생긴 항목에만 NEW 를 붙인다. 한 번 보면 사라진다. */
+      var KIND = { program: "프로그램", insight: "인사이트", newsletter: "뉴스레터", notice: "공지" };
+
+      function newsItemHtml(u, seen, isAdmin) {
+        var isNew = new Date(u.created_at).getTime() > seen;
+        var date = String(u.created_at).slice(0, 10).replace(/-/g, ".");
+        var url = /^(\/|https?:\/\/)/.test(u.url || "") ? u.url : "";
+        var ext = /^https?:\/\//.test(url) ? ' target="_blank" rel="noopener"' : '';
+        var inner = '<span class="mb-news-kind k-' + esc(u.kind) + '">' + esc(KIND[u.kind] || u.kind) + '</span>' +
+          '<span class="mb-news-title">' + esc(u.title) + '</span>' +
+          (isNew ? '<span class="mb-new">NEW</span>' : "") +
+          '<span class="mb-news-date">' + esc(date) + '</span>' +
+          (isAdmin ? '<button type="button" class="mb-news-x" data-delnews="' + u.id + '" aria-label="소식 삭제">×</button>' : "");
+        return url
+          ? '<a class="mb-news-item" href="' + esc(url) + '"' + ext + '>' + inner + '</a>'
+          : '<div class="mb-news-item">' + inner + '</div>';
+      }
+
+      async function loadNews(db, user, isAdmin) {
+        var slot = document.getElementById("newsSlot");
+        if (!slot) return;
+        var r;
+        try {
+          r = await db.from("site_updates").select("*")
+            .order("created_at", { ascending: false }).limit(6);
+        } catch (e) { return; }
+        /* 테이블이 아직 없으면(마이그레이션 전) 섹션 자체를 숨긴다 */
+        if (!r || r.error) return;
+        var rows = r.data || [];
+
+        var seen = 0;
+        try { seen = Number(localStorage.getItem("yv_updates_seen") || 0); } catch (e) {}
+
+        function paint() {
+          var items = rows.map(function (u) { return newsItemHtml(u, seen, isAdmin); }).join("");
+          var listHtml = items
+            ? '<div class="mb-news-list">' + items + '</div>'
+            : (isAdmin ? '<p class="mb-news-msg">아직 소식이 없습니다. Insights 새 글은 자동으로 올라옵니다.</p>' : "");
+          var adminHtml = isAdmin
+            ? '<div style="margin-top:8px"><button type="button" class="mb-news-add-toggle" id="newsToggle">+ 소식 등록</button>' +
+              '<form class="mb-news-form" id="newsForm" hidden>' +
+              '<select name="kind"><option value="notice">공지</option><option value="program">프로그램</option><option value="newsletter">뉴스레터</option></select>' +
+              '<input class="f-title" name="title" required maxlength="200" placeholder="예: Boost Program 5기 모집 시작" />' +
+              '<input class="f-url" name="url" placeholder="링크 (선택) — /newsletter/ 또는 https://..." />' +
+              '<button type="submit" class="btn btn-black" style="padding:9px 16px;font-size:13px">등록</button>' +
+              '<p class="mb-news-msg" id="newsMsg"></p>' +
+              '</form></div>'
+            : "";
+          if (!items && !isAdmin) { slot.innerHTML = ""; return; }
+          slot.innerHTML = '<p class="mb-eyebrow">새 소식</p>' + listHtml + adminHtml;
+
+          slot.querySelectorAll("[data-delnews]").forEach(function (b) {
+            b.addEventListener("click", function (e) {
+              e.preventDefault(); e.stopPropagation();
+              if (!confirm("이 소식을 목록에서 삭제할까요?")) return;
+              var id = Number(b.getAttribute("data-delnews"));
+              db.from("site_updates").delete().eq("id", id).then(function (dr) {
+                if (dr.error) { alert("삭제 실패: " + dr.error.message); return; }
+                rows = rows.filter(function (x) { return x.id !== id; });
+                paint();
+              });
+            });
+          });
+
+          var tg = document.getElementById("newsToggle");
+          if (tg) tg.addEventListener("click", function () {
+            var f = document.getElementById("newsForm");
+            f.hidden = !f.hidden;
+            if (!f.hidden) f.title.focus();
+          });
+          var nf = document.getElementById("newsForm");
+          if (nf) nf.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var fm = document.getElementById("newsMsg");
+            var url = nf.url.value.trim();
+            if (url && !/^(\/|https?:\/\/)/.test(url)) {
+              fm.textContent = "링크는 / 또는 https:// 로 시작해야 합니다."; fm.className = "mb-news-msg err"; return;
+            }
+            fm.textContent = "등록 중…"; fm.className = "mb-news-msg";
+            db.from("site_updates").insert({
+              kind: nf.kind.value, title: nf.title.value.trim(), url: url, created_by: user.id
+            }).select().single().then(function (ir) {
+              if (ir.error) { fm.textContent = "실패: " + ir.error.message; fm.className = "mb-news-msg err"; return; }
+              rows.unshift(ir.data);
+              paint();
+            });
+          });
+        }
+
+        paint();
+        /* 이번 방문을 '봤음'으로 기록 — 다음에 새로 생긴 것만 NEW */
+        try { localStorage.setItem("yv_updates_seen", String(Date.now())); } catch (e) {}
+      }
+
       window.addEventListener("DOMContentLoaded", async function () {
         if (!window.yvAuth) return;
         var user = await yvAuth.requireAuth();
@@ -251,6 +395,7 @@
         } catch (e) {}
 
         var html = helloHtml(p, user);
+        html += '<div class="mb-news" id="newsSlot"></div>';
         if (p && (p.is_member || p.is_admin)) {
           html += memberCards();
           if (p.is_admin) html += adminCards();
@@ -259,6 +404,7 @@
         }
         root.innerHTML = html;
         stagger();
+        loadNews(db, user, !!(p && p.is_admin));
 
         document.getElementById("logoutBtn").addEventListener("click", async function () {
           await yvAuth.signOut();

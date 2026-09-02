@@ -46,6 +46,13 @@
     .um-badge.admin  { border-color: rgba(96,165,250,.5);  color: #93C5FD; }
     .um-badge.member { border-color: rgba(110,231,183,.4); color: #6EE7B7; }
     .um-badge.alumni { border-color: rgba(252,211,77,.4);  color: #FCD34D; }
+    .um-del {
+      padding: 5px 12px; font-size: 12px; border-radius: 999px; cursor: pointer;
+      background: none; border: 1px solid var(--edge); color: var(--text-3);
+      font-family: 'Pretendard', sans-serif;
+    }
+    .um-del:hover { border-color: rgba(252,165,165,.5); color: #FCA5A5; }
+    .um-del:disabled { opacity: .4; cursor: default; }
   </style>
 </head>
 <body class="theme-mono">
@@ -73,6 +80,7 @@
       var root = document.getElementById("root");
       var db = null;
       var all = [];
+      var myId = null;
 
       function esc(s) {
         return String(s == null ? "" : s)
@@ -108,6 +116,7 @@
           '<td><input type="checkbox" data-field="is_alumni" ' + (p.is_alumni ? "checked" : "") + ' aria-label="알럼" /></td>' +
           '<td><input type="checkbox" data-field="is_admin" ' + (p.is_admin ? "checked" : "") + ' aria-label="운영진" /></td>' +
           '<td><span class="um-state"></span></td>' +
+          '<td><button type="button" class="um-del" data-del="' + esc(p.id) + '">탈퇴</button></td>' +
           '</tr>';
       }
 
@@ -118,13 +127,14 @@
             '<span class="um-count" id="count"></span>' +
           '</div>' +
           '<div class="um-table-wrap"><table class="um-table"><thead><tr>' +
-          '<th>이름 / 이메일</th><th>현재</th><th>기수</th><th>학회원</th><th>알럼</th><th>운영진</th><th>저장</th>' +
+          '<th>이름 / 이메일</th><th>현재</th><th>기수</th><th>학회원</th><th>알럼</th><th>운영진</th><th>저장</th><th>탈퇴</th>' +
           '</tr></thead><tbody id="tbody">' +
           list.map(rowHtml).join("") +
           '</tbody></table></div>' +
           '<p class="stat-note" style="margin-top:10px;color:var(--text-3);font-size:13px">' +
           '가입 시 본인이 고른 기수는 신고값입니다. 실제 학회원인지 확인한 뒤 학회원에 체크하세요. ' +
-          '운영진 권한은 통계·회원 관리·게시판 관리 전체를 포함합니다.</p>';
+          '운영진 권한은 통계·회원 관리·게시판 관리 전체를 포함합니다. ' +
+          '탈퇴는 계정을 완전히 삭제하며 되돌릴 수 없습니다.</p>';
         root.innerHTML = html;
 
         document.getElementById("count").textContent = list.length + "명";
@@ -171,6 +181,48 @@
             state.textContent = "실패: " + err; state.className = "um-state err";
           });
         });
+
+        /* 탈퇴 — 계정 자체를 지운다. service_role 키가 필요해서 서버 함수를 거친다 */
+        root.addEventListener("click", async function (e) {
+          var btn = e.target.closest("[data-del]");
+          if (!btn) return;
+          var id = btn.getAttribute("data-del");
+          var p = null;
+          for (var i = 0; i < all.length; i++) if (all[i].id === id) { p = all[i]; break; }
+          if (!p) return;
+
+          if (id === myId) { alert("본인 계정은 여기서 탈퇴시킬 수 없습니다."); return; }
+          if (p.is_admin) { alert("운영진 계정입니다. 먼저 운영진 체크를 해제한 뒤 탈퇴시키세요."); return; }
+          var who = (p.display_name || "(이름 없음)") + " · " + (p.email || "");
+          if (!confirm(who + "\n\n이 회원을 탈퇴시킬까요?\n계정과 프로필, 활동 기록·과제 제출이 함께 삭제되며 되돌릴 수 없습니다.\n(작성한 Insights 글은 남습니다)")) return;
+
+          var tr = btn.closest("tr");
+          var state = tr.querySelector(".um-state");
+          btn.disabled = true;
+          state.textContent = "삭제 중…"; state.className = "um-state";
+
+          try {
+            var sess = await db.auth.getSession();
+            var token = sess.data && sess.data.session ? sess.data.session.access_token : "";
+            var r = await fetch("/api/delete-user", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+              body: JSON.stringify({ user_id: id })
+            });
+            var j = await r.json().catch(function () { return {}; });
+            if (!r.ok) {
+              state.textContent = "실패: " + (j.error || r.status); state.className = "um-state err";
+              btn.disabled = false;
+              return;
+            }
+            all = all.filter(function (x) { return x.id !== id; });
+            tr.remove();
+            document.getElementById("count").textContent = all.length + "명";
+          } catch (err) {
+            state.textContent = "실패: " + err; state.className = "um-state err";
+            btn.disabled = false;
+          }
+        });
       }
 
       window.addEventListener("DOMContentLoaded", function () {
@@ -180,6 +232,7 @@
         db.auth.getUser().then(function (u) {
           var user = u && u.data ? u.data.user : null;
           if (!user) { msg("로그인이 필요합니다."); return; }
+          myId = user.id;
 
           return db.from("profiles").select("is_admin").eq("id", user.id).maybeSingle()
             .then(function (pr) {
