@@ -9,6 +9,25 @@
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" />
   <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <style>
+    /* 임시저장 안내 — 흰 카드 위에 얹히므로 밝은 톤 */
+    .insight-draft-bar {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 18px; padding: 11px 14px;
+      border: 1px solid rgba(37, 99, 235, 0.28); border-radius: 10px;
+      background: rgba(37, 99, 235, 0.06);
+      font-size: 13px; color: #1A1A1A; line-height: 1.5;
+    }
+    .insight-draft-bar b { font-weight: 700; }
+    .insight-draft-bar button {
+      margin-left: auto; flex: none;
+      padding: 6px 12px; border: 1px solid rgba(26, 26, 26, 0.25); border-radius: 8px;
+      background: #fff; color: #1A1A1A; font-family: inherit; font-size: 12px; cursor: pointer;
+    }
+    .insight-draft-bar button:hover { background: #111; color: #fff; border-color: #111; }
+    /* 이미지를 끌어다 놓는 동안 본문 영역을 표시해준다 */
+    #editor.is-drop .ql-editor { outline: 2px dashed #2563EB; outline-offset: -4px; background: rgba(37, 99, 235, 0.04); }
+  </style>
 </head>
 <body class="theme-mono">
 
@@ -71,6 +90,11 @@
       <a href="./" class="insight-back">← Insights</a>
       <h1 class="insight-write-heading">게시글 작성</h1>
 
+      <div class="insight-draft-bar" id="draftBar" hidden>
+        <span id="draftBarText"></span>
+        <button type="button" id="draftDiscard">새로 쓰기</button>
+      </div>
+
       <input type="text" id="postTitleInput" class="insight-title-input" maxlength="300" placeholder="제목을 입력하세요" />
 
       <div id="editorToolbar">
@@ -116,6 +140,7 @@
         <button type="button" class="btn btn-outline" id="previewBtn">미리보기</button>
         <button type="button" class="btn btn-black" id="submitBtn">등록</button>
         <span class="insight-write-status" id="writeStatus"></span>
+        <span class="insight-write-status" id="draftStatus"></span>
       </div>
     </div>
 
@@ -202,36 +227,227 @@
       /* Quill 에디터 */
       var quill = new Quill('#editor', {
         theme: 'snow',
-        placeholder: '내용을 입력하세요. 이미지는 툴바의 그림 아이콘으로 삽입합니다.',
-        modules: { toolbar: '#editorToolbar' }
+        placeholder: '내용을 입력하세요. 이미지는 끌어다 놓거나 붙여넣어도 됩니다.',
+        modules: {
+          toolbar: '#editorToolbar',
+          /* Quill 기본 uploader 는 드롭·붙여넣기한 이미지를 base64 로 본문에
+             박아넣는다 — 글이 수 MB 로 불어나고 임시저장도 못 한다.
+             툴바와 똑같이 Storage 에 올리고 주소만 넣도록 갈아끼운다.
+             (기본 mimetypes 는 png·jpeg 뿐이라 gif·webp 도 함께 열어준다) */
+          uploader: {
+            mimetypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/bmp'],
+            handler: function (range, files) { insertImages(files, range && range.index); }
+          }
+        }
       });
 
-      /* 이미지: 파일 선택 → Supabase Storage 업로드 → 본문 삽입 */
+      /* 이미지: 툴바·드래그·붙여넣기 모두 이 길로 — Storage 업로드 후 주소 삽입 */
+      async function insertImages(files, index) {
+        var list = Array.prototype.slice.call(files || []).filter(function (f) {
+          return f && /^image\//.test(f.type);
+        });
+        if (!list.length) return;
+        var at = typeof index === 'number' ? index
+               : (quill.getSelection(true) || { index: quill.getLength() }).index;
+        for (var i = 0; i < list.length; i++) {
+          var file = list[i];
+          if (file.size > 8 * 1024 * 1024) {
+            alert('이미지는 8MB 이하로 올려주세요' + (file.name ? ' — ' + file.name : '') + '.');
+            continue;
+          }
+          setStatus('이미지 업로드 중…' + (list.length > 1 ? ' (' + (i + 1) + '/' + list.length + ')' : ''));
+          try {
+            var url = await yvInsights.uploadImage(file);
+            quill.insertEmbed(at, 'image', url, 'user');
+            at += 1;
+            quill.setSelection(at);
+          } catch (e) {
+            console.error(e);
+            alert('이미지 업로드에 실패했습니다.');
+          }
+        }
+        setStatus('');
+        queueSaveDraft();
+      }
+
       quill.getModule('toolbar').addHandler('image', function () {
         var input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
-        input.onchange = async function () {
-          var file = input.files && input.files[0];
-          if (!file) return;
-          if (file.size > 8 * 1024 * 1024) { alert('이미지는 8MB 이하로 올려주세요.'); return; }
-          setStatus('이미지 업로드 중…');
-          try {
-            var url = await yvInsights.uploadImage(file);
-            var range = quill.getSelection(true);
-            quill.insertEmbed(range.index, 'image', url, 'user');
-            quill.setSelection(range.index + 1);
-            setStatus('');
-          } catch (e) {
-            console.error(e);
-            setStatus('');
-            alert('이미지 업로드에 실패했습니다.');
-          }
-        };
+        input.multiple = true;
+        input.onchange = function () { insertImages(input.files); };
         input.click();
       });
 
+      /* 끌어다 놓는 동안 본문 영역을 표시한다. 실제 삽입은 위 uploader 핸들러가 한다
+         — 여기서 또 넣으면 두 번 들어간다. */
+      var editorEl = document.getElementById('editor');
+      quill.root.addEventListener('dragover', function (e) {
+        if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') < 0) return;
+        e.preventDefault();
+        editorEl.classList.add('is-drop');
+      });
+      quill.root.addEventListener('dragleave', function () { editorEl.classList.remove('is-drop'); });
+      quill.root.addEventListener('drop', function () { editorEl.classList.remove('is-drop'); });
+
       function setStatus(t) { document.getElementById('writeStatus').textContent = t; }
+
+      /* ── 임시저장 ──
+         쓰다 만 글을 계정에 붙여 둔다. 브라우저(localStorage)에는 즉시,
+         Supabase(insight_drafts)에는 잠시 뒤 — 노트북에서 쓰다가 학교 컴퓨터에서
+         이어쓸 수 있게. 서버 저장이 막혀 있으면(마이그레이션 전) 조용히
+         브라우저 저장만으로 굴러간다.
+         본문은 Quill Delta 그대로 저장한다(HTML 로 되돌리면 서식이 어긋난다).
+         이미지는 이미 Storage 주소라서 저장 용량은 글자 수준이다. */
+      var db = yvAuth.client;
+      var DRAFT_KEY = 'yv_insight_draft_' + user.id;
+      var titleInput = document.getElementById('postTitleInput');
+      var draftStatusEl = document.getElementById('draftStatus');
+      var localTimer = null, serverTimer = null;
+      var serverOk = true;   // 테이블이 없으면 false 로 내려앉는다
+
+      function stamp(t) {
+        var d = new Date(t);
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      }
+
+      function isBlank() {
+        return !titleInput.value.trim() && quill.getText().trim().length === 0;
+      }
+      function snapshot() {
+        return { title: titleInput.value, delta: quill.getContents(), at: Date.now() };
+      }
+
+      /* 테이블이 아예 없는 경우와 일시적인 실패를 구분한다.
+         전자는 다시 시도해봐야 소용없으니 서버 저장을 접는다. */
+      function isMissingTable(err) {
+        var m = (err && (err.code || '')) + ' ' + (err && (err.message || ''));
+        return m.indexOf('42P01') >= 0 || /does not exist|schema cache/i.test(m);
+      }
+
+      function saveLocal(d) {
+        try {
+          if (!d) { localStorage.removeItem(DRAFT_KEY); return; }
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, title: d.title, delta: d.delta, at: d.at }));
+        } catch (e) { /* 저장공간이 꽉 찼거나 브라우저가 막아둔 경우 */ }
+      }
+
+      async function saveServer(d) {
+        if (!serverOk) return;
+        try {
+          var r = await db.from('insight_drafts').upsert({
+            user_id: user.id, title: d.title, delta: d.delta,
+            updated_at: new Date(d.at).toISOString()
+          }, { onConflict: 'user_id' });
+          if (r.error) throw r.error;
+          draftStatusEl.textContent = '임시저장됨 (계정) · ' + stamp(d.at);
+        } catch (e) {
+          if (isMissingTable(e)) {
+            serverOk = false;
+            console.warn('[draft] insight_drafts 테이블이 없습니다 — migration-insight-drafts.sql 실행 필요');
+          } else {
+            console.warn('[draft] 서버 저장 실패', e);
+          }
+          draftStatusEl.textContent = '임시저장됨 (이 브라우저) · ' + stamp(d.at);
+        }
+      }
+
+      /* 타이핑 중에는 브라우저에 자주, 서버에는 뜸하게 */
+      function queueSaveDraft() {
+        clearTimeout(localTimer);
+        localTimer = setTimeout(function () {
+          if (isBlank()) { clearDraft(); return; }
+          var d = snapshot();
+          saveLocal(d);
+          draftStatusEl.textContent = '임시저장됨' + (serverOk ? '' : ' (이 브라우저)') + ' · ' + stamp(d.at);
+          clearTimeout(serverTimer);
+          serverTimer = setTimeout(function () { saveServer(snapshot()); }, 1600);
+        }, 600);
+      }
+
+      /* 창을 닫거나 탭을 가릴 때는 기다리지 않고 지금 저장한다 */
+      function flushDraft() {
+        clearTimeout(localTimer); clearTimeout(serverTimer);
+        if (isBlank()) return;
+        var d = snapshot();
+        saveLocal(d);
+        saveServer(d);
+      }
+
+      function clearDraft() {
+        clearTimeout(localTimer); clearTimeout(serverTimer);
+        saveLocal(null);
+        draftStatusEl.textContent = '';
+        if (serverOk) db.from('insight_drafts').delete().eq('user_id', user.id).then(function () {});
+      }
+
+      function readLocalDraft() {
+        var raw = null;
+        try { raw = localStorage.getItem(DRAFT_KEY); } catch (e) { return null; }
+        if (!raw) return null;
+        var d = null;
+        try { d = JSON.parse(raw); } catch (e) { saveLocal(null); return null; }
+        if (!d || (!d.title && !d.delta)) return null;
+        return { title: d.title || '', delta: d.delta, at: d.at || 0, where: '이 브라우저' };
+      }
+
+      async function readServerDraft() {
+        try {
+          var r = await db.from('insight_drafts')
+            .select('title, delta, updated_at').eq('user_id', user.id).maybeSingle();
+          if (r.error) throw r.error;
+          if (!r.data) return null;
+          var delta = r.data.delta;
+          if (!delta || !delta.ops || !delta.ops.length) return null;
+          return { title: r.data.title || '', delta: delta,
+                   at: Date.parse(r.data.updated_at) || 0, where: '계정' };
+        } catch (e) {
+          if (isMissingTable(e)) {
+            serverOk = false;
+            console.warn('[draft] insight_drafts 테이블이 없습니다 — migration-insight-drafts.sql 실행 필요');
+          } else {
+            console.warn('[draft] 서버 초고 조회 실패', e);
+          }
+          return null;
+        }
+      }
+
+      /* 두고 간 글이 있으면 되살린다. 기기마다 시계가 다를 수 있어
+         2초 안쪽 차이는 계정에 있는 쪽을 믿는다. */
+      (async function restoreDraft() {
+        var local = readLocalDraft();
+        var server = await readServerDraft();
+        var pick = (local && server) ? (local.at > server.at + 2000 ? local : server) : (local || server);
+        if (!pick) return;
+        if (!isBlank()) return;   // 불러오는 사이에 이미 쓰기 시작했으면 건드리지 않는다
+
+        titleInput.value = pick.title;
+        if (pick.delta) quill.setContents(pick.delta, 'silent');
+
+        var bar = document.getElementById('draftBar');
+        document.getElementById('draftBarText').innerHTML =
+          '<b>임시저장한 글을 불러왔습니다.</b> ' +
+          (pick.at ? stamp(pick.at) + ' 저장' : '') + ' · ' + pick.where + '에 남아 있던 글';
+        bar.hidden = false;
+        document.getElementById('draftDiscard').addEventListener('click', function () {
+          if (!confirm('불러온 내용을 버리고 새로 쓸까요? 되돌릴 수 없습니다.')) return;
+          titleInput.value = '';
+          quill.setContents([], 'silent');
+          clearDraft();
+          bar.hidden = true;
+          titleInput.focus();
+        });
+
+        /* 양쪽을 같은 내용으로 맞춰 둔다 */
+        if (pick.where === '이 브라우저') saveServer(pick); else saveLocal(pick);
+      })();
+
+      quill.on('text-change', function (delta, old, source) { if (source === 'user') queueSaveDraft(); });
+      titleInput.addEventListener('input', queueSaveDraft);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') flushDraft();
+      });
 
       function getDraft() {
         return {
@@ -278,6 +494,7 @@
         setStatus('등록 중…');
         try {
           var no = await yvInsights.createPost(user, d.title, d.html, authorName);
+          clearDraft();
           location.href = 'post.html?no=' + no;
         } catch (e) {
           console.error(e);
@@ -289,11 +506,14 @@
       document.getElementById('submitBtn').addEventListener('click', submit);
       document.getElementById('confirmSubmitBtn').addEventListener('click', submit);
 
-      /* 이탈 방지 */
+      /* 이탈 방지 — 나가기 전에 마지막으로 한 번 더 저장해 둔다.
+         (디바운스 대기 중이던 마지막 타이핑까지 챙긴다) */
       window.addEventListener('beforeunload', function (e) {
         if (submitting) return;
-        var d = getDraft();
-        if (d.title || !d.empty) { e.preventDefault(); e.returnValue = ''; }
+        if (isBlank()) return;
+        flushDraft();
+        e.preventDefault();
+        e.returnValue = '';
       });
     })();
   </script>
