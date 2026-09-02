@@ -21,46 +21,71 @@
 
     .mb-wrap { max-width: 880px; margin: 0 auto; }
 
-    /* ── 새 소식 — 마지막 방문 이후 생긴 항목에 NEW 가 붙는다 ── */
-    .mb-news { margin-bottom: var(--space-xl); }
-    .mb-news-list { display: grid; gap: 8px; }
-    .mb-news-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 14px; border: 1px solid var(--edge); border-radius: 12px;
-      background: var(--bg-card); text-decoration: none;
-      font-size: 13px; color: var(--text-2);
-      transition: border-color 0.2s var(--ease-out);
+    /* ── 캘린더 — 학회 일정. 월간은 훑기용, 주간은 세부까지 ── */
+    .mb-cal { margin-bottom: var(--space-2xl); }
+    .cal-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .cal-label { font-size: 17px; font-weight: 700; color: var(--text-1); letter-spacing: var(--ls-snug); margin-right: auto; }
+    .cal-btn { padding: 7px 12px; font-size: 12px; border-radius: 8px; cursor: pointer;
+               background: none; border: 1px solid var(--edge); color: var(--text-2); font-family: 'Pretendard', sans-serif; }
+    .cal-btn:hover { border-color: var(--edge-hover); color: var(--text-1); }
+    .cal-btn.on { border-color: rgba(96,165,250,.55); color: #93C5FD; background: rgba(96,165,250,.08); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+                background: var(--edge); border: 1px solid var(--edge); border-radius: 14px; overflow: hidden; }
+    .cal-dow { padding: 8px 0; text-align: center; font-size: 10px; letter-spacing: var(--ls-wide);
+               color: var(--text-3); background: var(--bg-card); }
+    .cal-cell { min-height: 88px; padding: 6px; background: var(--bg-card); cursor: pointer; }
+    .cal-cell .d { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+    .cal-cell.out { background: rgba(255,255,255,0.015); }
+    .cal-cell.out .d { opacity: .4; }
+    .cal-cell.today .d { color: #93C5FD; font-weight: 700; }
+    .cal-chip { display: block; width: 100%; text-align: left; margin-bottom: 3px; padding: 3px 6px 4px;
+                border: none; border-left: 2px solid; border-radius: 5px; cursor: pointer; font-family: 'Pretendard', sans-serif; }
+    .cal-chip b { display: block; font-size: 11px; font-weight: 600; color: var(--text-1);
+                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-chip small { display: block; font-size: 10px; color: var(--text-3);
+                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .c-study   { background: rgba(52,211,153,.10); border-color: #6EE7B7; }
+    .c-project { background: rgba(251,146,60,.10); border-color: #FDBA74; }
+    .c-event   { background: rgba(96,165,250,.10); border-color: #93C5FD; }
+    /* 주간 — 하루가 한 줄, 세부 내용까지 그대로 보인다 */
+    .cal-week { display: grid; gap: 8px; }
+    .cal-day { border: 1px solid var(--edge); border-radius: 12px; background: var(--bg-card); padding: 10px 14px; cursor: pointer; }
+    .cal-day > h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--text-3); }
+    .cal-day.today > h4 { color: #93C5FD; }
+    .cal-day .none { font-size: 12px; color: var(--text-3); opacity: .6; }
+    .cal-ev { padding: 9px 12px; border-radius: 8px; border-left: 2px solid; margin-bottom: 6px; cursor: pointer; }
+    .cal-ev h5 { margin: 0; font-size: 15px; color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .cal-ev h5 small { font-weight: 400; font-size: 11px; color: var(--text-3); margin-left: 6px; }
+    .cal-ev p { margin: 3px 0 0; font-size: 12px; color: var(--text-2); line-height: 1.5; }
+    .cal-mention { color: #93C5FD; font-weight: 600; }
+    /* 등록·상세 대화상자 */
+    .cal-dialog { border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-elevated);
+                  color: var(--text-1); padding: var(--space-lg); max-width: 460px; width: 92vw; }
+    .cal-dialog::backdrop { background: rgba(0,0,0,.6); }
+    .cal-dialog h2 { margin: 0 0 14px; font-size: 19px; letter-spacing: var(--ls-snug); }
+    .cal-dialog label { display: block; margin-bottom: 12px; }
+    .cal-dialog label span { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-2); }
+    .cal-dialog input, .cal-dialog select, .cal-dialog textarea {
+      width: 100%; padding: 10px 13px; font-size: 14px; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-base); border: 1px solid var(--edge); border-radius: 10px;
     }
-    a.mb-news-item:hover { border-color: var(--edge-hover); color: var(--text-1); }
-    a.mb-news-item:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
-    .mb-news-kind { flex: none; font-size: 11px; letter-spacing: var(--ls-wide);
-                    padding: 2px 9px; border-radius: 999px; border: 1px solid var(--edge); color: var(--text-3); }
-    .mb-news-kind.k-program    { border-color: rgba(96,165,250,.4);  color: #93C5FD; }
-    .mb-news-kind.k-insight    { border-color: rgba(167,139,250,.4); color: #C4B5FD; }
-    .mb-news-kind.k-newsletter { border-color: rgba(52,211,153,.4);  color: #6EE7B7; }
-    .mb-news-kind.k-notice     { border-color: rgba(251,191,36,.4);  color: #FCD34D; }
-    .mb-news-title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .mb-new { flex: none; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #FCA5A5; }
-    .mb-news-date { flex: none; font-size: 12px; color: var(--text-3); }
-    .mb-news-x { flex: none; background: none; border: none; padding: 0 2px; cursor: pointer;
-                 color: var(--text-3); font-size: 14px; line-height: 1; font-family: inherit; }
-    .mb-news-x:hover { color: #FCA5A5; }
-    /* 운영진용 소식 등록 폼 — 평소엔 접혀 있다 */
-    .mb-news-add-toggle { background: none; border: none; padding: 0; cursor: pointer;
-                          font-size: 12px; color: var(--text-3); font-family: 'Pretendard', sans-serif; }
-    .mb-news-add-toggle:hover { color: var(--text-1); }
-    .mb-news-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .mb-news-form[hidden] { display: none; }
-    .mb-news-form select, .mb-news-form input {
-      padding: 9px 12px; font-size: 13px; font-family: 'Pretendard', sans-serif;
-      color: var(--text-1); background: var(--bg-base);
-      border: 1px solid var(--edge); border-radius: 10px;
-    }
-    .mb-news-form input:focus, .mb-news-form select:focus { outline: none; border-color: var(--edge-hover); }
-    .mb-news-form .f-title { flex: 2; min-width: 180px; }
-    .mb-news-form .f-url { flex: 2; min-width: 160px; }
-    .mb-news-msg { width: 100%; margin: 2px 0 0; font-size: 12px; min-height: 16px; color: var(--text-3); }
-    .mb-news-msg.err { color: #FCA5A5; }
+    .cal-dialog textarea { min-height: 90px; resize: vertical; }
+    .cal-dialog input:focus, .cal-dialog select:focus, .cal-dialog textarea:focus { outline: none; border-color: var(--edge-hover); }
+    .cal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cal-dialog .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+    .cal-sug { border: 1px solid var(--edge); border-radius: 10px; background: var(--bg-base); overflow: hidden; margin: -6px 0 12px; }
+    .cal-sug button { display: block; width: 100%; text-align: left; padding: 8px 13px; font-size: 13px;
+                      background: none; border: none; color: var(--text-2); cursor: pointer; font-family: 'Pretendard', sans-serif; }
+    .cal-sug button:hover { background: rgba(255,255,255,.06); color: var(--text-1); }
+    .cal-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px;
+                 letter-spacing: var(--ls-wide); border: 1px solid; margin-bottom: 10px; }
+    .b-study   { border-color: rgba(52,211,153,.4); color: #6EE7B7; }
+    .b-project { border-color: rgba(251,146,60,.4); color: #FDBA74; }
+    .b-event   { border-color: rgba(96,165,250,.4); color: #93C5FD; }
+    .cal-view-meta { font-size: 12px; color: var(--text-3); margin: 0 0 10px; }
+    .cal-view-detail { font-size: 14px; color: var(--text-2); line-height: 1.6; margin: 0; white-space: pre-wrap; }
+    .fmsg { margin: 0 0 8px; font-size: 13px; min-height: 16px; color: var(--text-3); }
+    .fmsg.err { color: #FCA5A5; }
 
     /* ── 인사 카드 ──
        시그니처는 기수 워터마크다. 이 시스템의 축이 기수라서
@@ -156,6 +181,9 @@
     @media (max-width: 640px) {
       .mb-grid { grid-template-columns: 1fr; }
       .mb-mark { font-size: 110px; bottom: -26px; right: 10px; }
+      .cal-cell { min-height: 60px; padding: 4px; }
+      .cal-chip small { display: none; }
+      .cal-row { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) {
       .mb-hello, .mb-card, .mb-eyebrow { animation: none; }
@@ -183,6 +211,42 @@
       <div class="mb-gate">불러오는 중…</div>
     </div>
   </section>
+
+  <dialog class="cal-dialog" id="evDialog">
+    <h2 id="evDlgTitle">일정 등록</h2>
+    <form id="evForm">
+      <div class="cal-row">
+        <label><span>분류</span>
+          <select name="category">
+            <option value="study">Study Session</option>
+            <option value="project">Project Session</option>
+            <option value="event">행사</option>
+          </select></label>
+        <label id="evTypeWrap" hidden><span>행사 종류</span>
+          <select name="event_type">
+            <option value="vc-career">VC Career Session</option>
+            <option value="boost">Boosting Program</option>
+            <option value="y-startup">Y-Startup</option>
+            <option value="networking">VC&amp;Startup Networking Party</option>
+          </select></label>
+      </div>
+      <label><span>제목</span><input name="title" required maxlength="200" placeholder="예: 3주차 스터디 세션" /></label>
+      <div class="cal-row">
+        <label><span>날짜</span><input name="starts_on" type="date" required /></label>
+        <label><span>시간 (선택)</span><input name="time_text" maxlength="30" placeholder="예: 19:00" /></label>
+      </div>
+      <label><span>세부 내용 (선택)</span>
+        <textarea name="detail" maxlength="1000" placeholder="@를 입력하면 학회원을 태그할 수 있습니다. 예: @홍길동 발제 자료 9/10까지"></textarea></label>
+      <div class="cal-sug" id="evSug" hidden></div>
+      <p class="fmsg" id="evMsg"></p>
+      <div class="btns">
+        <button type="button" class="btn btn-outline" id="evCancel">취소</button>
+        <button type="submit" class="btn btn-black">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="cal-dialog" id="evView"><div id="evViewBody"></div></dialog>
 
   <script>
     (function () {
@@ -287,85 +351,286 @@
         for (var i = 0; i < els.length; i++) els[i].style.animationDelay = (i * 45) + "ms";
       }
 
-      /* ── 소식 등록 (운영진 전용) ──
-         학회원에게는 안 보인다 — 알림은 상단 네비의 벨이 담당한다.
-         여기는 벨에 흘려보낼 소식을 등록·정리하는 운영 도구다. */
-      var KIND = { program: "프로그램", insight: "인사이트", newsletter: "뉴스레터", notice: "공지" };
+      /* ── 캘린더 ──
+         학회 일정이 한 화면에 보인다. 월간은 훑기용, 주간은 세부까지.
+         등록은 학회원 누구나 / 수정·삭제는 본인 것만(운영진은 전체).
+         운영진이 등록한 일정은 벨 알림으로도 나간다(DB 트리거). */
+      var CATS = {
+        study:   { label: "Study Session",   chip: "c-study",   badge: "b-study" },
+        project: { label: "Project Session", chip: "c-project", badge: "b-project" },
+        event:   { label: "행사",            chip: "c-event",   badge: "b-event" }
+      };
+      var ETYPES = {
+        "vc-career":  "VC Career Session",
+        "boost":      "Boosting Program",
+        "y-startup":  "Y-Startup",
+        "networking": "VC&Startup Networking Party"
+      };
+      var DOW = ["일", "월", "화", "수", "목", "금", "토"];
+      var cal = { db: null, me: null, view: "month", cursor: new Date(), events: [], members: null, editing: null };
 
-      function newsItemHtml(u) {
-        var date = String(u.created_at).slice(0, 10).replace(/-/g, ".");
-        var inner = '<span class="mb-news-kind k-' + esc(u.kind) + '">' + esc(KIND[u.kind] || u.kind) + '</span>' +
-          '<span class="mb-news-title">' + esc(u.title) + '</span>' +
-          '<span class="mb-news-date">' + esc(date) + '</span>' +
-          '<button type="button" class="mb-news-x" data-delnews="' + u.id + '" aria-label="소식 삭제">×</button>';
-        return '<div class="mb-news-item">' + inner + '</div>';
+      function ymd(d) {
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
       }
 
-      async function loadNews(db, user, isAdmin) {
-        var slot = document.getElementById("newsSlot");
-        if (!slot || !isAdmin) return;
-        var r;
+      /* 현재 뷰가 덮는 날짜 범위. 월간은 그리드가 이웃 달로 흘러넘친 칸까지 */
+      function calRange() {
+        var c = cal.cursor;
+        if (cal.view === "week") {
+          var s = new Date(c.getFullYear(), c.getMonth(), c.getDate() - c.getDay());
+          return [s, new Date(s.getFullYear(), s.getMonth(), s.getDate() + 6)];
+        }
+        var first = new Date(c.getFullYear(), c.getMonth(), 1);
+        var last = new Date(c.getFullYear(), c.getMonth() + 1, 0);
+        return [
+          new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay()),
+          new Date(last.getFullYear(), last.getMonth(), last.getDate() + 6 - last.getDay())
+        ];
+      }
+
+      async function calLoad() {
+        var slot = document.getElementById("calSlot");
+        if (!slot) return;
+        var rg = calRange(), r;
         try {
-          r = await db.from("site_updates").select("*")
-            .order("created_at", { ascending: false }).limit(6);
+          r = await cal.db.from("calendar_events").select("*")
+            .gte("starts_on", ymd(rg[0])).lte("starts_on", ymd(rg[1]))
+            .order("starts_on").order("time_text");
         } catch (e) { return; }
-        /* 테이블이 아직 없으면(마이그레이션 전) 섹션 자체를 숨긴다 */
-        if (!r || r.error) return;
-        var rows = r.data || [];
+        /* 테이블이 없으면(마이그레이션 전) 섹션을 조용히 숨긴다 */
+        if (!r || r.error) { slot.innerHTML = ""; return; }
+        cal.events = r.data || [];
+        calRender();
+      }
 
-        function paint() {
-          var adminHtml =
-            '<div><button type="button" class="mb-news-add-toggle" id="newsToggle">+ 소식 등록 — 학회원 알림(벨)으로 나갑니다</button>' +
-            '<form class="mb-news-form" id="newsForm" hidden>' +
-            '<select name="kind"><option value="notice">공지</option><option value="program">프로그램</option><option value="newsletter">뉴스레터</option></select>' +
-            '<input class="f-title" name="title" required maxlength="200" placeholder="예: Boost Program 5기 모집 시작" />' +
-            '<input class="f-url" name="url" placeholder="링크 (선택) — /boost/ 또는 https://..." />' +
-            '<button type="submit" class="btn btn-black" style="padding:9px 16px;font-size:13px">등록</button>' +
-            '<p class="mb-news-msg" id="newsMsg">링크를 넣으면 그 메뉴에 배지가 붙습니다. Insights 새 글은 자동 등록됩니다.</p>' +
-            '</form>' +
-            (rows.length ? '<div class="mb-news-list" style="margin-top:10px">' + rows.map(newsItemHtml).join("") + '</div>' : '') +
-            '</div>';
-          slot.innerHTML = adminHtml;
+      function evsOn(ds) { return cal.events.filter(function (ev) { return ev.starts_on === ds; }); }
 
-          slot.querySelectorAll("[data-delnews]").forEach(function (b) {
-            b.addEventListener("click", function (e) {
-              e.preventDefault(); e.stopPropagation();
-              if (!confirm("이 소식을 목록에서 삭제할까요?")) return;
-              var id = Number(b.getAttribute("data-delnews"));
-              db.from("site_updates").delete().eq("id", id).then(function (dr) {
-                if (dr.error) { alert("삭제 실패: " + dr.error.message); return; }
-                rows = rows.filter(function (x) { return x.id !== id; });
-                paint();
-              });
-            });
-          });
+      function typeLabel(ev) {
+        return ev.category === "event" && ETYPES[ev.event_type] ? ETYPES[ev.event_type] : CATS[ev.category].label;
+      }
 
-          var tg = document.getElementById("newsToggle");
-          if (tg) tg.addEventListener("click", function () {
-            var f = document.getElementById("newsForm");
-            f.hidden = !f.hidden;
-            if (!f.hidden) f.title.focus();
-          });
-          var nf = document.getElementById("newsForm");
-          if (nf) nf.addEventListener("submit", function (e) {
-            e.preventDefault();
-            var fm = document.getElementById("newsMsg");
-            var url = nf.url.value.trim();
-            if (url && !/^(\/|https?:\/\/)/.test(url)) {
-              fm.textContent = "링크는 / 또는 https:// 로 시작해야 합니다."; fm.className = "mb-news-msg err"; return;
-            }
-            fm.textContent = "등록 중…"; fm.className = "mb-news-msg";
-            db.from("site_updates").insert({
-              kind: nf.kind.value, title: nf.title.value.trim(), url: url, created_by: user.id
-            }).select().single().then(function (ir) {
-              if (ir.error) { fm.textContent = "실패: " + ir.error.message; fm.className = "mb-news-msg err"; return; }
-              rows.unshift(ir.data);
-              paint();
-            });
-          });
+      /* @태그를 하이라이트해서 렌더 (텍스트는 먼저 escape) */
+      function detailHtml(ev) {
+        var t = esc(ev.detail || "");
+        (ev.mentions || []).forEach(function (m) {
+          if (m && m.name) {
+            t = t.split("@" + esc(m.name)).join('<span class="cal-mention">@' + esc(m.name) + '</span>');
+          }
+        });
+        return t;
+      }
+
+      function calRender() {
+        var slot = document.getElementById("calSlot");
+        var rg = calRange(), c = cal.cursor;
+        var label = cal.view === "month"
+          ? c.getFullYear() + "년 " + (c.getMonth() + 1) + "월"
+          : (rg[0].getMonth() + 1) + "." + rg[0].getDate() + " – " + (rg[1].getMonth() + 1) + "." + rg[1].getDate();
+
+        var head = '<p class="mb-eyebrow">Calendar</p>' +
+          '<div class="cal-head"><span class="cal-label">' + esc(label) + '</span>' +
+          '<button type="button" class="cal-btn" data-cal="prev" aria-label="이전">‹</button>' +
+          '<button type="button" class="cal-btn" data-cal="today">오늘</button>' +
+          '<button type="button" class="cal-btn" data-cal="next" aria-label="다음">›</button>' +
+          '<button type="button" class="cal-btn' + (cal.view === "week" ? " on" : "") + '" data-cal="week">주간</button>' +
+          '<button type="button" class="cal-btn' + (cal.view === "month" ? " on" : "") + '" data-cal="month">월간</button>' +
+          '<button type="button" class="cal-btn" data-cal="add">+ 일정 등록</button></div>';
+
+        var body, todayStr = ymd(new Date());
+        if (cal.view === "month") {
+          var cells = DOW.map(function (d) { return '<div class="cal-dow">' + d + '</div>'; }).join("");
+          var d = new Date(rg[0]);
+          while (d <= rg[1]) {
+            var ds = ymd(d);
+            var cls = "cal-cell" + (d.getMonth() !== c.getMonth() ? " out" : "") + (ds === todayStr ? " today" : "");
+            var chips = evsOn(ds).map(function (ev) {
+              var sub = [ev.time_text, ev.detail].filter(Boolean).join(" · ");
+              return '<button type="button" class="cal-chip ' + CATS[ev.category].chip + '" data-ev="' + ev.id + '">' +
+                '<b>' + esc(ev.title) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
+            }).join("");
+            cells += '<div class="' + cls + '" data-day="' + ds + '" title="일정 등록"><div class="d">' + d.getDate() + '</div>' + chips + '</div>';
+            d.setDate(d.getDate() + 1);
+          }
+          body = '<div class="cal-grid">' + cells + '</div>';
+        } else {
+          var days = "", d2 = new Date(rg[0]);
+          while (d2 <= rg[1]) {
+            var ds2 = ymd(d2);
+            var evs = evsOn(ds2).map(function (ev) {
+              return '<div class="cal-ev ' + CATS[ev.category].chip + '" data-ev="' + ev.id + '" role="button" tabindex="0">' +
+                '<h5>' + esc(ev.title) + '<small>' + esc(typeLabel(ev)) + (ev.time_text ? " · " + esc(ev.time_text) : "") + '</small></h5>' +
+                (ev.detail ? '<p>' + detailHtml(ev) + '</p>' : '') + '</div>';
+            }).join("");
+            days += '<div class="cal-day' + (ds2 === todayStr ? " today" : "") + '" data-day="' + ds2 + '">' +
+              '<h4>' + (d2.getMonth() + 1) + "." + d2.getDate() + " (" + DOW[d2.getDay()] + ')</h4>' +
+              (evs || '<div class="none">일정 없음</div>') + '</div>';
+            d2.setDate(d2.getDate() + 1);
+          }
+          body = '<div class="cal-week">' + days + '</div>';
         }
 
-        paint();
+        slot.innerHTML = head + body;
+
+        slot.querySelectorAll("[data-cal]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var op = b.getAttribute("data-cal"), c2 = cal.cursor;
+            if (op === "prev" || op === "next") {
+              var step = op === "prev" ? -1 : 1;
+              cal.cursor = cal.view === "week"
+                ? new Date(c2.getFullYear(), c2.getMonth(), c2.getDate() + step * 7)
+                : new Date(c2.getFullYear(), c2.getMonth() + step, 1);
+              calLoad();
+            } else if (op === "today") { cal.cursor = new Date(); calLoad(); }
+            else if (op === "week" || op === "month") { if (cal.view !== op) { cal.view = op; calLoad(); } }
+            else if (op === "add") openEvForm(null, null);
+          });
+        });
+        slot.querySelectorAll("[data-ev]").forEach(function (el) {
+          el.addEventListener("click", function (e) {
+            e.stopPropagation();
+            openEvView(Number(el.getAttribute("data-ev")));
+          });
+        });
+        /* 날짜 칸을 누르면 그 날짜로 바로 등록 */
+        slot.querySelectorAll("[data-day]").forEach(function (el) {
+          el.addEventListener("click", function () { openEvForm(null, el.getAttribute("data-day")); });
+        });
+      }
+
+      /* @태그 자동완성용 학회원 이름 — 처음 등록 창을 열 때 한 번만 */
+      async function ensureMembers() {
+        if (cal.members) return;
+        try {
+          var r = await cal.db.rpc("list_member_names");
+          cal.members = r.error ? [] : (r.data || []);
+        } catch (e) { cal.members = []; }
+      }
+
+      function openEvForm(ev, dateStr) {
+        cal.editing = ev || null;
+        var f = document.getElementById("evForm");
+        document.getElementById("evDlgTitle").textContent = ev ? "일정 수정" : "일정 등록";
+        f.category.value = ev ? ev.category : "study";
+        f.event_type.value = ev && ev.event_type ? ev.event_type : "vc-career";
+        f.title.value = ev ? ev.title : "";
+        f.starts_on.value = ev ? ev.starts_on : (dateStr || ymd(new Date()));
+        f.time_text.value = ev ? ev.time_text : "";
+        f.detail.value = ev ? ev.detail : "";
+        document.getElementById("evTypeWrap").hidden = f.category.value !== "event";
+        document.getElementById("evMsg").textContent = "";
+        document.getElementById("evSug").hidden = true;
+        ensureMembers();
+        document.getElementById("evDialog").showModal();
+      }
+
+      function openEvView(id) {
+        var ev = null;
+        for (var i = 0; i < cal.events.length; i++) if (cal.events[i].id === id) ev = cal.events[i];
+        if (!ev) return;
+        var mine = cal.me && (ev.author_id === cal.me.id || cal.me.is_admin);
+        document.getElementById("evViewBody").innerHTML =
+          '<span class="cal-badge ' + CATS[ev.category].badge + '">' + esc(typeLabel(ev)) + '</span>' +
+          '<h2>' + esc(ev.title) + '</h2>' +
+          '<p class="cal-view-meta">' + esc(String(ev.starts_on).replace(/-/g, ".")) +
+          (ev.time_text ? " · " + esc(ev.time_text) : "") +
+          (ev.author_name ? " · 등록: " + esc(ev.author_name) : "") + '</p>' +
+          (ev.detail ? '<p class="cal-view-detail">' + detailHtml(ev) + '</p>' : '') +
+          '<div class="btns" style="margin-top:16px">' +
+          (mine ? '<button type="button" class="btn btn-outline" id="evEdit">수정</button>' +
+                  '<button type="button" class="btn btn-outline" id="evDel">삭제</button>' : '') +
+          '<button type="button" class="btn btn-black" id="evClose">닫기</button></div>';
+        var dlg = document.getElementById("evView");
+        dlg.showModal();
+        document.getElementById("evClose").addEventListener("click", function () { dlg.close(); });
+        var ed = document.getElementById("evEdit");
+        if (ed) ed.addEventListener("click", function () { dlg.close(); openEvForm(ev, null); });
+        var del = document.getElementById("evDel");
+        if (del) del.addEventListener("click", function () {
+          if (!confirm("이 일정을 삭제할까요?")) return;
+          cal.db.from("calendar_events").delete().eq("id", ev.id).then(function (r) {
+            if (r.error) { alert("삭제 실패: " + r.error.message); return; }
+            dlg.close();
+            calLoad();
+          });
+        });
+      }
+
+      /* 등록 폼 배선 — 대화상자는 정적이라 한 번만 */
+      function wireEvForm() {
+        var f = document.getElementById("evForm");
+        var ta = f.detail, box = document.getElementById("evSug");
+
+        f.category.addEventListener("change", function () {
+          document.getElementById("evTypeWrap").hidden = f.category.value !== "event";
+        });
+        document.getElementById("evCancel").addEventListener("click", function () {
+          document.getElementById("evDialog").close();
+        });
+
+        /* @ 뒤에 이어 쓰면 학회원 이름을 제안한다 */
+        ta.addEventListener("input", function () {
+          var m = /@([^\s@]{0,15})$/.exec(ta.value.slice(0, ta.selectionStart));
+          if (!m || !cal.members || !cal.members.length) { box.hidden = true; return; }
+          var q = m[1];
+          var hits = cal.members.filter(function (mm) {
+            return mm.display_name && mm.display_name.indexOf(q) === 0;
+          }).slice(0, 6);
+          if (!hits.length) { box.hidden = true; return; }
+          box.innerHTML = hits.map(function (mm) {
+            return '<button type="button" data-m="' + esc(mm.display_name) + '">@' + esc(mm.display_name) +
+              (mm.generation != null ? ' <span style="color:var(--text-3);font-size:11px">' + mm.generation + '기</span>' : '') +
+              '</button>';
+          }).join("");
+          box.hidden = false;
+          box.querySelectorAll("[data-m]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              var pos = ta.selectionStart;
+              var before = ta.value.slice(0, pos).replace(/@[^\s@]{0,15}$/, "@" + b.getAttribute("data-m") + " ");
+              ta.value = before + ta.value.slice(pos);
+              box.hidden = true;
+              ta.focus();
+              ta.selectionStart = ta.selectionEnd = before.length;
+            });
+          });
+        });
+
+        f.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var fm = document.getElementById("evMsg");
+          var detail = ta.value.trim();
+          /* 제출 시점에 본문을 스캔해 실제로 남아 있는 @태그만 저장한다 */
+          var mentions = (cal.members || []).filter(function (m) {
+            return m.display_name && detail.indexOf("@" + m.display_name) >= 0;
+          }).map(function (m) { return { id: m.id, name: m.display_name }; });
+
+          var row = {
+            category: f.category.value,
+            event_type: f.category.value === "event" ? f.event_type.value : "",
+            title: f.title.value.trim(),
+            starts_on: f.starts_on.value,
+            time_text: f.time_text.value.trim(),
+            detail: detail,
+            mentions: mentions
+          };
+          fm.textContent = "저장 중…"; fm.className = "fmsg";
+          var q;
+          if (cal.editing) q = cal.db.from("calendar_events").update(row).eq("id", cal.editing.id);
+          else {
+            row.author_id = cal.me.id;
+            row.author_name = cal.me.name || "";
+            q = cal.db.from("calendar_events").insert(row);
+          }
+          q.then(function (r) {
+            if (r.error) {
+              fm.textContent = "실패: " + r.error.message +
+                (String(r.error.code) === "PGRST205" ? " — migration-calendar.sql 을 실행했는지 확인하세요." : "");
+              fm.className = "fmsg err";
+              return;
+            }
+            document.getElementById("evDialog").close();
+            calLoad();
+          });
+        });
       }
 
       window.addEventListener("DOMContentLoaded", async function () {
@@ -382,8 +647,8 @@
         } catch (e) {}
 
         var html = helloHtml(p, user);
-        html += '<div class="mb-news" id="newsSlot"></div>';
         if (p && (p.is_member || p.is_admin)) {
+          html += '<div class="mb-cal" id="calSlot"></div>';
           html += memberCards();
           if (p.is_admin) html += adminCards();
         } else {
@@ -391,7 +656,12 @@
         }
         root.innerHTML = html;
         stagger();
-        loadNews(db, user, !!(p && p.is_admin));
+        if (p && (p.is_member || p.is_admin)) {
+          cal.db = db;
+          cal.me = { id: user.id, is_admin: !!p.is_admin, name: p.display_name || "" };
+          wireEvForm();
+          calLoad();
+        }
 
         document.getElementById("logoutBtn").addEventListener("click", async function () {
           await yvAuth.signOut();
