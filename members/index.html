@@ -11,7 +11,7 @@
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
-  <script src="/js/nav-auth.js"></script>
+  <script src="/js/nav-auth.js?v=2"></script>
   <style>
     /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
        첫 화면에 카드가 보여야 한다 */
@@ -54,6 +54,9 @@
     .c-study   { background: rgba(52,211,153,.10); border-color: #6EE7B7; }
     .c-project { background: rgba(251,146,60,.10); border-color: #FDBA74; }
     .c-event   { background: rgba(96,165,250,.10); border-color: #93C5FD; }
+    .c-insight { background: rgba(167,139,250,.10); border-color: #C4B5FD; }
+    .c-reading { background: rgba(244,114,182,.10); border-color: #F9A8D4; }
+    .c-break   { background: rgba(148,163,184,.10); border-color: #CBD5E1; }
     /* 주간 — 하루가 한 줄, 세부 내용까지 그대로 보인다 */
     .cal-week { display: grid; gap: 8px; }
     .cal-day { border: 1px solid var(--edge); border-radius: 12px; background: var(--bg-card); padding: 10px 14px; cursor: pointer; }
@@ -92,6 +95,9 @@
     .b-study   { border-color: rgba(52,211,153,.4); color: #6EE7B7; }
     .b-project { border-color: rgba(251,146,60,.4); color: #FDBA74; }
     .b-event   { border-color: rgba(96,165,250,.4); color: #93C5FD; }
+    .b-insight { border-color: rgba(167,139,250,.4); color: #C4B5FD; }
+    .b-reading { border-color: rgba(244,114,182,.4); color: #F9A8D4; }
+    .b-break   { border-color: rgba(148,163,184,.4); color: #CBD5E1; }
     .cal-view-meta { font-size: 12px; color: var(--text-3); margin: 0 0 10px; }
     .cal-view-detail { font-size: 14px; color: var(--text-2); line-height: 1.6; margin: 0; white-space: pre-wrap; }
     .fmsg { margin: 0 0 8px; font-size: 13px; min-height: 16px; color: var(--text-3); }
@@ -269,7 +275,10 @@
           <select name="category">
             <option value="study">Study Session</option>
             <option value="project">Project Session</option>
+            <option value="insight">Insight Posting</option>
+            <option value="reading">독서</option>
             <option value="event">행사</option>
+            <option value="break">휴회</option>
           </select></label>
         <label id="evTypeWrap" hidden><span>행사 종류</span>
           <select name="event_type">
@@ -362,15 +371,14 @@
       }
 
       /* 두 구획으로 나눈다.
-         Workspace — 학기 중 매주 쓰는 것 (글·자료·과제)
+         Workspace — 학기 중 매주 쓰는 것 (글·자료)
          Network & Records — 가끔 들르는 것 (사람·기록)
-         섞어두면 매주 쓸 네 개가 일곱 개 사이에 묻힌다. */
+         섞어두면 매주 쓸 세 개가 일곱 개 사이에 묻힌다. */
       function memberCards() {
         return '<p class="mb-eyebrow">Workspace</p><div class="mb-grid">' +
           card("/insights/write.html", "t-blue",   "pen",    "Insights 글쓰기", "산업·시장 인사이트를 작성해 게시판에 올립니다.") +
           card("/insights/",           "t-purple", "board",  "Insights 게시판", "학회원들이 쓴 글을 읽고 반응을 남깁니다.") +
           card("/members/resources.html", "t-green", "folder", "기수별 자료실", "세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.") +
-          card("/members/assignments.html", "t-orange", "upload", "과제 제출", "커리큘럼 과제를 링크로 제출합니다.") +
           '</div>' +
           '<div class="mb-net"><p class="mb-eyebrow">Network &amp; Records</p><div class="mb-grid">' +
           card("/members/alumni.html", "t-cyan", "users", "알럼 디렉터리", "기수별 알럼을 찾아보고 연결을 요청합니다.") +
@@ -410,7 +418,10 @@
       var CATS = {
         study:   { label: "Study Session",   chip: "c-study",   badge: "b-study" },
         project: { label: "Project Session", chip: "c-project", badge: "b-project" },
-        event:   { label: "행사",            chip: "c-event",   badge: "b-event" }
+        event:   { label: "행사",            chip: "c-event",   badge: "b-event" },
+        insight: { label: "Insight Posting", chip: "c-insight", badge: "b-insight" },
+        reading: { label: "독서",            chip: "c-reading", badge: "b-reading" },
+        break:   { label: "휴회",            chip: "c-break",   badge: "b-break" }
       };
       var ETYPES = {
         "vc-career":  "VC Career Session",

@@ -15,6 +15,24 @@ body.acc-orange { --acc: #FDBA74; --acc-rgb: 251, 146, 60; }
 body.acc-cyan   { --acc: #67E8F9; --acc-rgb: 34, 211, 238; }
 body.acc-blue   { --acc: #93C5FD; --acc-rgb: 96, 165, 250; }
 
+/* ── 돌아가기 ──
+   허브에서 카드를 눌러 들어온 페이지들이라, 되돌아갈 길을 히어로 안에 둔다.
+   history 가 있으면 뒤로, 없으면(새 탭·직접 진입) 허브로 — 스크립트에서 처리. */
+.mx-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 20px; padding: 10px 20px 10px 15px;
+  border: 1px solid rgba(var(--acc-rgb), 0.5); border-radius: 999px;
+  background: rgba(var(--acc-rgb), 0.12);
+  color: var(--acc); font-size: 14px; font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-decoration: none; cursor: pointer;
+  font-family: 'Pretendard', sans-serif;
+  transition: background 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+.mx-back:hover { background: rgba(var(--acc-rgb), 0.22); border-color: var(--acc); }
+.mx-back:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+.mx-back svg { width: 15px; height: 15px; flex: none; stroke-width: 2.4; }
+
 /* 히어로에 페이지 색을 은은하게 */
 body[class*="acc-"] .page-header::before {
   background: radial-gradient(ellipse at 22% 45%, rgba(var(--acc-rgb), 0.13) 0%, transparent 60%);
@@ -26,24 +44,23 @@ body[class*="acc-"] .page-tag { color: var(--acc); }
 .rs-tabs, .rs-list > *, .rs-form,
 .an-list > *, .an-form,
 .ac-item, .ac-form, .ac-career,
-.as-item, .as-form,
 .al-grid > *, .al-req,
 .ap-card, .aa-tabs, .aa-table-wrap {
   animation: mxRise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.rs-list > *:nth-child(2), .an-list > *:nth-child(2), .al-grid > *:nth-child(2), .as-item:nth-of-type(2) { animation-delay: 45ms; }
-.rs-list > *:nth-child(3), .an-list > *:nth-child(3), .al-grid > *:nth-child(3), .as-item:nth-of-type(3) { animation-delay: 90ms; }
-.rs-list > *:nth-child(4), .an-list > *:nth-child(4), .al-grid > *:nth-child(4), .as-item:nth-of-type(4) { animation-delay: 135ms; }
-.rs-list > *:nth-child(5), .an-list > *:nth-child(5), .al-grid > *:nth-child(5), .as-item:nth-of-type(5) { animation-delay: 180ms; }
-.rs-list > *:nth-child(6), .an-list > *:nth-child(6), .al-grid > *:nth-child(6), .as-item:nth-of-type(6) { animation-delay: 225ms; }
-.rs-form, .an-form, .ac-form, .as-form, .al-req { animation-delay: 160ms; }
+.rs-list > *:nth-child(2), .an-list > *:nth-child(2), .al-grid > *:nth-child(2) { animation-delay: 45ms; }
+.rs-list > *:nth-child(3), .an-list > *:nth-child(3), .al-grid > *:nth-child(3) { animation-delay: 90ms; }
+.rs-list > *:nth-child(4), .an-list > *:nth-child(4), .al-grid > *:nth-child(4) { animation-delay: 135ms; }
+.rs-list > *:nth-child(5), .an-list > *:nth-child(5), .al-grid > *:nth-child(5) { animation-delay: 180ms; }
+.rs-list > *:nth-child(6), .an-list > *:nth-child(6), .al-grid > *:nth-child(6) { animation-delay: 225ms; }
+.rs-form, .an-form, .ac-form, .al-req { animation-delay: 160ms; }
 .ac-career { animation-delay: 220ms; }
 
 /* ── 목록 카드 — 허브 카드와 같은 호버 (링크인 것만 떠오른다) ── */
 a.rs-item { transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1), transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1); }
 a.rs-item:hover { border-color: var(--edge-hover); transform: translateY(-2px); box-shadow: var(--glow-hover); }
-.an-item, .ac-item, .as-item, .al-card, .ap-card { transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1); }
-.an-item:hover, .ac-item:hover, .as-item:hover, .al-card:hover { border-color: var(--edge-hover); }
+.an-item, .ac-item, .al-card, .ap-card { transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1); }
+.an-item:hover, .ac-item:hover, .al-card:hover { border-color: var(--edge-hover); }
 
 /* 카테고리·기수 뱃지에 페이지 색 */
 .rs-cat { border-color: rgba(var(--acc-rgb), 0.35); color: var(--acc); }
@@ -58,13 +75,13 @@ a.rs-item:hover { border-color: var(--edge-hover); transform: translateY(-2px); 
 }
 
 /* ── 폼 — 허브 인사 카드처럼 좌상단 라디얼 틴트 + 제목 앞 색 점 ── */
-.rs-form, .an-form, .ac-form, .ac-career, .as-form {
+.rs-form, .an-form, .ac-form, .ac-career {
   background:
     radial-gradient(ellipse 420px 200px at 8% -25%, rgba(var(--acc-rgb), 0.09), transparent 65%),
     var(--bg-card);
 }
 .rs-form h2::before, .an-form h2::before, .ac-form h2::before,
-.ac-career h2::before, .as-form h2::before, .al-req h2::before {
+.ac-career h2::before, .al-req h2::before {
   content: "";
   display: inline-block;
   width: 9px; height: 9px; border-radius: 3px;
@@ -77,8 +94,6 @@ a.rs-item:hover { border-color: var(--edge-hover); transform: translateY(-2px); 
 .rs-form input:focus, .rs-form select:focus,
 .an-form input:focus,
 .ac-form input:focus, .ac-career input:focus,
-.as-form input:focus, .as-form select:focus,
-.as-submit input:focus,
 .al-dialog textarea:focus {
   border-color: rgba(var(--acc-rgb), 0.55);
   box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.12);
@@ -90,14 +105,14 @@ a.rs-item:hover { border-color: var(--edge-hover); transform: translateY(-2px); 
 
 /* 접근성 — 인터랙티브 전반에 보이는 포커스 */
 a.rs-item:focus-visible, .rs-tab:focus-visible, .aa-tab:focus-visible,
-.al-card button:focus-visible, .as-submit .btn:focus-visible {
+.al-card button:focus-visible {
   outline: 2px solid var(--acc);
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rs-tabs, .rs-list > *, .rs-form, .an-list > *, .an-form,
-  .ac-item, .ac-form, .ac-career, .as-item, .as-form,
+  .ac-item, .ac-form, .ac-career,
   .al-grid > *, .al-req, .ap-card, .aa-tabs, .aa-table-wrap { animation: none; }
   a.rs-item { transition: none; }
   a.rs-item:hover { transform: none; }

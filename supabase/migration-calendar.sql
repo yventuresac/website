@@ -10,7 +10,7 @@
 
 create table if not exists public.calendar_events (
   id bigint generated always as identity primary key,
-  category text not null check (category in ('study', 'project', 'event')),
+  category text not null check (category in ('study', 'project', 'event', 'insight', 'reading', 'break')),
   event_type text not null default '',   -- 행사일 때만: vc-career/boost/y-startup/networking
   title text not null check (char_length(title) between 1 and 200),
   detail text not null default '',

@@ -27,7 +27,8 @@ const ETYPES = {
   'y-startup': 'Y-Startup',
   'networking': 'VC&Startup Networking Party',
 };
-const CATS = { study: 'Study Session', project: 'Project Session', event: '행사' };
+const CATS = { study: 'Study Session', project: 'Project Session', event: '행사',
+               insight: 'Insight Posting', reading: '독서', break: '휴회' };
 
 function escHtml(s) {
   return String(s == null ? '' : s)

@@ -12,26 +12,38 @@
    스타일은 여기서 주입한다 — 23개 페이지의 CSS 버전을 건드리지 않기 위해.
    ────────────────────────────────────────────────────────────── */
 (function () {
-  var menu = document.getElementById("navMenu");
-  if (!menu) return;
+  var menu, authLi;
 
-  var authLi = document.createElement("li");
-  authLi.className = "nav-item nav-auth";
-  var a = document.createElement("a");
-  a.href = window.YV_LOGIN_PATH || "/auth/login.html";
-  a.textContent = "Login";
-  authLi.appendChild(a);
-  menu.appendChild(authLi);
+  /* 학회원 페이지들은 이 스크립트를 <head>에서 부른다. 그때는 navMenu 가
+     아직 없어서 MY PAGE·벨이 통째로 빠졌다 — DOM 이 준비된 뒤에 붙인다. */
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
 
-  if (!window.yvAuth) return; // 설정 전이면 기본 Login 링크 유지
+  function start() {
+    menu = document.getElementById("navMenu");
+    if (!menu) return;
 
-  yvAuth.getUser().then(function (user) {
-    if (!user) return;
-    /* 로그인 상태면 학회원 허브로 안내한다. 로그아웃은 허브 안에 있다 */
-    a.textContent = "MY PAGE";
-    a.href = "/members/";
-    initNotify(user);
-  });
+    authLi = document.createElement("li");
+    authLi.className = "nav-item nav-auth";
+    var a = document.createElement("a");
+    a.href = window.YV_LOGIN_PATH || "/auth/login.html";
+    a.textContent = "Login";
+    authLi.appendChild(a);
+    menu.appendChild(authLi);
+
+    if (!window.yvAuth) return; // 설정 전이면 기본 Login 링크 유지
+
+    yvAuth.getUser().then(function (user) {
+      if (!user) return;
+      /* 로그인 상태면 학회원 허브로 안내한다. 로그아웃은 허브 안에 있다 */
+      a.textContent = "MY PAGE";
+      a.href = "/members/";
+      initNotify(user);
+    });
+  }
 
   /* ── 알림 ── */
 

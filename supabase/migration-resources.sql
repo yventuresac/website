@@ -58,14 +58,15 @@ create index if not exists idx_alumni_news on public.alumni_news (status, create
 alter table public.resources   enable row level security;
 alter table public.alumni_news enable row level security;
 
--- 자료실: 학회원 읽기·등록, 본인 또는 운영진 수정·삭제
+-- 자료실: 학회원 읽기, 등록은 운영진만, 본인 또는 운영진 수정·삭제
 drop policy if exists "resources_select_member" on public.resources;
 create policy "resources_select_member" on public.resources
   for select using (public.is_member_or_admin());
 
 drop policy if exists "resources_insert_member" on public.resources;
-create policy "resources_insert_member" on public.resources
-  for insert with check (public.is_member_or_admin() and auth.uid() = author_id);
+drop policy if exists "resources_insert_admin" on public.resources;
+create policy "resources_insert_admin" on public.resources
+  for insert with check (public.is_admin() and auth.uid() = author_id);
 
 drop policy if exists "resources_update_own" on public.resources;
 create policy "resources_update_own" on public.resources

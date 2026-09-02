@@ -11,7 +11,7 @@
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
-  <script src="/js/nav-auth.js"></script>
+  <script src="/js/nav-auth.js?v=2"></script>
   <style>
     .rs-wrap { max-width: 880px; margin: 0 auto; }
     .rs-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
@@ -24,27 +24,34 @@
     }
     .rs-tab.on { border-color: var(--blue-400); color: #93C5FD; }
     .rs-tab:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 2px; }
-    .rs-list { display: grid; gap: 10px; }
+    /* 좌·우 한 장씩 놓이는 카드 격자 — 좁은 화면에서는 한 줄에 하나 */
+    .rs-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .rs-card { position: relative; }
     .rs-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 14px 16px; border: 1px solid var(--edge); border-radius: 12px;
+      display: flex; flex-direction: column; gap: 10px; height: 100%;
+      padding: 16px 18px; border: 1px solid var(--edge); border-radius: 12px;
       background: var(--bg-card); text-decoration: none;
       transition: border-color 0.2s var(--ease-out);
     }
     .rs-item:hover { border-color: var(--edge-hover); }
     .rs-item:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
+    /* 삭제 버튼 자리를 비워둔다 */
+    .rs-head { display: flex; align-items: center; gap: 7px; padding-right: 40px; }
+    .rs-logo { flex: none; width: 16px; height: 16px; display: block; }
     .rs-cat {
-      flex: none; margin-top: 1px; padding: 2px 9px; border-radius: 999px;
+      flex: none; padding: 2px 9px; border-radius: 999px;
       font-size: 11px; letter-spacing: var(--ls-wide); border: 1px solid var(--edge); color: var(--text-3);
     }
-    .rs-body { min-width: 0; flex: 1; }
-    .rs-body h3 { margin: 0 0 3px; font-size: var(--text-body); color: var(--text-1); letter-spacing: var(--ls-snug); }
-    .rs-body p { margin: 0; font-size: 13px; color: var(--text-3); }
+    .rs-body { min-width: 0; }
+    .rs-body h3 { margin: 0 0 4px; font-size: var(--text-body); color: var(--text-1); letter-spacing: var(--ls-snug); }
+    .rs-body p { margin: 0; font-size: 13px; color: var(--text-3); line-height: 1.5; }
     .rs-del {
-      flex: none; background: none; border: none; color: var(--text-3);
+      position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: var(--text-3);
       font-size: 12px; cursor: pointer; padding: 4px; font-family: 'Pretendard', sans-serif;
     }
     .rs-del:hover { color: #FCA5A5; }
+    @media (max-width: 640px) { .rs-list { grid-template-columns: 1fr; } }
     .rs-form {
       margin-top: var(--space-2xl); padding: var(--space-lg);
       border: 1px solid var(--edge); border-radius: 16px; background: var(--bg-card);
@@ -64,7 +71,7 @@
     .rs-form-msg.err { color: #FCA5A5; }
     @media (max-width: 640px) { .rs-form .row { grid-template-columns: 1fr; } }
   </style>
-  <link rel="stylesheet" href="/css/members.css?v=1" />
+  <link rel="stylesheet" href="/css/members.css?v=3" />
 </head>
 <body class="theme-mono acc-green">
 
@@ -114,9 +121,10 @@
   </nav>
 
   <div class="page-header">
+    <a class="mx-back" href="/members/" id="mxBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>뒤로</a>
     <div class="page-tag">Members</div>
     <h1 class="page-title">기수별 자료실</h1>
-    <p class="page-desc">세션 자료·템플릿·노션·드라이브 링크를 기수별로 모아둡니다. 파일은 원래 있던 곳에 두고 주소만 등록하세요.</p>
+    <p class="page-desc">세션 자료·템플릿·노션·드라이브 링크를 기수별로 모아둡니다. 등록은 운영진이 합니다.</p>
   </div>
 
   <section class="section">
@@ -160,24 +168,34 @@
       function itemHtml(r) {
         var mine = me && (r.author_id === me.id || me.is_admin);
         var url = safeUrl(r.url);
-        return '<div style="display:flex;gap:0;align-items:stretch">' +
-          '<a class="rs-item" style="flex:1" href="' + (url ? esc(url) : "#") + '" target="_blank" rel="noopener">' +
-          '<span class="rs-cat">' + esc(genLabel(r.generation)) + ' · ' + esc(CATS[r.category] || r.category) + '</span>' +
+        /* 노션 자료는 분류 이름 대신 노션 로고로 알아본다 */
+        var isNotion = r.category === "notion";
+        var mark = isNotion ? '<img class="rs-logo" src="/assets/notion-mark.svg" alt="노션" />' : "";
+        var cat = isNotion ? genLabel(r.generation)
+                           : genLabel(r.generation) + " · " + (CATS[r.category] || r.category);
+        return '<div class="rs-card">' +
+          '<a class="rs-item" href="' + (url ? esc(url) : "#") + '" target="_blank" rel="noopener">' +
+          '<span class="rs-head">' + mark + '<span class="rs-cat">' + esc(cat) + '</span></span>' +
           '<span class="rs-body"><h3>' + esc(r.title) + '</h3>' +
           '<p>' + esc(r.note || "") + (r.author_name ? (r.note ? " · " : "") + esc(r.author_name) : "") + '</p></span>' +
+          '</a>' +
           (mine ? '<button type="button" class="rs-del" data-del="' + r.id + '" aria-label="삭제">삭제</button>' : "") +
-          '</a></div>';
+          '</div>';
       }
 
       function listHtml() {
         var rows = curGen === "all" ? all : all.filter(function (r) {
           return String(r.generation == null ? "null" : r.generation) === curGen;
         });
-        if (!rows.length) return '<div class="rs-msg">아직 등록된 자료가 없습니다. 아래에서 첫 링크를 올려보세요.</div>';
+        if (!rows.length) return '<div class="rs-msg">아직 등록된 자료가 없습니다.' +
+          (me && me.is_admin ? " 아래에서 첫 링크를 올려보세요." : "") + '</div>';
         return '<div class="rs-list">' + rows.map(itemHtml).join("") + '</div>';
       }
 
       function formHtml() {
+        /* 자료 등록은 운영진 몫이다. 학회원에게는 폼 자체를 그리지 않는다
+           (DB 정책도 같은 기준이라, 보이더라도 저장은 거부된다) */
+        if (!me || !me.is_admin) return "";
         var genOpts = '<option value="">공통 (전 기수)</option>';
         for (var g = 0; g <= 6; g++) genOpts += '<option value="' + g + '">' + g + '기</option>';
         var catOpts = Object.keys(CATS).map(function (k) {
@@ -218,6 +236,7 @@
         });
 
         var form = document.getElementById("addForm");
+        if (!form) return;
         form.addEventListener("submit", function (e) {
           e.preventDefault();
           var fm = document.getElementById("formMsg");
@@ -269,6 +288,14 @@
   </script>
   <script>
     (function () {
+      /* 온 길이 있으면 그대로 되돌아가고, 없으면 허브로 간다 */
+      var back = document.getElementById("mxBack");
+      if (back) back.addEventListener("click", function (e) {
+        if (history.length > 1 && document.referrer.indexOf(location.origin) === 0) {
+          e.preventDefault(); history.back();
+        }
+      });
+
       var hb = document.getElementById("hamburger");
       var nm = document.getElementById("navMenu");
       if (hb && nm) hb.addEventListener("click", function () { nm.classList.toggle("open"); });
