@@ -536,18 +536,25 @@
         });
       }
 
-      /* @태그 이메일 알림 — 실패해도 일정 저장에는 영향 없게 조용히 보낸다.
-         발송은 서버 함수가 하고, 서비스 키가 없으면 그냥 넘어간다 */
+      /* @태그 이메일 알림 — 일정 저장에는 영향 없지만, 실패하면
+         등록자에게는 알려준다 (태그한 사람이 못 받았는데 모르면 안 되니까) */
       async function notifyMentions(eventId, ids) {
         try {
           var s = await cal.db.auth.getSession();
           var token = s.data && s.data.session ? s.data.session.access_token : "";
           if (!token) return;
-          fetch("/api/notify-mention", {
+          var r = await fetch("/api/notify-mention", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
             body: JSON.stringify({ event_id: eventId, user_ids: ids })
-          }).catch(function () {});
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) {
+            alert("일정은 저장됐지만 @태그 메일은 못 보냈습니다.\n" + (j.error || ("오류 " + r.status)));
+          } else if (j.errors && j.errors.length) {
+            alert("일정은 저장됐지만 @태그 메일 일부가 실패했습니다.\n" + j.errors.join("\n") +
+              "\n\n(도메인 인증 전에는 Resend 가입 이메일로만 발송됩니다)");
+          }
         } catch (e) {}
       }
 

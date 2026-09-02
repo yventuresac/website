@@ -57,6 +57,14 @@ async function requireMember(req) {
 }
 
 module.exports = async (req, res) => {
+  // GET = 설정 상태 확인 (키 값은 노출하지 않고 유무만)
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      resend_key: !!process.env.RESEND_API_KEY,
+      mail_from: process.env.MAIL_FROM || '(기본: onboarding@resend.dev — 가입자 본인에게만 발송 가능)',
+      service_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    });
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   try {
