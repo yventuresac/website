@@ -12,6 +12,7 @@
   <script src="/js/auth.js"></script>
   <script src="/js/auth-guard.js"></script>
   <script src="/js/nav-auth.js?v=2"></script>
+  <script src="/js/members-guide.js?v=1"></script>
   <style>
     /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
        첫 화면에 카드가 보여야 한다 */
@@ -140,6 +141,15 @@
     .mb-badge.outside { border-color: var(--edge); color: var(--text-3); }
     .mb-badge.admin { border-color: rgba(96,165,250,.5); color: #93C5FD; }
     .mb-hello .btn { position: relative; }
+    .mb-guide-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 10px; padding: 0; background: none; border: none; cursor: pointer;
+      font-family: 'Pretendard', sans-serif; font-size: 12.5px; color: var(--text-3);
+      text-decoration: underline; text-decoration-color: rgba(255,255,255,.18); text-underline-offset: 3px;
+      transition: color 0.2s var(--ease-out), text-decoration-color 0.2s var(--ease-out);
+    }
+    .mb-guide-link:hover { color: #93C5FD; text-decoration-color: rgba(147,197,253,.5); }
+    .mb-guide-link:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; border-radius: 4px; }
 
     /* ── 기능 카드 ── */
     .mb-eyebrow {
@@ -332,7 +342,8 @@
         chart:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>',
         inbox:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.4 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1z"/></svg>',
         ledger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/></svg>',
-        camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+        camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+        attend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/><path d="m8.5 16 2 2 4.5-4.5"/></svg>'
       };
 
       function card(href, tint, icon, title, desc) {
@@ -365,7 +376,10 @@
           '<div class="mb-mark" aria-hidden="true">' + esc(mark) + '</div>' +
           '<div class="' + avatarCls + '" aria-hidden="true">' + esc(initial) + '</div>' +
           '<div class="mb-hello-body"><h2>' + esc(name) + '님' + badge + '</h2>' +
-          '<p class="sub">' + esc(user.email || "") + '</p></div>' +
+          '<p class="sub">' + esc(user.email || "") + '</p>' +
+          (p && (p.is_member || p.is_admin)
+            ? '<button type="button" class="mb-guide-link" id="guideBtn">이 페이지 사용법 →</button>' : "") +
+          '</div>' +
           '<button type="button" class="btn btn-outline" id="logoutBtn">로그아웃</button>' +
           '</div>';
       }
@@ -392,6 +406,7 @@
         return '<div class="mb-admin"><p class="mb-eyebrow">Admin</p><div class="mb-grid">' +
           card("/admin-tools/users.html", "t-blue", "gear", "회원 관리", "가입 승인, 기수 지정, 등급 변경.") +
           card("/admin-tools/applications.html", "t-blue", "inbox", "지원서 관리", "Tally 접수분 열람과 심사 상태 변경.") +
+          card("https://org.careerfy.co/schedules", "t-blue", "attend", "출석 관리", "세션 출석은 커리어파이에서 봅니다. 새 탭으로 열립니다.") +
           card("/admin-tools/stats.html", "t-blue", "chart", "사이트 통계", "방문·유입 경로·버튼 클릭 집계.") +
           card("https://docs.google.com/spreadsheets/d/1xMRz4BBgUBlw_AUM-pASfvXlUGLrvNXv/edit", "t-blue", "ledger", "회계 장부", "구글 시트로 열립니다. 열람 권한은 구글 계정 기준입니다.") +
           '</div></div>';
@@ -797,6 +812,16 @@
           cal.me = { id: user.id, is_admin: !!p.is_admin, name: p.display_name || "" };
           wireEvForm();
           calLoad();
+
+          /* 첫 방문 가이드 — 카드가 다 떠오른 뒤에 연다(스태거 ~0.7s).
+             한 번 보면 다시 안 뜨고, 인사 카드 링크로 언제든 다시 볼 수 있다 */
+          if (window.yvGuide) {
+            var guideBtn = document.getElementById("guideBtn");
+            if (guideBtn) guideBtn.addEventListener("click", function () {
+              yvGuide.start({ userId: user.id, force: true });
+            });
+            if (!yvGuide.seen(user.id)) setTimeout(function () { yvGuide.start({ userId: user.id }); }, 900);
+          }
         }
 
         document.getElementById("logoutBtn").addEventListener("click", async function () {
