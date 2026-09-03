@@ -14,16 +14,22 @@
    스타일은 여기서 주입한다 — 허브 CSS 를 건드리지 않기 위해.
    ────────────────────────────────────────────────────────────── */
 (function () {
-  var TITLE = "이번 주 체크리스트";
-  var DUE = "9/4(금)까지";
+  var TITLE = "OT 체크리스트";
+  var DUE = "투표·학회비는 금요일까지";
 
+  /* 회장 OT 공지(카톡)와 같은 순서·내용. 금요일 마감 둘을 맨 위에.
+       text  한 줄 할 일        sub   계좌·코드 같은 부가 정보(복사 버튼은 copy)
+       href  바로가기(외부는 새 탭)   due   마감 배지      auto  실제 데이터로 완료 판단 */
   var ITEMS = [
-    { id: "vote",     text: "투심 보고서 기업 투표 (1·2·3지망)", href: "/members/vote.html", auto: "vote" },
-    { id: "calendar", text: "캘린더에서 이번 주 세션 일정 확인", href: "#calSlot" },
-    { id: "resources", text: "자료실에서 세션 자료·노션 링크 받기", href: "/members/resources.html" },
-    { id: "insight",  text: "Insights 글 1편 쓰기", href: "/insights/write.html" },
-    { id: "activity", text: "내 활동 기록 채우기", href: "/members/activity.html" },
-    { id: "alumni",   text: "알럼 디렉터리 둘러보기", href: "/members/alumni.html" }
+    { id: "vote", text: "스터디 팀 배정 투표 (1~3지망)", due: "금요일까지",
+      href: "/members/vote.html", auto: "vote" },
+    { id: "fee",  text: "학회비 50,000원 입금", due: "금 23:59까지",
+      sub: "토스 · Y-Ventures", copy: "1002-7488-2066" },
+    { id: "join", text: "홈페이지 가입 · 승인", auto: "member" },
+    { id: "notion", text: "자료실을 통해 노션 입장 (승인 후 입장)", href: "/members/resources.html" },
+    { id: "profile", text: "노션 [Member 정보]에 본인 정보 기입", sub: "명함 제작에 쓰입니다", href: "/members/resources.html" },
+    { id: "careerfy", text: "커리어파이 앱 설치 후 Y-Ventures 학회 가입", sub: "출석 체크용 · 가입 코드", copy: "G6N1IL",
+      href: "https://tosto.re/careerfy" }
   ];
 
   var uid = null, db = null, state = {}, autoDone = {}, box = null;
@@ -36,7 +42,8 @@
   function collapsed() { try { return localStorage.getItem(key("fold")) === "1"; } catch (e) { return false; } }
   function setCollapsed(v) { try { localStorage.setItem(key("fold"), v ? "1" : "0"); } catch (e) {} }
 
-  function isDone(it) { return !!(autoDone[it.id] || state[it.id]); }
+  function isAuto(it) { return !!(it.auto && autoDone[it.auto]); }
+  function isDone(it) { return isAuto(it) || !!state[it.id]; }
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -45,6 +52,8 @@
 
   /* 실제 데이터로 판단하는 항목 — 실패하면 그냥 수동 체크로 둔다 */
   async function detect() {
+    /* 이 목록은 승인된 학회원에게만 그려지므로, 가입·승인은 보는 순간 끝난 일이다 */
+    autoDone.member = true;
     if (!db || !uid) return;
     try {
       var r = await db.from("company_votes").select("user_id").eq("user_id", uid).maybeSingle();
@@ -64,14 +73,40 @@
         '<svg class="yvc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' +
       '</button>' +
       '<ul class="yvc-list">' + ITEMS.map(function (it) {
-        var d = isDone(it), auto = !!(it.auto && autoDone[it.id]);
+        var d = isDone(it), auto = isAuto(it);
+        var ext = /^https?:\/\//.test(it.href || "");
+        var sub = it.sub || it.copy
+          ? '<span class="yvc-sub">' + esc(it.sub || "") +
+            (it.copy ? ' <button type="button" class="yvc-copy" data-copy="' + esc(it.copy) + '"><code>' + esc(it.copy) + '</code><span>복사</span></button>' : '') +
+            '</span>'
+          : '';
         return '<li class="' + (d ? "done" : "") + '">' +
           '<label><input type="checkbox" data-id="' + it.id + '"' + (d ? " checked" : "") + (auto ? " disabled" : "") + ' />' +
           '<span class="yvc-box" aria-hidden="true"></span>' +
-          '<span class="yvc-txt">' + esc(it.text) + (auto ? '<em>제출 확인됨</em>' : '') + '</span></label>' +
-          (it.href ? '<a class="yvc-go" href="' + esc(it.href) + '" aria-label="바로가기">→</a>' : '') +
+          '<span class="yvc-txt">' + esc(it.text) +
+            (it.due && !d ? '<span class="yvc-due">' + esc(it.due) + '</span>' : '') +
+            (auto ? '<em>' + (it.auto === "vote" ? "제출 확인됨" : "완료") + '</em>' : '') +
+            sub +
+          '</span></label>' +
+          (it.href ? '<a class="yvc-go" href="' + esc(it.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + ' aria-label="바로가기">→</a>' : '') +
           '</li>';
       }).join("") + '</ul>';
+
+    /* 계좌번호·가입 코드 복사 — 체크박스 라벨 안에 있어서 클릭이 번지지 않게 막는다 */
+    box.querySelectorAll(".yvc-copy").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var v = b.getAttribute("data-copy"), tag = b.querySelector("span");
+        function ok() { tag.textContent = "복사됨"; setTimeout(function () { tag.textContent = "복사"; }, 1500); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(ok, function () { fallback(); });
+        else fallback();
+        function fallback() {
+          var ta = document.createElement("textarea"); ta.value = v; document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); ok(); } catch (err) {}
+          ta.remove();
+        }
+      });
+    });
 
     box.querySelector(".yvc-head").addEventListener("click", function () {
       setCollapsed(!collapsed()); render();
@@ -142,6 +177,13 @@
       '.yvc-list input:focus-visible+.yvc-box{outline:2px solid #93C5FD;outline-offset:2px}' +
       '.yvc-txt{font-size:13px;line-height:1.45;color:var(--text-2,rgba(255,255,255,.78))}' +
       '.yvc-txt em{display:block;font-style:normal;font-size:11px;color:#6EE7B7;margin-top:1px}' +
+      '.yvc-due{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.02em;vertical-align:1px;background:rgba(239,68,68,.16);color:#FCA5A5;border:1px solid rgba(239,68,68,.3)}' +
+      '.yvc-sub{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:4px;font-size:11.5px;color:var(--text-3,rgba(255,255,255,.5))}' +
+      '.yvc-copy{display:inline-flex;align-items:center;gap:6px;padding:2px 8px 2px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--text-2,rgba(255,255,255,.78));font-family:inherit;font-size:11.5px;cursor:pointer}' +
+      '.yvc-copy code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.02em;color:#fff}' +
+      '.yvc-copy span{color:#93C5FD;font-size:10.5px}' +
+      '.yvc-copy:hover{border-color:rgba(147,197,253,.5)}' +
+      '.yvc-list li.done .yvc-sub,.yvc-list li.done .yvc-copy{opacity:.55;text-decoration:none}' +
       '.yvc-list li.done .yvc-txt{color:var(--text-3,rgba(255,255,255,.45));text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25)}' +
       '.yvc-list li.done .yvc-txt em{text-decoration:none}' +
       '.yvc-go{flex:none;margin-top:5px;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px;color:var(--text-3,rgba(255,255,255,.5));transition:background .15s,color .15s}' +
