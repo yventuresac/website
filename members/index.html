@@ -13,6 +13,7 @@
   <script src="/js/auth-guard.js"></script>
   <script src="/js/nav-auth.js?v=2"></script>
   <script src="/js/members-guide.js?v=1"></script>
+  <script src="/js/members-checklist.js?v=1"></script>
   <style>
     /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
        첫 화면에 카드가 보여야 한다 */
@@ -343,7 +344,8 @@
         inbox:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.4 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1z"/></svg>',
         ledger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/></svg>',
         camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
-        attend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/><path d="m8.5 16 2 2 4.5-4.5"/></svg>'
+        attend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/><path d="m8.5 16 2 2 4.5-4.5"/></svg>',
+        vote:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16l1 8H3z"/><path d="M7 13V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v8"/><path d="m10 8 1.5 1.5L14.5 6"/></svg>'
       };
 
       function card(href, tint, icon, title, desc) {
@@ -387,9 +389,11 @@
       /* 두 구획으로 나눈다.
          Workspace — 학기 중 매주 쓰는 것 (글·자료)
          Network & Records — 가끔 들르는 것 (사람·기록)
-         섞어두면 매주 쓸 세 개가 일곱 개 사이에 묻힌다. */
+         섞어두면 매주 쓸 것들이 일곱 개 사이에 묻힌다. */
       function memberCards() {
         return '<p class="mb-eyebrow">Workspace</p><div class="mb-grid">' +
+          /* 기간 한정 — 투표가 끝나면 이 카드는 뺀다 */
+          card("/members/vote.html", "t-orange", "vote", "기업 투표 · 9/4(금)까지", "투심 보고서에서 분석할 기업을 1·2·3지망으로 고릅니다.") +
           card("/insights/write.html", "t-blue",   "pen",    "Insights 글쓰기", "산업·시장 인사이트를 작성해 게시판에 올립니다.") +
           card("/insights/",           "t-purple", "board",  "Insights 게시판", "학회원들이 쓴 글을 읽고 반응을 남깁니다.") +
           card("/members/resources.html", "t-green", "folder", "기수별 자료실", "세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.") +
@@ -812,6 +816,9 @@
           cal.me = { id: user.id, is_admin: !!p.is_admin, name: p.display_name || "" };
           wireEvForm();
           calLoad();
+
+          /* 따라다니는 체크리스트 — 이번 주 할 일. 항목은 js/members-checklist.js */
+          if (window.yvChecklist) yvChecklist.init({ userId: user.id, db: db });
 
           /* 첫 방문 가이드 — 카드가 다 떠오른 뒤에 연다(스태거 ~0.7s).
              한 번 보면 다시 안 뜨고, 인사 카드 링크로 언제든 다시 볼 수 있다 */

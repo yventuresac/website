@@ -45,10 +45,16 @@
        extra 는 가입 트리거가 프로필로 옮기는 부가 정보(기수 등). 없어도 된다. */
     async signUp(email, password, name, extra) {
       var data = Object.assign({ full_name: name || "" }, extra || {});
+      /* 확인 링크를 누르면 로그인 페이지로 돌아온다(?confirmed=1).
+         Supabase 대시보드 Redirect URLs 에 이 주소가 허용돼 있어야 하고,
+         아니면 Site URL 로 떨어진다. */
       return await client.auth.signUp({
         email: email,
         password: password,
-        options: { data: data }
+        options: {
+          data: data,
+          emailRedirectTo: window.location.origin + "/auth/login.html?confirmed=1"
+        }
       });
     },
 
