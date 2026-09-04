@@ -13,7 +13,6 @@
   <script src="/js/auth-guard.js"></script>
   <script src="/js/nav-auth.js?v=2"></script>
   <script src="/js/members-guide.js?v=1"></script>
-  <script src="/js/members-checklist.js?v=3"></script>
   <style>
     /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
        첫 화면에 카드가 보여야 한다 */
@@ -814,9 +813,6 @@
           cal.me = { id: user.id, is_admin: !!p.is_admin, name: p.display_name || "" };
           wireEvForm();
           calLoad();
-
-          /* 따라다니는 체크리스트 — 이번 주 할 일. 항목은 js/members-checklist.js */
-          if (window.yvChecklist) yvChecklist.init({ userId: user.id, db: db });
 
           /* 첫 방문 가이드 — 카드가 다 떠오른 뒤에 연다(스태거 ~0.7s).
              한 번 보면 다시 안 뜨고, 인사 카드 링크로 언제든 다시 볼 수 있다 */
