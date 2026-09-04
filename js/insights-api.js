@@ -59,7 +59,7 @@
     async getPost(no) {
       var r = await db
         .from("insight_posts")
-        .select("id, board_no, title, author_name, author_id, content_html, created_at, view_count, insight_likes(count), insight_comments(count)")
+        .select("id, board_no, title, subtitle, tags, author_name, author_id, content_html, cover_url, created_at, view_count, insight_likes(count), insight_comments(count)")
         .eq("board_no", no)
         .maybeSingle();
       if (r.error) throw r.error;
@@ -120,12 +120,17 @@
     },
 
     /* 글 등록 (board_no = max+1) */
-    async createPost(user, title, contentHtml, authorName) {
+    /* extra: { cover_url, subtitle, tags } — 없으면 비워서 저장 */
+    async createPost(user, title, contentHtml, authorName, extra) {
+      extra = extra || {};
       var m = await db.from("insight_posts").select("board_no").order("board_no", { ascending: false }).limit(1);
       var nextNo = ((m.data && m.data[0] && m.data[0].board_no) || 0) + 1;
       var r = await db.from("insight_posts").insert({
         board_no: nextNo, title: title, author_name: authorName,
-        author_id: user.id, content_html: contentHtml
+        author_id: user.id, content_html: contentHtml,
+        cover_url: extra.cover_url || null,
+        subtitle: extra.subtitle || "",
+        tags: Array.isArray(extra.tags) ? extra.tags : []
       }).select("board_no").single();
       if (r.error) throw r.error;
       return r.data.board_no;
