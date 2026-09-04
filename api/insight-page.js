@@ -7,9 +7,12 @@
    서버가 HTML 을 내주면서 그 글의 제목·부제·대표 이미지를 head 에 박아야 한다.
 
    동작:
-   vercel.json 이 /insights/post.html?no=N 을 이 함수로 돌린다.
-   같은 post.html 파일을 읽어 og 메타만 바꿔 치기 → 사람은 여전히 같은 페이지를 본다.
+   vercel.json 이 /insights/post.html 을 통째로 이 함수로 돌린다. Vercel 은 정적 파일이
+   있으면 rewrite 보다 먼저 그 파일을 내주기 때문에, 실제 파일은 post-template.html 로
+   두고 /insights/post.html 은 파일로 존재하지 않게 했다.
+   템플릿을 읽어 og 메타만 바꿔 치기 → 사람은 여전히 같은 페이지를 본다.
    글을 못 찾거나 Supabase 가 응답이 없으면 원본 그대로 내준다(절대 깨지지 않게).
+   로컬(python 서버)에서는 /insights/post-template.html?no=N 으로 연다.
    ────────────────────────────────────────────────────────────── */
 
 const fs = require('fs');
@@ -26,7 +29,7 @@ const DEFAULT_DESC = 'Y-VENTURES 학회원이 작성한 산업·시장 인사이
 let cachedHtml = null;
 function loadTemplate() {
   if (cachedHtml) return cachedHtml;
-  cachedHtml = fs.readFileSync(path.join(process.cwd(), 'insights', 'post.html'), 'utf8');
+  cachedHtml = fs.readFileSync(path.join(process.cwd(), 'insights', 'post-template.html'), 'utf8');
   return cachedHtml;
 }
 
