@@ -13,7 +13,7 @@
   <script src="/js/auth-guard.js"></script>
   <script src="/js/nav-auth.js?v=2"></script>
   <script src="/js/members-guide.js?v=1"></script>
-  <script src="/js/members-checklist.js?v=2"></script>
+  <script src="/js/members-checklist.js?v=3"></script>
   <style>
     /* 이 페이지만 히어로를 낮게 — 허브는 표지가 아니라 도구라서
        첫 화면에 카드가 보여야 한다 */
@@ -392,8 +392,6 @@
          섞어두면 매주 쓸 것들이 일곱 개 사이에 묻힌다. */
       function memberCards() {
         return '<p class="mb-eyebrow">Workspace</p><div class="mb-grid">' +
-          /* 기간 한정 — 투표가 끝나면 이 카드는 뺀다 */
-          card("/members/vote.html", "t-orange", "vote", "기업 투표 · 9/4(금)까지", "투심 보고서에서 분석할 기업을 1·2·3지망으로 고릅니다.") +
           card("/insights/write.html", "t-blue",   "pen",    "Insights 글쓰기", "산업·시장 인사이트를 작성해 게시판에 올립니다.") +
           card("/insights/",           "t-purple", "board",  "Insights 게시판", "학회원들이 쓴 글을 읽고 반응을 남깁니다.") +
           card("/members/resources.html", "t-green", "folder", "기수별 자료실", "세션 자료·템플릿·노션/드라이브 링크를 기수별로 모아둡니다.") +
