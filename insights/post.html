@@ -77,6 +77,21 @@
     .insight-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
     .insight-tags[hidden] { display: none; }
     .insight-tags span { padding: 3px 11px; border-radius: 999px; font-size: 12px; background: rgba(37,99,235,.08); color: #2563EB; }
+
+    /* 이미지 캡션 — 편집기에서 넣은 설명(alt)을 사진 아래 작은 글씨로 */
+    .insight-body figure.img-fig { margin: 18px 0; }
+    .insight-body figure.img-fig img { margin-bottom: 0; }
+    .insight-body figure.img-fig figcaption { margin-top: 8px; font-size: 13px; line-height: 1.5; color: rgba(26,26,26,.55); text-align: center; }
+    .insight-body figure.img-fig[data-align="left"] figcaption { text-align: left; }
+    .insight-body figure.img-fig[data-align="right"] figcaption { text-align: right; }
+
+    /* 수정·삭제 — 본인 글이거나 운영진일 때만 보인다 */
+    .insight-article-foot { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .insight-article-foot .btn { cursor: pointer; color: #1A1A1A; border-color: rgba(26,26,26,.3); }
+    .insight-article-foot .btn:hover { background: #111; color: #fff; border-color: #111; }
+    .insight-article-foot .btn[hidden] { display: none; }
+    .insight-del-btn { color: #B91C1C !important; border-color: rgba(185,28,28,.35) !important; }
+    .insight-del-btn:hover { background: #B91C1C !important; color: #fff !important; border-color: #B91C1C !important; }
     @media (max-width: 1279px) { .insight-toc { display: none !important; } }
     @media (min-width: 1280px) { .insight-toc-m { display: none !important; } }
     @media (max-width: 640px) { .insight-hero { min-height: 260px; border-radius: 0; margin-bottom: 14px; } .insight-hero-in { padding: 32px 20px; } }
@@ -178,6 +193,8 @@
 
       <div class="insight-article-foot">
         <a href="./" class="btn btn-outline">목록으로</a>
+        <a class="btn btn-outline" id="editBtn" hidden>수정</a>
+        <button type="button" class="btn btn-outline insight-del-btn" id="deleteBtn" hidden>삭제</button>
       </div>
     </article>
   </div>
@@ -267,12 +284,50 @@
         tg.innerHTML = tags.map(function (t) { return '<span>#' + esc(String(t).trim()) + '</span>'; }).join('');
         tg.hidden = false;
       }
+
+      /* 수정·삭제 — 본인 글이거나 운영진. 실제 차단은 RLS 가 한다 */
+      if (user) {
+        (async function () {
+          var me = null;
+          try { me = await yvInsights.getMyProfile(); } catch (e) {}
+          var mine = user.id === post.author_id || (me && me.is_admin);
+          if (!mine) return;
+          var editBtn = document.getElementById('editBtn'), delBtn = document.getElementById('deleteBtn');
+          editBtn.href = 'write.html?edit=' + post.board_no;
+          editBtn.hidden = false; delBtn.hidden = false;
+          delBtn.addEventListener('click', async function () {
+            if (!confirm('이 글을 삭제할까요? 댓글과 좋아요도 함께 지워지고 되돌릴 수 없습니다.')) return;
+            delBtn.disabled = true; delBtn.textContent = '삭제 중…';
+            try {
+              await yvInsights.deletePost(post.id);
+              location.href = './';
+            } catch (e) {
+              console.error(e);
+              alert('삭제하지 못했습니다: ' + (e.message || e));
+              delBtn.disabled = false; delBtn.textContent = '삭제';
+            }
+          });
+        })();
+      }
       document.getElementById('postMeta').innerHTML =
         '<span>' + esc(post.author_name) + '</span><span class="dot">·</span>' +
         '<span>' + (post.created_at || '').slice(0, 10) + '</span><span class="dot">·</span>' +
         '<span>No. ' + post.board_no + '</span><span class="dot">·</span>' +
         '<span>조회 ' + (post.view_count + 1) + '</span>';
       document.getElementById('postBody').innerHTML = yvInsights.sanitizeHtml(post.content_html);
+      /* 캡션(alt)이 있는 이미지는 figure 로 감싸 사진 아래에 설명을 단다 */
+      document.querySelectorAll('#postBody img[alt]').forEach(function (img) {
+        var cap = (img.getAttribute('alt') || '').trim();
+        if (!cap) return;
+        var fig = document.createElement('figure');
+        fig.className = 'img-fig';
+        if (img.getAttribute('data-align')) fig.setAttribute('data-align', img.getAttribute('data-align'));
+        var host = img.parentElement;
+        var soloInP = host && host.tagName === 'P' && host.childNodes.length === 1;
+        (soloInP ? host : img).replaceWith(fig);
+        fig.appendChild(img);
+        var fc = document.createElement('figcaption'); fc.textContent = cap; fig.appendChild(fc);
+      });
       yvInsights.incrementView(post.id);
 
       /* ── 목차 — 본문의 제목(h2)·소제목(h3)을 모아 왼쪽(넓은 화면)·본문 위(좁은 화면)에.

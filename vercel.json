@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/insights/post.html",
+      "has": [{ "type": "query", "key": "no" }],
+      "destination": "/api/insight-page"
+    }
+  ],
+  "functions": {
+    "api/insight-page.js": { "includeFiles": "insights/post.html" }
+  }
+}

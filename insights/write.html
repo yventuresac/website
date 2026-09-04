@@ -68,6 +68,15 @@
       background: #111; color: #fff; font-size: 11px; pointer-events: none;
     }
     .img-size-tag[hidden] { display: none; }
+    .img-cap-tag { position: absolute; z-index: 19; max-width: 60%; padding: 3px 9px; border-radius: 6px;
+                   background: rgba(17,17,17,.85); color: #fff; font-size: 11.5px; line-height: 1.4; pointer-events: none;
+                   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .img-cap-tag[hidden] { display: none; }
+    /* 미리보기 캡션 — 게시 화면과 같은 규칙 */
+    .insight-body figure.img-fig { margin: 18px 0; }
+    .insight-body figure.img-fig figcaption { margin-top: 8px; font-size: 13px; line-height: 1.5; color: rgba(26,26,26,.55); text-align: center; }
+    .insight-body figure.img-fig[data-align="left"] figcaption { text-align: left; }
+    .insight-body figure.img-fig[data-align="right"] figcaption { text-align: right; }
 
     /* 대표 이미지 고르기 — 제목 위. 없으면 버튼 한 줄, 있으면 미리보기 배너 */
     .cover-pick { margin-top: 22px; }
@@ -280,10 +289,13 @@
         <button type="button" data-align="center" aria-label="가운데 정렬"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M7 12h10M5 18h14"/></svg></button>
         <button type="button" data-align="right" aria-label="오른쪽 정렬"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M11 12h10M7 18h14"/></svg></button>
         <span class="sep"></span>
+        <button type="button" data-caption>캡션</button>
+        <span class="sep"></span>
         <button type="button" class="del" data-del aria-label="이미지 삭제"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>삭제</button>
       </div>
       <div class="img-grip" id="imgGrip" hidden aria-hidden="true"></div>
       <div class="img-size-tag" id="imgSizeTag" hidden aria-hidden="true"></div>
+      <div class="img-cap-tag" id="imgCapTag" hidden aria-hidden="true"></div>
 
       <div class="insight-write-actions">
         <button type="button" class="btn btn-outline" id="previewBtn">미리보기</button>
@@ -376,6 +388,17 @@
       }
       document.getElementById('writeBox').hidden = false;
 
+      /* ?edit=번호 로 들어오면 그 글을 불러와 고친다. 수정 중에는 임시저장을 쓰지 않는다
+         (새 글 초안과 섞이지 않게). 권한은 본인 글 또는 운영진 — 실제 차단은 RLS. */
+      var EDIT_NO = parseInt(new URLSearchParams(location.search).get('edit'), 10) || 0;
+      var editPost = null;
+      if (EDIT_NO) {
+        document.querySelector('.insight-write-heading').textContent = '게시글 수정';
+        document.getElementById('submitBtn').textContent = '수정 완료';
+        document.getElementById('confirmSubmitBtn').textContent = '이대로 수정';
+        document.title = '게시글 수정 — Y-VENTURES Insights';
+      }
+
       /* 게시판의 기존 표기와 맞춘다: "YVA 2기 이윤민". 기수가 없으면 이름만.
          (0기도 유효한 기수라 != null 로 본다) */
       var baseName = me.display_name || (user.user_metadata && user.user_metadata.full_name) || user.email.split('@')[0];
@@ -446,6 +469,11 @@
         var pct = currentPct(selImg), al = selImg.getAttribute('data-align') || 'left';
         imgTools.querySelectorAll('[data-size]').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-size') === pct); });
         imgTools.querySelectorAll('[data-align]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-align') === al); });
+        var cap = (selImg.getAttribute('alt') || '').trim();
+        imgTools.querySelector('[data-caption]').classList.toggle('on', !!cap);
+        var capTag = document.getElementById('imgCapTag');
+        capTag.hidden = !cap;
+        if (cap) { capTag.textContent = cap; capTag.style.left = (r.left - wr.left) + 'px'; capTag.style.top = (r.bottom - wr.top + 6) + 'px'; }
       }
       function selectImg(img) {
         if (selImg && selImg !== img) selImg.classList.remove('is-selected');
@@ -456,7 +484,7 @@
       }
       function hideTools() {
         if (selImg) selImg.classList.remove('is-selected');
-        selImg = null; imgTools.hidden = true; imgGrip.hidden = true; imgSizeTag.hidden = true;
+        selImg = null; imgTools.hidden = true; imgGrip.hidden = true; imgSizeTag.hidden = true; document.getElementById('imgCapTag').hidden = true;
       }
       function formatSel(name, value) {
         if (!selImg) return;
@@ -477,6 +505,11 @@
         else if (b.hasAttribute('data-align')) {
           var a = b.getAttribute('data-align');
           formatSel('data-align', a === 'left' ? false : a);   // 왼쪽이 기본값이라 속성을 뗀다
+        } else if (b.hasAttribute('data-caption')) {
+          var cur = selImg.getAttribute('alt') || '';
+          var txt = prompt('사진 아래에 붙일 설명 (비우면 캡션 없음)', cur);
+          if (txt === null) return;
+          formatSel('alt', txt.trim() || false);
         } else if (b.hasAttribute('data-del')) {
           var i = imgIndex(selImg);
           hideTools();
@@ -749,6 +782,7 @@
 
       /* 타이핑 중에는 브라우저에 자주, 서버에는 뜸하게 */
       function queueSaveDraft() {
+        if (EDIT_NO) return;
         clearTimeout(localTimer);
         localTimer = setTimeout(function () {
           if (isBlank()) { clearDraft(); return; }
@@ -762,6 +796,7 @@
 
       /* 창을 닫거나 탭을 가릴 때는 기다리지 않고 지금 저장한다 */
       function flushDraft() {
+        if (EDIT_NO) return;
         clearTimeout(localTimer); clearTimeout(serverTimer);
         if (isBlank()) return;
         var d = snapshot();
@@ -810,6 +845,7 @@
       /* 두고 간 글이 있으면 되살린다. 기기마다 시계가 다를 수 있어
          2초 안쪽 차이는 계정에 있는 쪽을 믿는다. */
       (async function restoreDraft() {
+        if (EDIT_NO) return;
         var local = readLocalDraft();
         var server = await readServerDraft();
         var pick = (local && server) ? (local.at > server.at + 2000 ? local : server) : (local || server);
@@ -850,11 +886,12 @@
       });
 
       function getDraft() {
+        hideTools();   // 선택 표시(is-selected)가 본문 HTML 에 섞여 들어가지 않게
         return {
           title: document.getElementById('postTitleInput').value.trim(),
           subtitle: subtitleInput.value.trim(),
           tags: tags.slice(),
-          html: quill.getSemanticHTML().trim(),
+          html: quill.getSemanticHTML().replace(/(<img\b[^>]*?)\s+class="[^"]*"/g, '$1').trim(),
           empty: quill.getText().trim().length === 0
         };
       }
@@ -888,6 +925,15 @@
           '<span>' + yvInsights.esc(authorName) + '</span><span class="dot">·</span>' +
           '<span>' + new Date().toISOString().slice(0, 10) + '</span>';
         document.getElementById('pvBody').innerHTML = yvInsights.sanitizeHtml(d.html);
+        document.querySelectorAll('#pvBody img[alt]').forEach(function (img) {
+          var cap = (img.getAttribute('alt') || '').trim();
+          if (!cap) return;
+          var fig = document.createElement('figure'); fig.className = 'img-fig';
+          if (img.getAttribute('data-align')) fig.setAttribute('data-align', img.getAttribute('data-align'));
+          var host = img.parentElement, solo = host && host.tagName === 'P' && host.childNodes.length === 1;
+          (solo ? host : img).replaceWith(fig); fig.appendChild(img);
+          var fc = document.createElement('figcaption'); fc.textContent = cap; fig.appendChild(fc);
+        });
         writeBox.hidden = true;
         previewPane.hidden = false;
         window.scrollTo({ top: 0 });
@@ -906,8 +952,13 @@
         submitting = true;
         setStatus('등록 중…');
         try {
-          var no = await yvInsights.createPost(user, d.title, d.html, authorName, { cover_url: coverUrl, subtitle: d.subtitle, tags: d.tags });
-          clearDraft();
+          var no;
+          if (EDIT_NO && editPost) {
+            no = await yvInsights.updatePost(editPost.id, { title: d.title, subtitle: d.subtitle, tags: d.tags, cover_url: coverUrl || null, content_html: d.html });
+          } else {
+            no = await yvInsights.createPost(user, d.title, d.html, authorName, { cover_url: coverUrl, subtitle: d.subtitle, tags: d.tags });
+            clearDraft();
+          }
           location.href = 'post.html?no=' + no;
         } catch (e) {
           console.error(e);
@@ -918,6 +969,24 @@
       }
       document.getElementById('submitBtn').addEventListener('click', submit);
       document.getElementById('confirmSubmitBtn').addEventListener('click', submit);
+
+      /* 수정 모드: 글을 불러와 채운다 */
+      if (EDIT_NO) (async function loadForEdit() {
+        setStatus('글을 불러오는 중…');
+        var post = null;
+        try { post = await yvInsights.getPost(EDIT_NO); } catch (e) { console.error(e); }
+        if (!post) { alert('글을 찾을 수 없습니다.'); location.href = './'; return; }
+        if (post.author_id !== user.id && !me.is_admin) { alert('본인 글만 수정할 수 있습니다.'); location.href = 'post.html?no=' + EDIT_NO; return; }
+        editPost = post;
+        document.getElementById('postTitleInput').value = post.title || '';
+        subtitleInput.value = post.subtitle || '';
+        setTags(Array.isArray(post.tags) ? post.tags : []);
+        setCover(post.cover_url || '');
+        var delta = quill.clipboard.convert({ html: post.content_html || '' });
+        quill.setContents(delta, 'silent');
+        authorName = post.author_name || authorName;   // 미리보기·표기는 원래 작성자 이름 그대로
+        setStatus('');
+      })();
 
       /* 이탈 방지 — 나가기 전에 마지막으로 한 번 더 저장해 둔다.
          (디바운스 대기 중이던 마지막 타이핑까지 챙긴다) */

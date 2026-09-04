@@ -37,7 +37,7 @@
       var from = (page - 1) * PAGE_SIZE;
       var r = await db
         .from("insight_posts")
-        .select("id, board_no, title, author_name, created_at, view_count, insight_likes(count), insight_comments(count)", { count: "exact" })
+        .select("id, board_no, title, subtitle, tags, cover_url, author_name, created_at, view_count, insight_likes(count), insight_comments(count)", { count: "exact" })
         .order("board_no", { ascending: false })
         .range(from, from + PAGE_SIZE - 1);
       if (r.error) throw r.error;
@@ -47,6 +47,7 @@
         posts: (r.data || []).map(function (p) {
           return {
             id: p.id, no: p.board_no, title: p.title, author: p.author_name,
+            subtitle: p.subtitle || "", tags: Array.isArray(p.tags) ? p.tags : [], cover: p.cover_url || "",
             date: (p.created_at || "").slice(0, 10), views: p.view_count,
             likes: (p.insight_likes && p.insight_likes[0] && p.insight_likes[0].count) || 0,
             comments: (p.insight_comments && p.insight_comments[0] && p.insight_comments[0].count) || 0
@@ -134,6 +135,19 @@
       }).select("board_no").single();
       if (r.error) throw r.error;
       return r.data.board_no;
+    },
+
+    /* 수정 — RLS 가 본인 글 또는 운영진만 허용한다. fields: title, subtitle, tags, cover_url, content_html */
+    async updatePost(id, fields) {
+      var r = await db.from("insight_posts").update(fields).eq("id", id).select("board_no").single();
+      if (r.error) throw r.error;
+      return r.data.board_no;
+    },
+
+    /* 삭제 — 좋아요·댓글은 외래키 cascade 로 함께 지워진다 */
+    async deletePost(id) {
+      var r = await db.from("insight_posts").delete().eq("id", id);
+      if (r.error) throw r.error;
     },
 
     /* 에디터 이미지 업로드 → 공개 URL */
