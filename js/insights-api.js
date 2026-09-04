@@ -115,7 +115,7 @@
     async getMyProfile() {
       var user = await window.yvAuth.getUser();
       if (!user) return null;
-      var r = await db.from("profiles").select("id, display_name, is_member, is_admin").eq("id", user.id).maybeSingle();
+      var r = await db.from("profiles").select("id, display_name, generation, is_member, is_admin").eq("id", user.id).maybeSingle();
       return r.data ? Object.assign({ user: user }, r.data) : { user: user, is_member: false, is_admin: false, display_name: "" };
     },
 
