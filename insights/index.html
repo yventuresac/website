@@ -39,9 +39,10 @@
     .ic:hover { border-color: var(--edge-hover); transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgba(0,0,0,.8); }
     .ic:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
     .ic-thumb { position: relative; aspect-ratio: 16 / 10; background: #0f1117 center / cover no-repeat; }
-    .ic-thumb.ph { display: flex; align-items: center; justify-content: center;
-                   background: radial-gradient(ellipse at 30% 20%, rgba(96,165,250,.18), transparent 60%), #0f1117; }
-    .ic-thumb.ph b { font-size: 34px; font-weight: 800; letter-spacing: -.04em; color: rgba(255,255,255,.14); }
+    /* 대표 이미지가 없는 글 — Y-VENTURES 로고를 은은하게 */
+    .ic-thumb.ph { background: radial-gradient(ellipse at 30% 20%, rgba(96,165,250,.16), transparent 60%), #0f1117; }
+    .ic-thumb.ph::after { content: ""; position: absolute; inset: 0; opacity: .85;
+                          background: url('/assets/logo.png') center / 46% auto no-repeat; }
     .ic-no { position: absolute; top: 8px; left: 9px; padding: 1px 7px; border-radius: 999px; font-size: 10px;
              background: rgba(0,0,0,.55); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.12); }
     .ic-body { display: flex; flex-direction: column; gap: 6px; padding: 12px 13px 12px; flex: 1; }
@@ -197,7 +198,7 @@
           var cover = /^(https?:\/\/|\/)/.test(p.cover || '') ? p.cover : '';
           var thumb = cover
             ? '<div class="ic-thumb" style="background-image:url(&quot;' + esc(cover.replace(/"/g, '%22')) + '&quot;)"><span class="ic-no">No. ' + p.no + '</span></div>'
-            : '<div class="ic-thumb ph"><b>' + esc(String(p.title || '').trim().charAt(0)) + '</b><span class="ic-no">No. ' + p.no + '</span></div>';
+            : '<div class="ic-thumb ph"><span class="ic-no">No. ' + p.no + '</span></div>';
           var tags = (p.tags || []).slice(0, 5).map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('');
           return '<a class="ic" href="post.html?no=' + p.no + '">' + thumb +
             '<div class="ic-body">' +
