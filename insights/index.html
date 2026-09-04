@@ -26,30 +26,33 @@
   <link rel="stylesheet" href="../css/style.css?v=20260820" />
   <style>
     /* 카드형 목록 — 대표 이미지·부제·태그가 보이게. 표는 번호·조회수만 보여줘서 눌러볼 이유가 없었다 */
-    .insight-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    /* 메일리 목록과 비슷한 밀도 — 한 줄에 넷, 카드는 작고 촘촘하게 */
+    .insight-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .insight-cards[hidden] { display: none; }
     .insight-cards .insight-loading { grid-column: 1 / -1; padding: 48px 0; text-align: center; color: var(--text-3); }
-    .ic { display: flex; flex-direction: column; border: 1px solid var(--edge); border-radius: 16px; overflow: hidden;
+    .ic { display: flex; flex-direction: column; border: 1px solid var(--edge); border-radius: 12px; overflow: hidden;
           background: var(--bg-card); text-decoration: none; color: inherit;
           transition: border-color .2s var(--ease-out), transform .2s var(--ease-out), box-shadow .2s var(--ease-out); }
     .ic:hover { border-color: var(--edge-hover); transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgba(0,0,0,.8); }
     .ic:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 3px; }
-    .ic-thumb { position: relative; aspect-ratio: 16 / 9; background: #0f1117 center / cover no-repeat; }
+    .ic-thumb { position: relative; aspect-ratio: 16 / 10; background: #0f1117 center / cover no-repeat; }
     .ic-thumb.ph { display: flex; align-items: center; justify-content: center;
                    background: radial-gradient(ellipse at 30% 20%, rgba(96,165,250,.18), transparent 60%), #0f1117; }
-    .ic-thumb.ph b { font-size: 44px; font-weight: 800; letter-spacing: -.04em; color: rgba(255,255,255,.14); }
-    .ic-no { position: absolute; top: 10px; left: 12px; padding: 2px 8px; border-radius: 999px; font-size: 11px;
+    .ic-thumb.ph b { font-size: 34px; font-weight: 800; letter-spacing: -.04em; color: rgba(255,255,255,.14); }
+    .ic-no { position: absolute; top: 8px; left: 9px; padding: 1px 7px; border-radius: 999px; font-size: 10px;
              background: rgba(0,0,0,.55); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.12); }
-    .ic-body { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px 16px; flex: 1; }
-    .ic-title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.4; letter-spacing: var(--ls-snug); color: var(--text-1);
+    .ic-body { display: flex; flex-direction: column; gap: 6px; padding: 12px 13px 12px; flex: 1; }
+    .ic-title { margin: 0; font-size: 14.5px; font-weight: 700; line-height: 1.4; letter-spacing: var(--ls-snug); color: var(--text-1);
                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .ic-sub { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-3);
+    .ic-sub { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-3);
               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .ic-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-    .ic-tags span { padding: 2px 9px; border-radius: 999px; font-size: 11px; background: rgba(96,165,250,.12); color: #93C5FD; }
-    .ic-meta { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--text-3); }
+    .ic-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ic-tags span { padding: 1px 7px; border-radius: 999px; font-size: 10.5px; background: rgba(96,165,250,.12); color: #93C5FD; }
+    .ic-meta { margin-top: auto; padding-top: 8px; display: flex; flex-wrap: wrap; gap: 2px 8px; font-size: 11.5px; color: var(--text-3); }
     .ic-meta b { color: var(--text-2); font-weight: 600; }
-    @media (max-width: 720px) { .insight-cards { grid-template-columns: 1fr; gap: 14px; } }
+    @media (max-width: 1080px) { .insight-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 780px)  { .insight-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+    @media (max-width: 460px)  { .insight-cards { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body class="theme-mono">
