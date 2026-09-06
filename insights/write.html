@@ -85,9 +85,9 @@
     .insight-body h3 { margin: 1.3em 0 .5em; }
     .insight-body h2:first-child, .insight-body h3:first-child { margin-top: 0; }
     .insight-body figure.img-fig { margin: 1.2em 0 1.4em; }
-    .insight-body figure.img-fig figcaption { margin-top: 10px; font-size: 14px; line-height: 1.5; font-style: italic; color: rgba(26,26,26,.6); text-align: left; }
-    .insight-body figure.img-fig[data-align="center"] figcaption { text-align: center; }
-    .insight-body figure.img-fig[data-align="right"] figcaption { text-align: right; }
+    .insight-body figure.img-fig figcaption { margin-top: 10px; font-size: 14px; line-height: 1.5; font-style: italic; color: rgba(26,26,26,.6); text-align: center; }
+    .insight-body figure.img-fig[data-align="center"] figcaption { margin-left: auto; margin-right: auto; }
+    .insight-body figure.img-fig[data-align="right"] figcaption { margin-left: auto; }
 
     /* 대표 이미지 고르기 — 제목 위. 없으면 버튼 한 줄, 있으면 미리보기 배너 */
     .cover-pick { margin-top: 22px; }
@@ -1127,7 +1127,9 @@
           var fig = document.createElement('figure'); fig.className = 'img-fig';
           if (img.getAttribute('data-align')) fig.setAttribute('data-align', img.getAttribute('data-align'));
           (solo ? host : img).replaceWith(fig); fig.appendChild(img);
-          var fc = document.createElement('figcaption'); fc.textContent = cap || emP.textContent.trim(); fig.appendChild(fc);
+          var fc = document.createElement('figcaption'); fc.textContent = cap || emP.textContent.trim();
+          var w = img.getAttribute('width'); if (w && /%$/.test(w)) fc.style.width = w;
+          fig.appendChild(fc);
           if (emP) { var n = fig.nextElementSibling; while (n && n !== emP) { var gone = n; n = n.nextElementSibling; gone.remove(); } emP.remove(); }
         });
         writeBox.hidden = true;

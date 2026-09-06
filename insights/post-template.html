@@ -91,9 +91,10 @@
     /* 이미지 캡션 — 사진 바로 아래, 기울임 회색. 사진이 가운데면 캡션도 가운데 */
     .insight-body figure.img-fig { margin: 1.2em 0 1.4em; }
     .insight-body figure.img-fig img { margin-bottom: 0; }
-    .insight-body figure.img-fig figcaption { margin-top: 10px; font-size: 14px; line-height: 1.5; font-style: italic; color: rgba(26,26,26,.6); text-align: left; }
-    .insight-body figure.img-fig[data-align="center"] figcaption { text-align: center; }
-    .insight-body figure.img-fig[data-align="right"] figcaption { text-align: right; }
+    /* 캡션은 사진 너비만큼만 차지하고 그 안에서 가운데 — 사진이 작아도 사진 아래 한가운데 온다 */
+    .insight-body figure.img-fig figcaption { margin-top: 10px; font-size: 14px; line-height: 1.5; font-style: italic; color: rgba(26,26,26,.6); text-align: center; }
+    .insight-body figure.img-fig[data-align="center"] figcaption { margin-left: auto; margin-right: auto; }
+    .insight-body figure.img-fig[data-align="right"] figcaption { margin-left: auto; }
 
     /* 수정·삭제 — 본인 글이거나 운영진일 때만 보인다 */
     .insight-article-foot { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
@@ -348,6 +349,9 @@
         fig.appendChild(img);
         var fc = document.createElement('figcaption');
         fc.textContent = cap || emP.textContent.trim();
+        /* 사진이 50% 너비면 캡션도 50% — 그래야 사진 한가운데 아래에 온다 */
+        var w = img.getAttribute('width');
+        if (w && /%$/.test(w)) fc.style.width = w;
         fig.appendChild(fc);
         if (emP) {
           /* 사진과 캡션 사이에 있던 빈 줄도 같이 걷는다 */
