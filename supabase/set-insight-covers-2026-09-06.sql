@@ -10,6 +10,7 @@ update public.insight_posts set cover_url = 'https://www.yventures.ac/assets/ins
 update public.insight_posts set cover_url = 'https://www.yventures.ac/assets/insights/covers/35.jpg' where board_no = 35;  -- 유하재 · AI 시대 진정한 문제
 update public.insight_posts set cover_url = 'https://www.yventures.ac/assets/insights/covers/36.jpg' where board_no = 36;  -- 정보권 · Think Big, Buy Small
 update public.insight_posts set cover_url = 'https://www.yventures.ac/assets/insights/covers/33.jpg' where board_no = 33;  -- 조민서 · 2026 커머스 미디어 전망
+update public.insight_posts set cover_url = 'https://www.yventures.ac/assets/insights/covers/34.jpg' where board_no = 34;  -- 이윤민 · 차세대 의료 현장을 이끌 AI 헬스케어
 
 -- 확인
-select board_no, title, cover_url from public.insight_posts where board_no in (33, 35, 36, 39) order by board_no;
+select board_no, title, cover_url from public.insight_posts where board_no in (33, 34, 35, 36, 39) order by board_no;
