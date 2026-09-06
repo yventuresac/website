@@ -325,7 +325,10 @@
         '<span>' + (post.created_at || '').slice(0, 10) + '</span><span class="dot">·</span>' +
         '<span>No. ' + post.board_no + '</span><span class="dot">·</span>' +
         '<span>조회 ' + (post.view_count + 1) + '</span>';
-      document.getElementById('postBody').innerHTML = yvInsights.sanitizeHtml(post.content_html);
+      /* 편집기가 띄어쓰기를 &nbsp; 로 저장한 옛 글 — 그대로 두면 줄을 못 바꿔 단어 한가운데서
+         잘린다. 글자 사이의 것만 보통 띄어쓰기로 되돌린다(연속 공백은 유지). */
+      var bodyHtml = (post.content_html || '').replace(/(\S)(?:&nbsp;| )(?=\S)/g, '$1 ');
+      document.getElementById('postBody').innerHTML = yvInsights.sanitizeHtml(bodyHtml);
       /* 캡션 — 두 가지를 다 받는다.
            ① 편집기 캡션 도구로 넣은 alt
            ② 사진 바로 다음 줄에 기울임(em)으로만 쓴 한 줄 (뉴스레터 습관대로 쓴 경우)

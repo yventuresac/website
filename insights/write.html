@@ -30,6 +30,14 @@
     #editorToolbar { position: sticky; top: 80px; z-index: 15; background: #fff;
                      box-shadow: 0 6px 16px -10px rgba(0,0,0,.25); }
     @media (max-width: 640px) { #editorToolbar { top: 64px; } }
+    /* 편집기 글자·간격을 게시 화면과 똑같이 — 쓰면서 보는 것과 올라간 것이 같게.
+       (빈 줄만은 커서를 둘 자리라 편집기에선 보이고, 게시 화면에선 접힌다) */
+    #editor .ql-editor { font-size: 16px; line-height: 1.85; word-break: keep-all; overflow-wrap: break-word; }
+    #editor .ql-editor p { margin: 0 0 1em; }
+    #editor .ql-editor h2 { margin: 1.6em 0 .6em; }
+    #editor .ql-editor h3 { margin: 1.3em 0 .5em; }
+    #editor .ql-editor > :first-child { margin-top: 0; }
+    #editor .ql-editor blockquote { margin: 1em 0; }
     /* 이미지를 끌어다 놓는 동안 본문 영역을 표시해준다 */
     #editor.is-drop .ql-editor { outline: 2px dashed #2563EB; outline-offset: -4px; background: rgba(37, 99, 235, 0.04); }
 
@@ -78,7 +86,8 @@
                    background: rgba(17,17,17,.85); color: #fff; font-size: 11.5px; line-height: 1.4; pointer-events: none;
                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .img-cap-tag[hidden] { display: none; }
-    /* 미리보기 — 게시 화면(post-template.html)과 같은 문단 간격·캡션 규칙 */
+    /* 미리보기 — 게시 화면(post-template.html)과 같은 글자·문단 간격·캡션 규칙 */
+    .insight-preview .insight-body { font-size: 16px; line-height: 1.85; word-break: keep-all; overflow-wrap: break-word; }
     .insight-body p { margin: 0 0 1em; }
     .insight-body p:empty { display: none; }
     .insight-body h2 { margin: 1.6em 0 .6em; }
@@ -1078,7 +1087,13 @@
           title: document.getElementById('postTitleInput').value.trim(),
           subtitle: subtitleInput.value.trim(),
           tags: tags.slice(),
-          html: quill.getSemanticHTML().replace(/(<img\b[^>]*?)\s+class="[^"]*"/g, '$1').trim(),
+          /* Quill 이 띄어쓰기를 전부 &nbsp; 로 내보낸다 — 그러면 브라우저가 줄을 못 바꿔
+             단어 한가운데서 잘린다("video b / y"). 글자 사이 &nbsp; 는 보통 띄어쓰기로 되돌린다.
+             (연속 공백은 그대로 둔다) */
+          html: quill.getSemanticHTML()
+            .replace(/(<img\b[^>]*?)\s+class="[^"]*"/g, '$1')
+            .replace(/(\S)&nbsp;(?=\S)/g, '$1 ')
+            .trim(),
           empty: quill.getText().trim().length === 0
         };
       }
