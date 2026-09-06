@@ -78,16 +78,15 @@
     .insight-tags[hidden] { display: none; }
     .insight-tags span { padding: 3px 11px; border-radius: 999px; font-size: 12px; background: rgba(37,99,235,.08); color: #2563EB; }
 
-    /* 문단 간격 — 한 문장마다 Enter 를 치고 빈 줄까지 넣는 글이 많다.
-       문단 자체 간격은 좁게, 빈 줄(빈 p)은 한 줄 높이만 차지하게 해서 뉴스레터처럼 읽히게.
-       빈 줄이 연달아 있으면 하나만 남긴다. */
-    .insight-body p { margin: 0 0 .5em; }
-    .insight-body p:empty { margin: 0; height: .75em; }
-    .insight-body p:empty + p:empty { display: none; }
-    .insight-body h2 { margin: 1.6em 0 .5em; }
-    .insight-body h3 { margin: 1.3em 0 .4em; }
+    /* 문단 간격 — 메일리와 같은 규칙: Enter 한 번 = 문단 하나 = 넓은 간격(1em).
+       줄바꿈 없이 이어 쓴 글은 줄 간격만큼만 붙는다.
+       Enter 를 두 번 쳐서 생긴 빈 문단은 아예 접는다 — 메일리 습관으로 쓴 글이
+       (한 문장마다 Enter+빈 줄) 여기서 두 배로 벌어지지 않게. */
+    .insight-body p { margin: 0 0 1em; }
+    .insight-body p:empty { display: none; }
+    .insight-body h2 { margin: 1.6em 0 .6em; }
+    .insight-body h3 { margin: 1.3em 0 .5em; }
     .insight-body h2:first-child, .insight-body h3:first-child { margin-top: 0; }
-    .insight-body p:empty + h2, .insight-body p:empty + h3 { margin-top: .6em; }
 
     /* 이미지 캡션 — 사진 바로 아래, 기울임 회색. 사진이 가운데면 캡션도 가운데 */
     .insight-body figure.img-fig { margin: 1.2em 0 1.4em; }
