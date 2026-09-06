@@ -1150,11 +1150,14 @@
         submitting = true;
         setStatus('등록 중…');
         try {
+          /* 목록 썸네일 — 본문 첫 이미지. 대표 이미지가 없을 때 목록·공유 카드에 쓴다 */
+          var thumbMatch = d.html.match(/<img[^>]*\ssrc="([^"]+)"/i);
+          var thumbUrl = thumbMatch ? thumbMatch[1] : null;
           var no;
           if (EDIT_NO && editPost) {
-            no = await yvInsights.updatePost(editPost.id, { title: d.title, subtitle: d.subtitle, tags: d.tags, cover_url: coverUrl || null, content_html: d.html });
+            no = await yvInsights.updatePost(editPost.id, { title: d.title, subtitle: d.subtitle, tags: d.tags, cover_url: coverUrl || null, thumb_url: thumbUrl, content_html: d.html });
           } else {
-            no = await yvInsights.createPost(user, d.title, d.html, authorName, { cover_url: coverUrl, subtitle: d.subtitle, tags: d.tags });
+            no = await yvInsights.createPost(user, d.title, d.html, authorName, { cover_url: coverUrl, thumb_url: thumbUrl, subtitle: d.subtitle, tags: d.tags });
             clearDraft();
           }
           location.href = 'post.html?no=' + no;

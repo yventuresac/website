@@ -48,7 +48,15 @@ function inject(html, p, no) {
   const url = SITE + '/insights/post.html?no=' + no;
   const title = (p.title || '').trim() || 'Insights';
   const desc = (p.subtitle || '').trim() || DEFAULT_DESC;
-  const image = /^https?:\/\//i.test(p.cover_url || '') ? p.cover_url : DEFAULT_IMAGE;
+  /* 대표 이미지 → 없으면 본문 첫 이미지(목록 썸네일) → 없으면 로고.
+     사이트 안 경로(/assets/...)는 절대 주소로 — 공유 카드 봇은 상대 경로를 못 읽는다 */
+  const pick = (u) => {
+    u = (u || '').trim();
+    if (/^https?:\/\//i.test(u)) return u;
+    if (/^\//.test(u)) return SITE + u;
+    return '';
+  };
+  const image = pick(p.cover_url) || pick(p.thumb_url) || DEFAULT_IMAGE;
 
   html = html.replace(/<title>[^<]*<\/title>/i, '<title>' + esc(title) + ' — Y-VENTURES Insights</title>');
   html = setMeta(html, 'name', 'description', desc);
@@ -82,8 +90,9 @@ module.exports = async (req, res) => {
       const t = setTimeout(() => ctrl.abort(), 2500);
       const headers = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
       const base = SUPABASE_URL + '/rest/v1/insight_posts?board_no=eq.' + no + '&limit=1&select=';
-      let r = await fetch(base + 'title,subtitle,cover_url', { headers, signal: ctrl.signal });
-      /* 부제·대표 이미지 칸이 아직 없는 DB(마이그레이션 전)면 제목만이라도 */
+      /* 칸이 아직 없는 DB(마이그레이션 전)면 있는 칸만으로 — thumb_url → cover 세트 → 제목 순 */
+      let r = await fetch(base + 'title,subtitle,cover_url,thumb_url', { headers, signal: ctrl.signal });
+      if (!r.ok) r = await fetch(base + 'title,subtitle,cover_url', { headers, signal: ctrl.signal });
       if (!r.ok) r = await fetch(base + 'title', { headers, signal: ctrl.signal });
       clearTimeout(t);
       const rows = r.ok ? await r.json() : [];

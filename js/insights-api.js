@@ -35,11 +35,14 @@
     /* 목록 (좋아요·댓글 수 포함) */
     async listPosts(page) {
       var from = (page - 1) * PAGE_SIZE;
-      var r = await db
-        .from("insight_posts")
-        .select("id, board_no, title, subtitle, tags, cover_url, author_name, created_at, view_count, insight_likes(count), insight_comments(count)", { count: "exact" })
-        .order("board_no", { ascending: false })
-        .range(from, from + PAGE_SIZE - 1);
+      var cols = "id, board_no, title, subtitle, tags, cover_url, thumb_url, author_name, created_at, view_count, insight_likes(count), insight_comments(count)";
+      var q = function (c) {
+        return db.from("insight_posts").select(c, { count: "exact" })
+          .order("board_no", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+      };
+      var r = await q(cols);
+      /* thumb_url 칸이 아직 없는 DB(마이그레이션 전)면 그 칸만 빼고 다시 */
+      if (r.error && /thumb_url/.test(r.error.message || "")) r = await q(cols.replace("thumb_url, ", ""));
       if (r.error) throw r.error;
       return {
         total: r.count || 0,
@@ -47,7 +50,8 @@
         posts: (r.data || []).map(function (p) {
           return {
             id: p.id, no: p.board_no, title: p.title, author: p.author_name,
-            subtitle: p.subtitle || "", tags: Array.isArray(p.tags) ? p.tags : [], cover: p.cover_url || "",
+            /* 목록 썸네일: 대표 이미지가 없으면 본문 첫 이미지 */
+            subtitle: p.subtitle || "", tags: Array.isArray(p.tags) ? p.tags : [], cover: p.cover_url || p.thumb_url || "",
             date: (p.created_at || "").slice(0, 10), views: p.view_count,
             likes: (p.insight_likes && p.insight_likes[0] && p.insight_likes[0].count) || 0,
             comments: (p.insight_comments && p.insight_comments[0] && p.insight_comments[0].count) || 0
@@ -130,6 +134,7 @@
         board_no: nextNo, title: title, author_name: authorName,
         author_id: user.id, content_html: contentHtml,
         cover_url: extra.cover_url || null,
+        thumb_url: extra.thumb_url || null,
         subtitle: extra.subtitle || "",
         tags: Array.isArray(extra.tags) ? extra.tags : []
       }).select("board_no").single();
