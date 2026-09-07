@@ -490,11 +490,36 @@
       }
       Quill.register(SizedImage, true);
 
+      /* 줄바꿈(Shift+Enter) — 노션처럼 같은 문단 안에서 줄만 바꾼다(여백 없음).
+         Quill 은 Enter 를 무조건 새 문단으로만 알아서, <br> 하나짜리 인라인 요소를 만들어 끼운다.
+         저장 HTML 에는 그대로 <br> 로 나가므로 게시 화면·미리보기가 따로 할 일은 없다. */
+      var EmbedBlot = Quill.import('parchment').EmbedBlot;
+      class SoftBreak extends EmbedBlot {
+        static create() { return document.createElement('br'); }
+        static value() { return true; }
+        length() { return 1; }
+      }
+      SoftBreak.blotName = 'softbreak';
+      SoftBreak.tagName = 'BR';
+      Quill.register(SoftBreak, true);
+
       var quill = new Quill('#editor', {
         theme: 'snow',
         placeholder: '내용을 입력하세요. 이미지는 끌어다 놓거나 붙여넣어도 됩니다.',
         modules: {
           toolbar: '#editorToolbar',
+          /* Shift+Enter = 줄바꿈. 설정에 넣은 바인딩이 기본 Enter 보다 먼저 검사된다 */
+          keyboard: {
+            bindings: {
+              softbreak: {
+                key: 'Enter', shiftKey: true,
+                handler: function (range) {
+                  this.quill.insertEmbed(range.index, 'softbreak', true, 'user');
+                  this.quill.setSelection(range.index + 1, 0, 'silent');
+                }
+              }
+            }
+          },
           /* Quill 기본 uploader 는 드롭·붙여넣기한 이미지를 base64 로 본문에
              박아넣는다 — 글이 수 MB 로 불어나고 임시저장도 못 한다.
              툴바와 똑같이 Storage 에 올리고 주소만 넣도록 갈아끼운다.
@@ -635,6 +660,19 @@
           var i = imgIndex(selImg); hideTools();
           if (i >= 0) { e.preventDefault(); quill.deleteText(i, 1, 'user'); quill.setSelection(i, 0); }
         }
+      });
+
+      /* 붙여넣기·수정·마크다운 가져오기로 들어오는 <br> 도 줄바꿈으로 받는다.
+         단, 빈 문단을 뜻하는 <p><br></p> 의 br 은 그대로 둔다(Quill 이 빈 줄로 쓰는 표기). */
+      quill.clipboard.addMatcher('BR', function (node, delta) {
+        var Delta = Quill.import('delta');
+        var parent = node.parentNode;
+        var hasSibling = parent && Array.prototype.some.call(parent.childNodes, function (n) {
+          return n !== node && (n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim()));
+        });
+        /* 형제가 없는 br = 빈 문단 표기 → 줄바꿈 요소가 아니라 그냥 빈 문단으로
+           (BR 태그가 줄바꿈 블롯에 묶여 있어 Quill 이 먼저 줄바꿈으로 읽어오므로 여기서 되돌린다) */
+        return hasSibling ? new Delta().insert({ softbreak: true }) : new Delta().insert('\n');
       });
 
       /* 링크 입력창 안내문 (툴팁 문구는 CSS 에서 한국어로) */
@@ -1127,6 +1165,10 @@
           '<span>' + yvInsights.esc(authorName) + '</span><span class="dot">·</span>' +
           '<span>' + new Date().toISOString().slice(0, 10) + '</span>';
         document.getElementById('pvBody').innerHTML = yvInsights.sanitizeHtml(d.html);
+        /* <p><br></p> 도 빈 문단 — 게시 화면과 같이 접히게 br 을 비운다 */
+        document.querySelectorAll('#pvBody p').forEach(function (p) {
+          if (!p.textContent.trim() && p.children.length === 1 && p.children[0].tagName === 'BR') p.innerHTML = '';
+        });
         /* 캡션: 캡션 도구(alt) 또는 사진 다음 줄의 기울임 한 줄 — 게시 화면과 같은 규칙 */
         document.querySelectorAll('#pvBody img').forEach(function (img) {
           var cap = (img.getAttribute('alt') || '').trim();

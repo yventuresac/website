@@ -329,6 +329,10 @@
          잘린다. 글자 사이의 것만 보통 띄어쓰기로 되돌린다(연속 공백은 유지). */
       var bodyHtml = (post.content_html || '').replace(/(\S)(?:&nbsp;| )(?=\S)/g, '$1 ');
       document.getElementById('postBody').innerHTML = yvInsights.sanitizeHtml(bodyHtml);
+      /* <p><br></p> 도 빈 문단이다 — CSS 의 p:empty 가 못 잡으니 br 을 비워 접히게 한다 */
+      document.querySelectorAll('#postBody p').forEach(function (p) {
+        if (!p.textContent.trim() && p.children.length === 1 && p.children[0].tagName === 'BR') p.innerHTML = '';
+      });
       /* 캡션 — 두 가지를 다 받는다.
            ① 편집기 캡션 도구로 넣은 alt
            ② 사진 바로 다음 줄에 기울임(em)으로만 쓴 한 줄 (뉴스레터 습관대로 쓴 경우)
