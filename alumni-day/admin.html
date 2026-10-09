@@ -193,20 +193,26 @@
         });
     }, '추첨을 시작했어요. 큰 화면을 보세요'));
 
+    function openInvesting() {
+      var m = Number($('minutes').value);
+      var deadline = m ? new Date(Date.now() + m * 60000).toISOString() : null;
+      return G.updateState({ phase: 'investing', deadline: deadline, reveal_step: 0 });
+    }
     $('nextBtn').addEventListener('click', act(function () {
-      var n = Math.min(3, (state.current_team || 0) + 1);
       if (state.phase === 'drawing') return G.updateState({ phase: 'presenting', current_team: 0 });
-      return G.updateState({ phase: 'presenting', current_team: n });
+      var cur = state.current_team || 0;
+      if (cur >= G.TEAMS.length - 1) {
+        // 마지막 팀 발표가 끝났으면 바로 투자 단계로
+        if (!confirm('4개 발표가 모두 끝났나요? 투자를 열겠습니다. (타이머 ' + ($('minutes').value === '0' ? '없음' : $('minutes').value + '분') + ')')) return;
+        return openInvesting().then(function () { toast('투자가 열렸습니다'); });
+      }
+      return G.updateState({ phase: 'presenting', current_team: cur + 1 });
     }));
     $('prevBtn').addEventListener('click', act(function () {
       return G.updateState({ phase: 'presenting', current_team: Math.max(0, (state.current_team || 0) - 1) });
     }));
 
-    $('openBtn').addEventListener('click', act(function () {
-      var m = Number($('minutes').value);
-      var deadline = m ? new Date(Date.now() + m * 60000).toISOString() : null;
-      return G.updateState({ phase: 'investing', deadline: deadline, reveal_step: 0 });
-    }, '투자가 열렸습니다'));
+    $('openBtn').addEventListener('click', act(openInvesting, '투자가 열렸습니다'));
     $('extendBtn').addEventListener('click', act(function () {
       var base = state.deadline ? Math.max(Date.now(), new Date(state.deadline).getTime()) : Date.now();
       return G.updateState({ deadline: new Date(base + 60000).toISOString() });
@@ -260,6 +266,8 @@
       $('drawBtn').disabled = phase === 'drawing';
       $('drawBtn').textContent = (phase === 'lobby' || phase === 'drawing') ? '추첨 시작' : '다시 추첨';
       $('nextBtn').disabled = !(phase === 'drawing' || phase === 'presenting');
+      var isLast = phase === 'presenting' && (state.current_team || 0) >= G.TEAMS.length - 1;
+      $('nextBtn').textContent = isLast ? '발표 완료 · 투자 열기' : '다음 발표';
       $('prevBtn').disabled = phase !== 'presenting' || (state.current_team || 0) === 0;
       $('openBtn').disabled = phase === 'investing';
       $('openBtn').textContent = (phase === 'closed' || phase === 'revealed') ? '투자 다시 열기' : '투자 열기';
