@@ -55,6 +55,16 @@
     .chip { display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .8rem; border: 1px solid var(--edge); font-size: 1.1rem; font-weight: 700; }
     .chip i { width: .7rem; height: .7rem; border-radius: 50%; background: var(--c); box-shadow: 0 0 .8rem var(--c); }
     .chip small { margin-left: auto; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+    .chip .tlogo { font-size: 1.3rem; max-width: 8rem; }
+    .slot .tlogo { font-size: 3.2rem; max-width: 78%; margin-bottom: 1rem; transition: opacity .15s; }
+    .slot.spin .tlogo { opacity: .25; filter: blur(2px); }
+    .slot .nm { font-size: 1.6rem; }
+    .row .tlogo { font-size: 2.2rem; max-width: 14rem; margin-right: .6rem; }
+    .row .nm { align-items: center; }
+    .row .nm b { font-size: 1.3rem; color: var(--text-2); }
+    .mini .tlogo { font-size: 1.2rem; max-width: 7rem; margin-bottom: .2rem; }
+    .big-card .tlogo { font-size: 5rem; max-width: 34rem; margin-top: 1.5rem; }
+    .big-card .nm { font-size: 2.6rem; margin-top: 1rem; color: var(--text-2); }
 
     /* ── DRAWING / PRESENTING ── */
     .draw { flex-direction: column; align-items: center; justify-content: center; gap: 3rem; }
@@ -261,7 +271,7 @@
     $('joinUrl').textContent = joinUrl.replace(/^https?:\/\//, '');
     new QRCode($('qr'), { text: joinUrl, width: 176, height: 176, colorDark: '#08090C', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
     $('teamchips').innerHTML = G.TEAMS.map(function (t) {
-      return '<div class="chip" style="--c:' + t.color + '"><i></i>' + G.esc(t.name) + '<small>' + G.esc(t.track) + '</small></div>';
+      return '<div class="chip" style="--c:' + t.color + '"><i></i>' + G.logoImg(t) + '<small>' + G.esc(t.track) + '</small></div>';
     }).join('');
 
     function renderLobby() {
@@ -277,7 +287,8 @@
     /* ── 추첨 / 발표 ── */
     function slotHtml(t, n, cls) {
       return '<div class="card slot ' + cls + '" style="--c:' + (t ? t.color : 'transparent') + '" data-i="' + n + '">' +
-        '<div class="n">' + (n + 1) + '</div><div class="nm">' + (t ? G.esc(t.name) : '?') + '</div>' +
+        '<div class="n">' + (n + 1) + '</div>' + (t ? G.logoImg(t) : '<div class="tlogo" style="font-size:3.2rem;height:1em;margin-bottom:1rem"></div>') +
+        '<div class="nm">' + (t ? G.esc(t.name) : '?') + '</div>' +
         '<div class="tr">' + (t ? G.esc(t.track) : '&nbsp;') + '</div></div>';
     }
     function renderDraw() {
@@ -308,6 +319,8 @@
             els[i].style.setProperty('--c', t.color);
             els[i].querySelector('.nm').textContent = t.name;
             els[i].querySelector('.tr').textContent = t.track;
+            var lg = els[i].querySelector('.tlogo');
+            if (lg.tagName !== 'IMG') { lg.outerHTML = G.logoImg(t); } else { lg.src = t.logo; }
           }
         }
         if (shouldFix >= 4) { clearInterval(drawAnim); drawAnim = null; }
@@ -338,7 +351,7 @@
       if (!lb.children.length) {
         lb.innerHTML = teams.map(function (t) {
           return '<div class="card row" data-id="' + t.id + '" style="--c:' + t.color + '">' +
-            '<div class="rk"></div><div class="mid"><div class="nm"><b>' + G.esc(t.name) + '</b><span>' + G.esc(t.track) + '</span></div>' +
+            '<div class="rk"></div><div class="mid"><div class="nm">' + G.logoImg(t) + '<b>' + G.esc(t.name) + '</b><span>' + G.esc(t.track) + '</span></div>' +
             '<div class="bar"><i style="width:0%"></i></div><div class="meta"><span>투자자 <b data-cnt>0명</b></span><span>지분 <b data-share>0%</b></span></div></div>' +
             '<div class="amt"><div class="v" data-amt>0억</div><div class="s">score <b data-score>0.0</b></div></div></div>';
         }).join('');
@@ -410,7 +423,7 @@
       var revealedRanks = order.slice(0, Math.min(step, 4));
       strip.innerHTML = revealedRanks.map(function (rk) {
         var r = T.ranked[rk - 1];
-        return '<div class="card mini" style="--c:' + r.team.color + '"><div class="rk">' + rk + '</div><div><div class="nm">' + G.esc(r.team.name) + '</div><div class="sub">' + G.fmt(r.total) + ' · ' + r.count + '명</div></div><div class="sc">' + r.score.toFixed(1) + '</div></div>';
+        return '<div class="card mini" style="--c:' + r.team.color + '"><div class="rk">' + rk + '</div><div>' + G.logoImg(r.team) + '<div class="nm">' + G.esc(r.team.name) + '</div><div class="sub">' + G.fmt(r.total) + ' · ' + r.count + '명</div></div><div class="sc">' + r.score.toFixed(1) + '</div></div>';
       }).join('');
 
       if (step === 0) {
@@ -419,7 +432,7 @@
         var rk = order[step - 1];
         var r = T.ranked[rk - 1];
         focus.innerHTML = '<div class="card big-card" style="--c:' + r.team.color + '">' +
-          '<div class="head"><div><div class="rank">' + rk + '<small>위</small></div><div class="nm">' + G.esc(r.team.name) + '</div><div class="tr">' + G.esc(r.team.track) + ' · ' + G.esc(r.team.en) + '</div></div></div>' +
+          '<div class="head"><div><div class="rank">' + rk + '<small>위</small></div>' + G.logoImg(r.team) + '<div class="nm">' + G.esc(r.team.name) + '</div><div class="tr">' + G.esc(r.team.track) + ' · ' + G.esc(r.team.en) + '</div></div></div>' +
           '<div class="stats"><div class="stat"><div class="l">Total</div><div class="v">' + G.fmt(r.total) + '<small>' + G.pct(r.totalShare) + '</small></div></div>' +
           '<div class="stat"><div class="l">Backers</div><div class="v">' + r.count + '<small>/ ' + G.INVESTORS.length + '명</small></div></div>' +
           '<div class="stat"><div class="l">Score</div><div class="v">' + r.score.toFixed(1) + '<small>총액 70 · 지지 30</small></div></div></div>' +

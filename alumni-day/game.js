@@ -9,11 +9,15 @@
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlubHh3dWtkbG9laG5mbm9rbHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDk2MTIsImV4cCI6MjA5NzE4NTYxMn0.mGm1P7YkMFuzouyTQaHVM_m2wir1npVVtTWMu3_hnaM';
 
   var TEAMS = [
-    { id: 'fintech',  track: 'Fintech',     name: '빅테크플러스', en: 'BigTech+',  color: '#3B82F6' },
-    { id: 'platform', track: 'Platform',    name: '테이밍랩',     en: 'TamingLab', color: '#A855F7' },
-    { id: 'contents', track: 'Contents',    name: '뤼튼',         en: 'Wrtn',      color: '#C7F23E' },
-    { id: 'physical', track: 'Physical AI', name: '컨피그',       en: 'Config',    color: '#F2C56F' }
+    { id: 'fintech',  track: 'Fintech',     name: '빅테크플러스', en: 'BigTech+',  color: '#3B82F6', logo: 'assets/teams/fintech.png' },
+    { id: 'platform', track: 'Platform',    name: '테이밍랩',     en: 'TamingLab', color: '#A855F7', logo: 'assets/teams/platform.png' },
+    { id: 'contents', track: 'Contents',    name: '뤼튼',         en: 'Wrtn',      color: '#C7F23E', logo: 'assets/teams/contents.png' },
+    { id: 'physical', track: 'Physical AI', name: '컨피그',       en: 'Config',    color: '#F2C56F', logo: 'assets/teams/physical.png' }
   ];
+  // 로고 <img> 태그 (cls 로 크기 조절)
+  function logoImg(t, cls) {
+    return '<img class="tlogo ' + (cls || '') + '" src="' + t.logo + '" alt="' + t.en + '" draggable="false">';
+  }
   var TEAM_BY_ID = {};
   TEAMS.forEach(function (t) { TEAM_BY_ID[t.id] = t; });
 
@@ -266,6 +270,7 @@
     orderedTeams: orderedTeams,
     shuffle: shuffle,
     fmt: fmt,
+    logoImg: logoImg,
     pct: pct,
     esc: esc,
     phaseLabel: phaseLabel

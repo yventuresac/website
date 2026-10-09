@@ -45,6 +45,7 @@
     .order li.now { border-color: var(--blue-400); background: rgba(37,99,235,.12); }
     .order li.now .num { background: var(--blue-500); color: #fff; }
     .order li.done { opacity: .45; }
+    .order li .tlogo { font-size: 16px; max-width: 90px; margin-left: auto; opacity: .85; }
 
     .danger-zone { margin-top: 24px; padding: 18px 20px; border-color: rgba(239,68,68,.25); }
     .danger-zone p { font-size: 13px; color: var(--text-3); margin-bottom: 12px; }
@@ -284,7 +285,7 @@
       var teams = G.orderedTeams(state);
       $('orderList').innerHTML = (state.team_order && state.team_order.length ? teams : []).map(function (t, i) {
         var cls = phase === 'presenting' ? (i < state.current_team ? 'done' : (i === state.current_team ? 'now' : '')) : '';
-        return '<li class="' + cls + '"><span class="num">' + (i + 1) + '</span>' + G.esc(t.name) + ' <span class="muted" style="font-size:11px">' + G.esc(t.track) + '</span></li>';
+        return '<li class="' + cls + '"><span class="num">' + (i + 1) + '</span>' + G.esc(t.name) + ' <span class="muted" style="font-size:11px">' + G.esc(t.track) + '</span>' + G.logoImg(t) + '</li>';
       }).join('') || '<li class="muted">아직 추첨 전</li>';
 
       $('miniTally').innerHTML = T.ranked.map(function (r) {
