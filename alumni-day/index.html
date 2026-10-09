@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08090C">
+  <title>Y-Ventures Alumni Day — 투자하기</title>
+  <link rel="icon" href="assets/logo-square-white.png">
+  <link rel="stylesheet" href="game.css">
+  <style>
+    body { padding-bottom: 200px; }
+    .wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 20px 16px; }
+
+    .top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 0 20px;
+    }
+    .top img { height: 20px; opacity: .9; }
+    .top .pill { font-size: 11px; }
+
+    /* 이름 선택 */
+    .pick h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 8px 0 6px; }
+    .pick p { color: var(--text-3); font-size: 14px; margin-bottom: 24px; }
+    .names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .name-btn {
+      padding: 20px 12px; font-size: 18px; font-weight: 700;
+      background: var(--bg-card); border: 1px solid var(--edge); border-radius: 14px; color: var(--text-1);
+      box-shadow: var(--glow); transition: all .2s var(--ease-out);
+    }
+    .name-btn:active { transform: scale(.97); border-color: var(--blue-400); background: rgba(37, 99, 235, 0.12); }
+
+    /* 상태 카드 */
+    .status { padding: 22px 20px; margin-bottom: 16px; }
+    .status .eyebrow { margin-bottom: 10px; }
+    .status h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+    .status p { color: var(--text-2); font-size: 14px; margin-top: 8px; }
+    .timer { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 22px; color: var(--blue-300); }
+    .timer.urgent { color: #FCA5A5; }
+
+    /* 발표 순서 */
+    .order { list-style: none; display: grid; gap: 8px; margin-top: 14px; }
+    .order li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 12px; border: 1px solid var(--edge); background: rgba(255,255,255,0.02);
+      font-size: 15px; font-weight: 600;
+    }
+    .order li .num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: var(--bg-elevated); color: var(--text-2); }
+    .order li.now { border-color: var(--blue-400); background: rgba(37, 99, 235, 0.12); }
+    .order li.now .num { background: var(--blue-500); color: #fff; }
+    .order li.done { opacity: .5; }
+    .order li .track { margin-left: auto; font-size: 11px; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
+
+    /* 팀 카드 */
+    .teams { display: grid; gap: 12px; }
+    .team { padding: 18px 18px 16px; position: relative; overflow: hidden; }
+    .team::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c); }
+    .team-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .team-head .track { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--c); }
+    .team-head .name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+    .team-head .en { font-size: 12px; color: var(--text-3); margin-left: 6px; font-weight: 500; }
+    .team-amt { font-size: 15px; font-weight: 700; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .team-amt b { color: var(--text-1); font-size: 20px; }
+    .controls { display: grid; grid-template-columns: 52px 1fr 52px 64px; gap: 8px; margin-top: 14px; }
+    .controls button {
+      height: 48px; border-radius: 12px; border: 1px solid var(--edge); background: var(--bg-elevated);
+      color: var(--text-1); font-size: 22px; font-weight: 700; transition: all .15s;
+    }
+    .controls button:active { transform: scale(.95); border-color: var(--edge-hover); }
+    .controls button.max { font-size: 12px; letter-spacing: .1em; font-weight: 800; color: var(--blue-300); }
+    .controls input {
+      height: 48px; border-radius: 12px; border: 1px solid var(--edge); background: rgba(0,0,0,.3);
+      color: var(--text-1); font-size: 20px; font-weight: 800; text-align: center; outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .controls input:focus { border-color: var(--blue-400); }
+    .team.readonly .controls { display: none; }
+
+    /* 하단 고정 */
+    .dock {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+      background: linear-gradient(to top, rgba(8,9,12,1) 70%, rgba(8,9,12,0));
+      padding: 18px 16px calc(16px + env(safe-area-inset-bottom));
+    }
+    .dock-inner { max-width: 520px; margin: 0 auto; }
+    .budget { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--text-3); margin-bottom: 8px; }
+    .budget b { color: var(--text-1); font-size: 18px; font-variant-numeric: tabular-nums; }
+    .budget .over { color: #FCA5A5; }
+    .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-bottom: 14px; }
+    .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue-500), var(--blue-300)); border-radius: 999px; transition: width .3s var(--ease-out); }
+    .bar i.over { background: var(--danger); }
+
+    /* 결과 */
+    .result-list { display: grid; gap: 10px; }
+    .result { display: flex; align-items: center; gap: 14px; padding: 16px; }
+    .result .rank { font-family: 'Inter', 'Pretendard', sans-serif; font-weight: 900; font-size: 28px; width: 40px; color: var(--text-3); }
+    .result.first .rank { color: var(--blue-300); }
+    .result .info { flex: 1; }
+    .result .info .name { font-size: 18px; font-weight: 800; }
+    .result .info .sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .result .score { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .best { margin-top: 14px; padding: 18px; text-align: center; border-color: rgba(96,165,250,.5); }
+    .best .eyebrow { margin-bottom: 6px; }
+    .best .who { font-size: 24px; font-weight: 900; }
+    .best p { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+
+    .switch { text-align: center; margin-top: 28px; font-size: 12px; color: var(--text-3); }
+    .switch button { background: none; border: none; color: var(--text-3); text-decoration: underline; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="wrap">
+    <div class="top">
+      <img src="assets/logo-white.png" alt="Y-Ventures">
+      <span class="pill" id="phasePill"><span class="dot"></span><span id="phaseText">연결 중</span></span>
+    </div>
+
+    <!-- 이름 선택 -->
+    <section id="pick" class="pick hidden fade-in">
+      <div class="eyebrow">Alumni Day · 2026.10.10</div>
+      <h1>투자자님,<br>본인 이름을 선택해주세요</h1>
+      <p>1인당 500억을 드립니다. 4개 팀 발표를 듣고 자유롭게 배분하세요.</p>
+      <div class="names" id="names"></div>
+    </section>
+
+    <!-- 메인 -->
+    <section id="main" class="hidden">
+      <div class="card status" id="status"></div>
+      <div class="teams" id="teams"></div>
+      <div id="results"></div>
+      <div class="switch">
+        <span id="meName"></span> 님으로 참여 중 ·
+        <button id="switchBtn" type="button">이름 바꾸기</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="dock hidden" id="dock">
+    <div class="dock-inner">
+      <div class="budget">
+        <span>남은 투자금 <b id="remain">500억</b></span>
+        <span id="usedText">0 / 500억</span>
+      </div>
+      <div class="bar"><i id="barFill" style="width:0%"></i></div>
+      <button class="btn btn-primary btn-block btn-lg" id="submitBtn" type="button">투자 집행</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="game.js"></script>
+  <script>
+  (function () {
+    var G = window.YVGame;
+    var KEY = 'yv_alumni_name';
+    var me = null;
+    var state = null;
+    var investments = [];
+    var saved = {};      // 서버에 저장된 내 금액
+    var draft = {};      // 편집 중 금액
+    var dirty = false;
+    var lastPhase = null;
+    var timerId = null;
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    function toast(msg) {
+      var t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._t);
+      t._t = setTimeout(function () { t.classList.remove('show'); }, 2200);
+    }
+
+    /* ── 이름 선택 ── */
+    function renderPick() {
+      var html = '';
+      G.INVESTORS.forEach(function (n) {
+        html += '<button class="name-btn" type="button" data-n="' + G.esc(n) + '">' + G.esc(n) + '</button>';
+      });
+      $('names').innerHTML = html;
+      $('names').addEventListener('click', function (e) {
+        var b = e.target.closest('.name-btn');
+        if (!b) return;
+        choose(b.getAttribute('data-n'));
+      });
+    }
+    function choose(name) {
+      me = name;
+      try { localStorage.setItem(KEY, name); } catch (e) {}
+      G.joinInvestor(name).catch(function (e) { console.warn(e); toast('연결에 문제가 있어요. 다시 시도해주세요.'); });
+      $('pick').classList.add('hidden');
+      $('main').classList.remove('hidden');
+      $('meName').textContent = name;
+      dirty = false;
+      refresh();
+    }
+    $('switchBtn').addEventListener('click', function () {
+      me = null;
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      $('main').classList.add('hidden');
+      $('dock').classList.add('hidden');
+      $('pick').classList.remove('hidden');
+    });
+
+    /* ── 데이터 ── */
+    function refresh() {
+      return Promise.all([G.fetchState(), G.fetchInvestments()]).then(function (r) {
+        state = r[0]; investments = r[1];
+        var mine = investments.filter(function (i) { return i.investor === me; })[0];
+        saved = (mine && mine.amounts) || {};
+        if (!dirty) draft = Object.assign({}, saved);
+        render();
+      });
+    }
+
+    function used() { return G.sumAmounts(draft); }
+    function remain() { return G.BUDGET - used(); }
+
+    /* ── 렌더 ── */
+    function render() {
+      if (!me || !state) return;
+      var phase = state.phase;
+      var pill = $('phasePill');
+      pill.className = 'pill' + (phase === 'investing' ? ' live' : (phase === 'closed' ? ' closed' : ''));
+      $('phaseText').textContent = G.phaseLabel(phase);
+
+      var phaseChanged = phase !== lastPhase;
+      lastPhase = phase;
+      if (phaseChanged) { dirty = false; draft = Object.assign({}, saved); }
+
+      renderStatus();
+      if (phase === 'investing') {
+        // 입력 중 포커스가 날아가지 않게, 투자 단계에서는 처음 한 번만 카드를 그린다
+        if (phaseChanged || !$('teams').children.length) renderTeams(false);
+        $('results').innerHTML = '';
+        $('dock').classList.remove('hidden');
+        renderDock();
+      } else if (phase === 'closed' || phase === 'revealed') {
+        $('dock').classList.add('hidden');
+        if (phase === 'revealed' && state.reveal_step >= 5) {
+          $('teams').innerHTML = '';
+          renderResults();
+        } else {
+          renderTeams(true);
+          $('results').innerHTML = '';
+        }
+      } else {
+        $('dock').classList.add('hidden');
+        $('teams').innerHTML = '';
+        $('results').innerHTML = '';
+      }
+    }
+
+    function renderStatus() {
+      var s = $('status');
+      var phase = state.phase;
+      var teams = G.orderedTeams(state);
+      var html = '';
+      if (phase === 'lobby') {
+        html = '<div class="eyebrow">Welcome</div><h2>' + G.esc(me) + ' 님, 반갑습니다</h2>' +
+               '<p>곧 발표 순서 추첨이 시작됩니다. 큰 화면을 봐주세요.</p>';
+      } else if (phase === 'drawing') {
+        html = '<div class="eyebrow">Drawing</div><h2>발표 순서를 추첨하고 있어요</h2><p>큰 화면을 봐주세요.</p>';
+      } else if (phase === 'presenting') {
+        var cur = teams[state.current_team] || teams[0];
+        html = '<div class="eyebrow">Now Presenting</div><h2>' + G.esc(cur.name) + ' <span class="muted" style="font-size:14px;font-weight:600">' + G.esc(cur.track) + '</span></h2>' +
+               '<p>4개 발표가 모두 끝나면 투자가 열립니다. 메모해두세요.</p><ul class="order">';
+        teams.forEach(function (t, i) {
+          var cls = i < state.current_team ? 'done' : (i === state.current_team ? 'now' : '');
+          html += '<li class="' + cls + '"><span class="num">' + (i + 1) + '</span>' + G.esc(t.name) + '<span class="track">' + G.esc(t.track) + '</span></li>';
+        });
+        html += '</ul>';
+      } else if (phase === 'investing') {
+        html = '<div class="eyebrow">Investing</div><h2>투자가 열렸습니다</h2>' +
+               '<p>마감 전까지 몇 번이든 수정할 수 있어요. 안 넣어도 됩니다.</p>' +
+               (state.deadline ? '<p style="margin-top:12px">마감까지 <span class="timer" id="timer">--:--</span></p>' : '');
+      } else if (phase === 'closed') {
+        html = '<div class="eyebrow">Closed</div><h2>투자가 마감되었습니다</h2><p>결과 발표를 기다려주세요. 아래는 ' + G.esc(me) + ' 님의 최종 포트폴리오입니다.</p>';
+      } else if (phase === 'revealed') {
+        html = '<div class="eyebrow">Results</div><h2>결과 발표</h2><p>' + (state.reveal_step >= 5 ? '최종 결과입니다. 수고하셨습니다!' : '큰 화면을 봐주세요.') + '</p>';
+      }
+      s.innerHTML = html;
+      runTimer();
+    }
+
+    function runTimer() {
+      clearInterval(timerId);
+      var el = $('timer');
+      if (!el || !state.deadline) return;
+      var end = new Date(state.deadline).getTime();
+      function tick() {
+        var left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+        var m = Math.floor(left / 60), sec = left % 60;
+        el.textContent = (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+        el.classList.toggle('urgent', left <= 30);
+        if (left <= 0) clearInterval(timerId);
+      }
+      tick();
+      timerId = setInterval(tick, 500);
+    }
+
+    function renderTeams(readonly) {
+      var teams = G.orderedTeams(state);
+      var src = readonly ? saved : draft;
+      var html = '';
+      teams.forEach(function (t, i) {
+        var v = Number(src[t.id] || 0);
+        html += '<div class="card team' + (readonly ? ' readonly' : '') + '" style="--c:' + t.color + '" data-id="' + t.id + '">' +
+          '<div class="team-head"><div><div class="track">' + (i + 1) + ' · ' + G.esc(t.track) + '</div>' +
+          '<div class="name">' + G.esc(t.name) + '<span class="en">' + G.esc(t.en) + '</span></div></div>' +
+          '<div class="team-amt"><b data-amt>' + G.fmt(v) + '</b></div></div>' +
+          '<div class="controls">' +
+            '<button type="button" data-act="minus" aria-label="10억 빼기">−</button>' +
+            '<input type="number" inputmode="numeric" min="0" max="' + G.BUDGET + '" step="' + G.STEP + '" value="' + v + '" data-input>' +
+            '<button type="button" data-act="plus" aria-label="10억 더하기">+</button>' +
+            '<button type="button" class="max" data-act="max">MAX</button>' +
+          '</div></div>';
+      });
+      $('teams').innerHTML = html;
+    }
+
+    function renderDock() {
+      var u = used(), r = remain();
+      $('remain').textContent = G.fmt(Math.max(0, r));
+      $('remain').className = r < 0 ? 'over' : '';
+      $('usedText').textContent = u + ' / ' + G.BUDGET + '억';
+      var f = $('barFill');
+      f.style.width = Math.min(100, u / G.BUDGET * 100) + '%';
+      f.className = r < 0 ? 'over' : '';
+      var changed = JSON.stringify(normalize(draft)) !== JSON.stringify(normalize(saved));
+      var btn = $('submitBtn');
+      btn.disabled = r < 0 || !changed;
+      btn.textContent = r < 0 ? '투자금을 초과했어요' : (changed ? (Object.keys(normalize(saved)).length ? '투자 수정' : '투자 집행') : '저장됨');
+    }
+    function normalize(a) {
+      var o = {};
+      G.TEAMS.forEach(function (t) { var v = Number((a || {})[t.id] || 0); if (v > 0) o[t.id] = v; });
+      return o;
+    }
+
+    function renderResults() {
+      var T = G.tally(investments);
+      var html = '<div class="result-list">';
+      T.ranked.forEach(function (r) {
+        html += '<div class="card result' + (r.rank === 1 ? ' first' : '') + '" style="--c:' + r.team.color + '">' +
+          '<div class="rank">' + r.rank + '</div>' +
+          '<div class="info"><div class="name">' + G.esc(r.team.name) + '</div>' +
+          '<div class="sub">' + G.esc(r.team.track) + ' · ' + G.fmt(r.total) + ' · ' + r.count + '명 투자</div></div>' +
+          '<div class="score">' + r.score.toFixed(1) + '</div></div>';
+      });
+      html += '</div>';
+      if (T.best) {
+        html += '<div class="card best"><div class="eyebrow">Best Investor</div><div class="who">' + G.esc(T.best.investor) + '</div>' +
+          '<p>' + G.esc(T.winner.team.name) + '에 ' + G.fmt(T.best.amount) + ' (포트폴리오의 ' + G.pct(T.best.share) + ')</p></div>';
+      }
+      var mine = saved;
+      var myTotal = G.sumAmounts(mine);
+      if (myTotal > 0) {
+        html += '<div class="card status" style="margin-top:14px"><div class="eyebrow">My Portfolio</div>';
+        G.orderedTeams(state).forEach(function (t) {
+          var v = Number(mine[t.id] || 0);
+          if (v > 0) html += '<p style="margin-top:4px">' + G.esc(t.name) + ' <b>' + G.fmt(v) + '</b></p>';
+        });
+        html += '</div>';
+      }
+      $('results').innerHTML = html;
+    }
+
+    /* ── 입력 ── */
+    function setAmt(id, v) {
+      v = Math.max(0, Math.min(G.BUDGET, Math.round(Number(v) || 0)));
+      draft[id] = v;
+      dirty = true;
+      var card = document.querySelector('.team[data-id="' + id + '"]');
+      if (card) {
+        card.querySelector('[data-amt]').textContent = G.fmt(v);
+        var inp = card.querySelector('[data-input]');
+        if (document.activeElement !== inp) inp.value = v;
+      }
+      renderDock();
+    }
+    $('teams').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-act]');
+      if (!b) return;
+      var id = b.closest('.team').getAttribute('data-id');
+      var cur = Number(draft[id] || 0);
+      var act = b.getAttribute('data-act');
+      if (act === 'minus') setAmt(id, cur - G.STEP);
+      else if (act === 'plus') setAmt(id, cur + G.STEP);
+      else if (act === 'max') setAmt(id, cur + Math.max(0, remain()));
+      if (navigator.vibrate) navigator.vibrate(8);
+    });
+    $('teams').addEventListener('input', function (e) {
+      var inp = e.target.closest('[data-input]');
+      if (!inp) return;
+      setAmt(inp.closest('.team').getAttribute('data-id'), inp.value);
+    });
+    $('teams').addEventListener('change', function (e) {
+      var inp = e.target.closest('[data-input]');
+      if (!inp) return;
+      inp.value = Number(draft[inp.closest('.team').getAttribute('data-id')] || 0);
+    });
+
+    /* ── 제출 ── */
+    $('submitBtn').addEventListener('click', function () {
+      if (remain() < 0) return;
+      var next = normalize(draft);
+      var prev = normalize(saved);
+      var btn = $('submitBtn');
+      btn.disabled = true; btn.textContent = '집행 중…';
+      var feed = [];
+      G.TEAMS.forEach(function (t) {
+        var d = (next[t.id] || 0) - (prev[t.id] || 0);
+        if (d !== 0) feed.push({ investor: me, team: t.id, delta: d, total: next[t.id] || 0 });
+      });
+      G.fetchState().then(function (s) {
+        if (s.phase !== 'investing') { throw new Error('closed'); }
+        return G.upsertInvestment(me, next);
+      }).then(function () {
+        return G.insertFeed(feed);
+      }).then(function () {
+        saved = next; draft = Object.assign({}, next); dirty = false;
+        toast('투자가 집행되었습니다 · ' + G.fmt(G.sumAmounts(next)));
+        if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
+        renderDock();
+      }).catch(function (e) {
+        console.warn(e);
+        toast(e && e.message === 'closed' ? '투자가 이미 마감되었어요' : '전송에 실패했어요. 다시 눌러주세요.');
+        renderDock();
+        refresh();
+      });
+    });
+
+    /* ── 시작 ── */
+    renderPick();
+    try { me = localStorage.getItem(KEY); } catch (e) {}
+    if (me && G.INVESTORS.indexOf(me) !== -1) {
+      choose(me);
+    } else {
+      me = null;
+      $('pick').classList.remove('hidden');
+    }
+    G.subscribe(function () { if (me) return refresh(); return G.fetchState().then(function (s) { state = s; $('phaseText').textContent = G.phaseLabel(s.phase); }); }, 3000);
+  })();
+  </script>
+</body>
+</html>

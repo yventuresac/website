@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Y-Ventures Alumni Day — Live Board</title>
+  <link rel="icon" href="assets/logo-square-white.png">
+  <link rel="stylesheet" href="game.css">
+  <style>
+    html { font-size: clamp(9px, 0.833vw, 18px); }   /* 1920px 기준 16px, 빔 해상도에 비례 */
+    body { overflow: hidden; height: 100vh; }
+    .stage {
+      position: relative; z-index: 1; height: 100vh; padding: 2.5rem 3.5rem;
+      display: flex; flex-direction: column;
+      background: radial-gradient(70% 60% at 85% 0%, rgba(37, 99, 235, 0.16), transparent 60%);
+    }
+    .stage::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+      background: url('assets/bg.png') center right / cover no-repeat; opacity: .35;
+    }
+    .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .hdr img { height: 2rem; }
+    .hdr .pill { font-size: .85rem; padding: .5rem 1rem; }
+    .hdr .right { display: flex; align-items: center; gap: 1rem; }
+    .hdr .title { font-size: .8rem; letter-spacing: .26em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+    .view { flex: 1; min-height: 0; position: relative; }
+    .scene { position: absolute; inset: 0; display: none; }
+    .scene.on { display: flex; animation: fadeIn .5s var(--ease-out) both; }
+
+    /* ── LOBBY ── */
+    .lobby { flex-direction: row; align-items: center; gap: 4rem; }
+    .lobby .copy { flex: 1; }
+    .lobby .wordmark { font-size: 7rem; line-height: .95; }
+    .lobby .wordmark span { color: var(--brand); }
+    .lobby .sub { font-size: 1.5rem; color: var(--text-2); margin-top: 1.25rem; letter-spacing: -0.01em; }
+    .lobby .sub b { color: #fff; }
+    .lobby .qr-wrap { display: flex; align-items: center; gap: 2rem; margin-top: 3rem; }
+    .lobby .qr { background: #fff; padding: 1rem; border-radius: 1rem; width: 13rem; height: 13rem; display: grid; place-items: center; }
+    .lobby .qr canvas, .lobby .qr img { width: 11rem !important; height: 11rem !important; }
+    .lobby .qr-text { font-size: 1.1rem; color: var(--text-2); line-height: 1.6; }
+    .lobby .qr-text b { display: block; font-size: 1.5rem; color: #fff; font-weight: 800; letter-spacing: -0.01em; }
+    .lobby .side { width: 30rem; display: grid; gap: 1rem; }
+    .panel { padding: 1.5rem; }
+    .panel .eyebrow { margin-bottom: 1rem; }
+    .investors { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+    .inv {
+      display: flex; align-items: center; gap: .7rem; padding: .8rem 1rem; border-radius: .8rem;
+      border: 1px solid var(--edge); font-size: 1.1rem; font-weight: 700; color: var(--text-3);
+      transition: all .4s var(--ease-out);
+    }
+    .inv .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--text-3); }
+    .inv.in { color: #fff; border-color: rgba(34,197,94,.5); background: rgba(34,197,94,.08); }
+    .inv.in .dot { background: var(--ok); box-shadow: 0 0 .8rem var(--ok); }
+    .teamchips { display: grid; gap: .6rem; }
+    .chip { display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .8rem; border: 1px solid var(--edge); font-size: 1.1rem; font-weight: 700; }
+    .chip i { width: .7rem; height: .7rem; border-radius: 50%; background: var(--c); box-shadow: 0 0 .8rem var(--c); }
+    .chip small { margin-left: auto; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+
+    /* ── DRAWING / PRESENTING ── */
+    .draw { flex-direction: column; align-items: center; justify-content: center; gap: 3rem; }
+    .draw h1 { font-size: 3.2rem; font-weight: 800; letter-spacing: -0.03em; text-align: center; }
+    .draw h1 small { display: block; font-size: 1rem; letter-spacing: .26em; text-transform: uppercase; color: var(--blue-300); margin-bottom: 1rem; font-weight: 700; }
+    .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; width: 100%; max-width: 90rem; }
+    .slot {
+      position: relative; height: 16rem; border-radius: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden; transition: transform .5s var(--bounce), box-shadow .5s, border-color .5s;
+    }
+    .slot .n { position: absolute; top: 1rem; left: 1.25rem; font-family: 'Inter', 'Pretendard', sans-serif; font-weight: 900; font-size: 2rem; color: var(--text-3); }
+    .slot .nm { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; transition: opacity .15s; }
+    .slot .tr { margin-top: .5rem; font-size: .9rem; letter-spacing: .2em; text-transform: uppercase; color: var(--c, var(--text-3)); font-weight: 700; }
+    .slot.spin .nm { opacity: .35; filter: blur(1px); }
+    .slot.fixed { border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 0 4rem -1rem var(--c); transform: scale(1.04); }
+    .slot.fixed .n { color: var(--c); }
+    .slot.now { border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 0 4rem -1rem var(--c); transform: scale(1.06); }
+    .slot.now::after { content: 'NOW'; position: absolute; top: 1rem; right: 1.25rem; font-size: .75rem; font-weight: 800; letter-spacing: .2em; color: #fff; background: var(--c); padding: .3rem .7rem; border-radius: 999px; }
+    .slot.done { opacity: .4; }
+    .slot.done::after { content: 'DONE'; position: absolute; top: 1rem; right: 1.25rem; font-size: .75rem; font-weight: 800; letter-spacing: .2em; color: var(--text-2); border: 1px solid var(--edge); padding: .3rem .7rem; border-radius: 999px; }
+
+    /* ── LIVE ── */
+    .live { gap: 2rem; }
+    .live .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .live .side { width: 32rem; display: flex; flex-direction: column; gap: 1.25rem; min-height: 0; }
+    .live-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; }
+    .live-top h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.03em; }
+    .live-top h1 small { display: block; font-size: .9rem; letter-spacing: .26em; text-transform: uppercase; color: var(--blue-300); margin-bottom: .5rem; }
+    .live-top .grand { text-align: right; }
+    .live-top .grand .lbl { font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+    .live-top .grand .val { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .live-top .grand .val small { font-size: 1.1rem; color: var(--text-3); font-weight: 600; margin-left: .5rem; }
+    .lb { position: relative; flex: 1; }
+    .row {
+      position: absolute; left: 0; right: 0; height: 7.6rem; padding: 1.1rem 1.5rem; display: grid;
+      grid-template-columns: 3rem 1fr 14rem; gap: 1.25rem; align-items: center;
+      transition: transform .7s var(--ease-out), border-color .4s, box-shadow .4s;
+    }
+    .row .rk { font-family: 'Inter', 'Pretendard', sans-serif; font-weight: 900; font-size: 2.4rem; color: var(--text-3); }
+    .row.r1 { border-color: rgba(96,165,250,.6); box-shadow: 0 0 0 1px rgba(96,165,250,.3), 0 0 4rem -1rem rgba(59,130,246,.5); }
+    .row.r1 .rk { color: var(--blue-300); }
+    .row .mid { min-width: 0; }
+    .row .nm { display: flex; align-items: baseline; gap: .8rem; }
+    .row .nm b { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; }
+    .row .nm span { font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--c); font-weight: 700; }
+    .row .bar { height: 1rem; margin: .7rem 0 0; background: rgba(255,255,255,.06); }
+    .row .bar i { background: var(--c); box-shadow: 0 0 1.2rem -.2rem var(--c); transition: width .7s var(--ease-out); }
+    .row .meta { display: flex; gap: 1.2rem; margin-top: .5rem; font-size: .85rem; color: var(--text-3); }
+    .row .meta b { color: var(--text-2); font-weight: 700; }
+    .row .amt { text-align: right; }
+    .row .amt .v { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .row .amt .s { font-size: .85rem; color: var(--text-3); font-weight: 600; }
+    .row .amt .s b { color: var(--blue-300); }
+
+    .timerbox { padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .timerbox .lbl { font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+    .timerbox .t { font-size: 3rem; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--blue-300); }
+    .timerbox .t.urgent { color: #FCA5A5; animation: blink 1s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: .4; } }
+    .invpanel { padding: 1.25rem 1.5rem; }
+    .invpanel .eyebrow { margin-bottom: .8rem; }
+    .invrow { display: grid; grid-template-columns: 5rem 1fr 6rem; gap: .8rem; align-items: center; padding: .35rem 0; font-size: 1rem; }
+    .invrow .n { font-weight: 700; }
+    .invrow .n.off { color: var(--text-3); }
+    .invrow .bar { height: .5rem; margin: 0; }
+    .invrow .u { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); font-size: .9rem; }
+    .feed { flex: 1; min-height: 0; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; }
+    .feed .eyebrow { margin-bottom: .8rem; }
+    .feed ul { list-style: none; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: .5rem; }
+    .feed li {
+      display: flex; align-items: center; gap: .7rem; padding: .7rem .9rem; border-radius: .7rem;
+      background: rgba(255,255,255,.03); border: 1px solid var(--edge); font-size: 1rem;
+      animation: slideIn .5s var(--ease-out) both;
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-1rem); } to { opacity: 1; transform: none; } }
+    .feed li i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--c); box-shadow: 0 0 .6rem var(--c); flex: none; }
+    .feed li b { font-weight: 800; }
+    .feed li .d { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .feed li .d.plus { color: #86EFAC; }
+    .feed li .d.minus { color: #FCA5A5; }
+    .feed li .t { font-size: .8rem; color: var(--text-3); }
+    .feed .empty { color: var(--text-3); font-size: 1rem; padding: 1rem 0; }
+
+    .banner {
+      position: absolute; inset: 0; display: none; align-items: center; justify-content: center; z-index: 5;
+      background: rgba(8,9,12,.55); backdrop-filter: blur(6px);
+    }
+    .banner.on { display: flex; animation: fadeIn .5s both; }
+    .banner div { text-align: center; }
+    .banner .big { font-size: 6rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+    .banner .sm { margin-top: 1rem; font-size: 1.3rem; color: var(--text-2); }
+
+    /* ── REVEAL ── */
+    .reveal { gap: 2.5rem; }
+    .reveal .focus { flex: 1; display: flex; align-items: center; justify-content: center; }
+    .reveal .strip { width: 26rem; display: flex; flex-direction: column; gap: .9rem; justify-content: center; }
+    .mini { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; animation: fadeIn .5s both; }
+    .mini .rk { font-family: 'Inter', 'Pretendard', sans-serif; font-weight: 900; font-size: 1.8rem; color: var(--c); width: 2.5rem; }
+    .mini .nm { font-size: 1.3rem; font-weight: 800; }
+    .mini .sub { font-size: .8rem; color: var(--text-3); }
+    .mini .sc { margin-left: auto; font-weight: 900; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+    .big-card {
+      width: 100%; max-width: 76rem; padding: 3rem 3.5rem; border-radius: 2rem; position: relative; overflow: hidden;
+      animation: pop .8s var(--bounce) both;
+      border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 0 8rem -2rem var(--c);
+    }
+    @keyframes pop { from { opacity: 0; transform: scale(.85) translateY(2rem); } to { opacity: 1; transform: none; } }
+    .big-card .rank { font-family: 'Inter', 'Pretendard', sans-serif; font-weight: 900; font-size: 9rem; line-height: 1; color: var(--c); letter-spacing: -0.05em; }
+    .big-card .rank small { font-size: 2rem; margin-left: .3rem; letter-spacing: 0; }
+    .big-card .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+    .big-card .nm { font-size: 4.2rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; margin-top: 1rem; }
+    .big-card .tr { font-size: 1rem; letter-spacing: .26em; text-transform: uppercase; color: var(--c); font-weight: 700; margin-top: .8rem; }
+    .big-card .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2.5rem; }
+    .stat { padding: 1.25rem 1.5rem; border-radius: 1rem; background: rgba(255,255,255,.04); border: 1px solid var(--edge); }
+    .stat .l { font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+    .stat .v { font-size: 2.4rem; font-weight: 900; letter-spacing: -0.03em; margin-top: .3rem; font-variant-numeric: tabular-nums; }
+    .stat .v small { font-size: 1rem; color: var(--text-3); margin-left: .3rem; font-weight: 600; }
+    .backers { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.5rem; }
+    .backers span { padding: .5rem .9rem; border-radius: 999px; border: 1px solid var(--edge); font-size: 1rem; font-weight: 600; background: rgba(255,255,255,.03); }
+    .backers span b { color: var(--c); margin-left: .4rem; }
+    .title-card { text-align: center; }
+    .title-card .wordmark { font-size: 6rem; }
+    .title-card p { font-size: 1.5rem; color: var(--text-2); margin-top: 1.5rem; }
+    .best-card { text-align: center; }
+    .best-card .who { font-size: 6rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; margin-top: 1.5rem; }
+    .best-card .why { font-size: 1.5rem; color: var(--text-2); margin-top: 1.5rem; }
+    .best-card .why b { color: #fff; }
+    .best-card .others { margin-top: 2rem; display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem; }
+    canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="stage">
+    <div class="hdr">
+      <img src="assets/logo-white.png" alt="Y-Ventures">
+      <div class="right">
+        <span class="title">Alumni Day · 투심보고서 투자 게임</span>
+        <span class="pill" id="phasePill"><span class="dot"></span><span id="phaseText">연결 중</span></span>
+      </div>
+    </div>
+    <div class="view">
+      <!-- LOBBY -->
+      <section class="scene lobby" id="s-lobby">
+        <div class="copy">
+          <div class="eyebrow">2026.10.10 · Y-Ventures Alumni Day</div>
+          <h1 class="wordmark" style="margin-top:1rem">Invest<br>in the <span>Next</span></h1>
+          <p class="sub">알럼나이 1인당 <b>500억</b>. 4개 팀의 투심보고서를 듣고<br>가장 믿음이 가는 곳에 투자하세요.</p>
+          <div class="qr-wrap">
+            <div class="qr" id="qr"></div>
+            <div class="qr-text">QR을 찍고 본인 이름을 선택하세요<b id="joinUrl"></b></div>
+          </div>
+        </div>
+        <div class="side">
+          <div class="card panel"><div class="eyebrow">Investors <span class="muted" id="joinCount"></span></div><div class="investors" id="investors"></div></div>
+          <div class="card panel"><div class="eyebrow">Teams</div><div class="teamchips" id="teamchips"></div></div>
+        </div>
+      </section>
+
+      <!-- DRAWING / PRESENTING -->
+      <section class="scene draw" id="s-draw">
+        <h1 id="drawTitle"><small>Presentation Order</small>발표 순서 추첨</h1>
+        <div class="slots" id="slots"></div>
+      </section>
+
+      <!-- LIVE -->
+      <section class="scene live" id="s-live">
+        <div class="main">
+          <div class="live-top">
+            <h1><small id="liveEyebrow">Live Board</small><span id="liveTitle">실시간 투자 현황</span></h1>
+            <div class="grand"><div class="lbl">Total Committed</div><div class="val"><span id="grand">0억</span><small id="active"></small></div></div>
+          </div>
+          <div class="lb" id="lb"></div>
+        </div>
+        <div class="side">
+          <div class="card timerbox" id="timerbox"><span class="lbl">Closes in</span><span class="t" id="timer">--:--</span></div>
+          <div class="card invpanel"><div class="eyebrow">Investors</div><div id="invrows"></div></div>
+          <div class="card feed"><div class="eyebrow">Live Feed</div><ul id="feed"></ul></div>
+        </div>
+        <div class="banner" id="closedBanner"><div><div class="big">투자 마감</div><div class="sm">결과 발표를 준비하고 있습니다</div></div></div>
+      </section>
+
+      <!-- REVEAL -->
+      <section class="scene reveal" id="s-reveal">
+        <div class="focus" id="focus"></div>
+        <div class="strip" id="strip"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="game.js"></script>
+  <script>
+  (function () {
+    var G = window.YVGame;
+    var $ = function (id) { return document.getElementById(id); };
+    var state = null, investments = [], feed = [];
+    var lastPhase = null, lastReveal = -1, drawAnim = null, timerId = null;
+    var confettiFired = {};
+
+    /* ── 로비 ── */
+    var joinUrl = location.origin + location.pathname.replace(/board\.html$/, '');
+    $('joinUrl').textContent = joinUrl.replace(/^https?:\/\//, '');
+    new QRCode($('qr'), { text: joinUrl, width: 176, height: 176, colorDark: '#08090C', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    $('teamchips').innerHTML = G.TEAMS.map(function (t) {
+      return '<div class="chip" style="--c:' + t.color + '"><i></i>' + G.esc(t.name) + '<small>' + G.esc(t.track) + '</small></div>';
+    }).join('');
+
+    function renderLobby() {
+      var joined = {};
+      investments.forEach(function (i) { joined[i.investor] = true; });
+      $('investors').innerHTML = G.INVESTORS.map(function (n) {
+        return '<div class="inv' + (joined[n] ? ' in' : '') + '"><span class="dot"></span>' + G.esc(n) + '</div>';
+      }).join('');
+      var c = Object.keys(joined).filter(function (n) { return G.INVESTORS.indexOf(n) !== -1; }).length;
+      $('joinCount').textContent = c + ' / ' + G.INVESTORS.length;
+    }
+
+    /* ── 추첨 / 발표 ── */
+    function slotHtml(t, n, cls) {
+      return '<div class="card slot ' + cls + '" style="--c:' + (t ? t.color : 'transparent') + '" data-i="' + n + '">' +
+        '<div class="n">' + (n + 1) + '</div><div class="nm">' + (t ? G.esc(t.name) : '?') + '</div>' +
+        '<div class="tr">' + (t ? G.esc(t.track) : '&nbsp;') + '</div></div>';
+    }
+    function renderDraw() {
+      var final = G.orderedTeams(state);
+      var started = state.drawn_at ? new Date(state.drawn_at).getTime() : Date.now();
+      var elapsed = Date.now() - started;
+      $('drawTitle').innerHTML = '<small>Presentation Order</small>발표 순서 추첨';
+      if (drawAnim) return;
+      var SPIN = 3500, GAP = 1100;
+      // 이미 다 끝난 추첨이면 바로 고정 상태로
+      if (elapsed > SPIN + GAP * 4 + 500) { fixAll(final); return; }
+      var slots = $('slots');
+      slots.innerHTML = final.map(function (t, i) { return slotHtml(null, i, 'spin'); }).join('');
+      var fixedUpTo = -1;
+      drawAnim = setInterval(function () {
+        var now = Date.now() - started;
+        var pool = G.shuffle(G.TEAMS);
+        var els = slots.querySelectorAll('.slot');
+        var shouldFix = Math.min(4, Math.max(0, Math.floor((now - SPIN) / GAP) + 1));
+        for (var i = 0; i < 4; i++) {
+          if (i < shouldFix) {
+            if (i > fixedUpTo) {
+              els[i].outerHTML = slotHtml(final[i], i, 'fixed');
+              fixedUpTo = i;
+            }
+          } else {
+            var t = pool[i];
+            els[i].style.setProperty('--c', t.color);
+            els[i].querySelector('.nm').textContent = t.name;
+            els[i].querySelector('.tr').textContent = t.track;
+          }
+        }
+        if (shouldFix >= 4) { clearInterval(drawAnim); drawAnim = null; }
+      }, 90);
+    }
+    function fixAll(final) {
+      $('slots').innerHTML = final.map(function (t, i) { return slotHtml(t, i, 'fixed'); }).join('');
+    }
+    function renderPresenting() {
+      if (drawAnim) { clearInterval(drawAnim); drawAnim = null; }
+      var teams = G.orderedTeams(state);
+      var cur = state.current_team;
+      var t = teams[cur];
+      $('drawTitle').innerHTML = '<small>Now Presenting · ' + (cur + 1) + ' / ' + teams.length + '</small>' + (t ? G.esc(t.name) + ' <span class="muted" style="font-size:1.6rem;font-weight:600">' + G.esc(t.track) + '</span>' : '');
+      $('slots').innerHTML = teams.map(function (tt, i) {
+        return slotHtml(tt, i, i < cur ? 'done' : (i === cur ? 'now' : ''));
+      }).join('');
+    }
+
+    /* ── 라이브 ── */
+    function renderLive(frozen) {
+      var T = G.tally(investments);
+      var teams = G.orderedTeams(state);
+      var lb = $('lb');
+      var H = lb.clientHeight;
+      var rowH = Math.min(7.6 * remPx(), (H - 3 * 1 * remPx()) / 4);
+      var gap = (H - rowH * 4) / 3;
+      if (!lb.children.length) {
+        lb.innerHTML = teams.map(function (t) {
+          return '<div class="card row" data-id="' + t.id + '" style="--c:' + t.color + '">' +
+            '<div class="rk"></div><div class="mid"><div class="nm"><b>' + G.esc(t.name) + '</b><span>' + G.esc(t.track) + '</span></div>' +
+            '<div class="bar"><i style="width:0%"></i></div><div class="meta"><span>투자자 <b data-cnt>0명</b></span><span>지분 <b data-share>0%</b></span></div></div>' +
+            '<div class="amt"><div class="v" data-amt>0억</div><div class="s">score <b data-score>0.0</b></div></div></div>';
+        }).join('');
+      }
+      var max = Math.max.apply(null, T.rows.map(function (r) { return r.total; }).concat([1]));
+      T.rows.forEach(function (r) {
+        var el = lb.querySelector('[data-id="' + r.team.id + '"]');
+        el.style.height = rowH + 'px';
+        el.style.transform = 'translateY(' + ((r.rank - 1) * (rowH + gap)) + 'px)';
+        el.className = 'card row' + (r.rank === 1 && r.total > 0 ? ' r1' : '');
+        el.querySelector('.rk').textContent = r.total > 0 ? r.rank : '–';
+        el.querySelector('.bar i').style.width = (r.total / max * 100) + '%';
+        el.querySelector('[data-cnt]').textContent = r.count + '명';
+        el.querySelector('[data-share]').textContent = G.pct(r.totalShare);
+        el.querySelector('[data-amt]').textContent = G.fmt(r.total);
+        el.querySelector('[data-score]').textContent = r.score.toFixed(1);
+      });
+      $('grand').textContent = G.fmt(T.grand);
+      $('active').textContent = T.active + '명 참여';
+
+      var byName = {};
+      investments.forEach(function (i) { byName[i.investor] = G.sumAmounts(i.amounts); });
+      $('invrows').innerHTML = G.INVESTORS.map(function (n) {
+        var u = byName[n] || 0;
+        return '<div class="invrow"><span class="n' + (byName[n] === undefined ? ' off' : '') + '">' + G.esc(n) + '</span>' +
+          '<div class="bar"><i style="width:' + (u / G.BUDGET * 100) + '%"></i></div><span class="u">' + u + ' / ' + G.BUDGET + '</span></div>';
+      }).join('');
+
+      var ul = $('feed');
+      if (!feed.length) { ul.innerHTML = '<li class="empty" style="border:none;background:none">아직 투자가 없습니다. 첫 투자자는 누구?</li>'; }
+      else {
+        var seen = ul.getAttribute('data-last') || '';
+        ul.innerHTML = feed.slice(0, 14).map(function (f) {
+          var t = G.TEAM_BY_ID[f.team] || {};
+          var d = f.delta > 0 ? '+' + f.delta + '억' : f.delta + '억';
+          return '<li style="--c:' + (t.color || '#fff') + '"><i></i><b>' + G.esc(f.investor) + '</b><span class="t">→</span>' + G.esc(t.name || f.team) +
+            '<span class="d ' + (f.delta > 0 ? 'plus' : 'minus') + '">' + d + '</span></li>';
+        }).join('');
+        ul.setAttribute('data-last', String(feed[0].id));
+      }
+
+      $('closedBanner').classList.toggle('on', !!frozen);
+      $('timerbox').classList.toggle('hidden', !state.deadline || frozen);
+      runTimer();
+    }
+    function remPx() { return parseFloat(getComputedStyle(document.documentElement).fontSize); }
+    function runTimer() {
+      clearInterval(timerId);
+      var el = $('timer');
+      if (!state.deadline) return;
+      var end = new Date(state.deadline).getTime();
+      function tick() {
+        var left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+        var m = Math.floor(left / 60), s = left % 60;
+        el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        el.classList.toggle('urgent', left <= 30);
+      }
+      tick(); timerId = setInterval(tick, 500);
+    }
+
+    /* ── 결과 ── */
+    function renderReveal() {
+      var T = G.tally(investments);
+      var step = state.reveal_step || 0;
+      var focus = $('focus'), strip = $('strip');
+      if (step === lastReveal && focus.children.length) return;
+      lastReveal = step;
+      var order = [4, 3, 2, 1];   // step 1..4 가 공개하는 순위
+      var revealedRanks = order.slice(0, Math.min(step, 4));
+      strip.innerHTML = revealedRanks.map(function (rk) {
+        var r = T.ranked[rk - 1];
+        return '<div class="card mini" style="--c:' + r.team.color + '"><div class="rk">' + rk + '</div><div><div class="nm">' + G.esc(r.team.name) + '</div><div class="sub">' + G.fmt(r.total) + ' · ' + r.count + '명</div></div><div class="sc">' + r.score.toFixed(1) + '</div></div>';
+      }).join('');
+
+      if (step === 0) {
+        focus.innerHTML = '<div class="title-card"><div class="eyebrow">Results</div><h1 class="wordmark" style="margin-top:1rem">Final<br>Results</h1><p>총 ' + G.fmt(T.grand) + ' · ' + T.active + '명의 투자자가 참여했습니다</p></div>';
+      } else if (step <= 4) {
+        var rk = order[step - 1];
+        var r = T.ranked[rk - 1];
+        focus.innerHTML = '<div class="card big-card" style="--c:' + r.team.color + '">' +
+          '<div class="head"><div><div class="rank">' + rk + '<small>위</small></div><div class="nm">' + G.esc(r.team.name) + '</div><div class="tr">' + G.esc(r.team.track) + ' · ' + G.esc(r.team.en) + '</div></div></div>' +
+          '<div class="stats"><div class="stat"><div class="l">Total</div><div class="v">' + G.fmt(r.total) + '<small>' + G.pct(r.totalShare) + '</small></div></div>' +
+          '<div class="stat"><div class="l">Backers</div><div class="v">' + r.count + '<small>/ ' + G.INVESTORS.length + '명</small></div></div>' +
+          '<div class="stat"><div class="l">Score</div><div class="v">' + r.score.toFixed(1) + '<small>총액 70 · 지지 30</small></div></div></div>' +
+          '<div class="backers">' + (r.backers.length ? r.backers.map(function (b) { return '<span>' + G.esc(b.investor) + '<b>' + G.fmt(b.amount) + '</b></span>'; }).join('') : '<span class="muted">투자자 없음</span>') + '</div></div>';
+        if (rk === 1 && !confettiFired[1]) { confettiFired[1] = true; confetti(); }
+      } else {
+        var w = T.winner, b = T.best;
+        var others = w ? w.backers.filter(function (x) { return !b || x.investor !== b.investor; }) : [];
+        focus.innerHTML = '<div class="card big-card best-card" style="--c:#60A5FA">' +
+          '<div class="eyebrow">Best Investor</div>' +
+          (b ? '<div class="who">' + G.esc(b.investor) + '</div><div class="why">1위 <b>' + G.esc(w.team.name) + '</b>에 <b>' + G.fmt(b.amount) + '</b> 투자 · 포트폴리오의 <b>' + G.pct(b.share) + '</b></div>'
+             : '<div class="who">—</div><div class="why">1위 팀에 투자한 사람이 없습니다</div>') +
+          '<div class="others">' + others.map(function (x) { return '<span class="pill">' + G.esc(x.investor) + ' · ' + G.fmt(x.amount) + ' · ' + G.pct(x.share) + '</span>'; }).join('') + '</div></div>';
+        if (!confettiFired[5]) { confettiFired[5] = true; confetti(); }
+      }
+    }
+
+    /* ── 컨페티 ── */
+    function confetti() {
+      var c = $('confetti'), ctx = c.getContext('2d');
+      c.width = innerWidth; c.height = innerHeight;
+      var colors = ['#3B82F6', '#60A5FA', '#A855F7', '#C7F23E', '#F2C56F', '#ffffff'];
+      var ps = [];
+      for (var i = 0; i < 220; i++) ps.push({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4, r: 4 + Math.random() * 6, c: colors[i % colors.length], a: Math.random() * Math.PI, va: (Math.random() - .5) * .2 });
+      var start = Date.now();
+      (function frame() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        ps.forEach(function (p) {
+          p.x += p.vx; p.y += p.vy; p.a += p.va;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore();
+        });
+        if (Date.now() - start < 4500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, c.width, c.height);
+      })();
+    }
+
+    /* ── 라우팅 ── */
+    function show(id) {
+      ['s-lobby', 's-draw', 's-live', 's-reveal'].forEach(function (s) { $(s).classList.toggle('on', s === id); });
+    }
+    function render() {
+      var phase = state.phase;
+      var pill = $('phasePill');
+      pill.className = 'pill' + (phase === 'investing' ? ' live' : (phase === 'closed' ? ' closed' : ''));
+      $('phaseText').textContent = G.phaseLabel(phase);
+      var changed = phase !== lastPhase;
+      if (changed) { lastPhase = phase; if (phase !== 'drawing' && drawAnim) { clearInterval(drawAnim); drawAnim = null; } if (phase !== 'revealed') { lastReveal = -1; confettiFired = {}; } if (phase !== 'investing' && phase !== 'closed') $('lb').innerHTML = ''; }
+      if (phase === 'lobby') { show('s-lobby'); renderLobby(); }
+      else if (phase === 'drawing') { show('s-draw'); renderDraw(); }
+      else if (phase === 'presenting') { show('s-draw'); renderPresenting(); }
+      else if (phase === 'investing') { show('s-live'); renderLive(false); }
+      else if (phase === 'closed') { show('s-live'); renderLive(true); }
+      else if (phase === 'revealed') { show('s-reveal'); renderReveal(); }
+    }
+    function refresh() {
+      return Promise.all([G.fetchState(), G.fetchInvestments(), G.fetchFeed(20)]).then(function (r) {
+        state = r[0]; investments = r[1]; feed = r[2];
+        render();
+      });
+    }
+    G.subscribe(refresh, 2500);
+    window.addEventListener('resize', function () { if (state && (state.phase === 'investing' || state.phase === 'closed')) renderLive(state.phase === 'closed'); });
+  })();
+  </script>
+</body>
+</html>
