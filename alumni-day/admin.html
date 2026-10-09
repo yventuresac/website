@@ -254,7 +254,7 @@
       $('phaseText').textContent = G.phaseLabel(phase);
       $('nowPhase').textContent = G.phaseLabel(phase);
       var T = G.tally(investments);
-      $('nowStats').innerHTML = '참여 <b>' + investments.length + '</b> / ' + G.INVESTORS.length + '명<br>집행 <b>' + G.fmt(T.grand) + '</b>';
+      $('nowStats').innerHTML = '참여 <b>' + investments.length + '</b>' + '명<br>집행 <b>' + G.fmt(T.grand) + '</b>';
 
       var activeStep = { lobby: 1, drawing: 1, presenting: 2, investing: 3, closed: 4, revealed: 5 }[phase] || 1;
       if (phase === 'investing') activeStep = 4;   // 투자 중엔 "마감"이 다음 동작

@@ -27,6 +27,7 @@
       background: var(--bg-card); border: 1px solid var(--edge); border-radius: 14px; color: var(--text-1);
       box-shadow: var(--glow); transition: all .2s var(--ease-out);
     }
+    .name-btn.guest { font-size: 14px; color: var(--text-3); font-weight: 600; grid-column: 1 / -1; padding: 14px; }
     .name-btn:active { transform: scale(.97); border-color: var(--blue-400); background: rgba(37, 99, 235, 0.12); }
 
     /* 상태 카드 */
@@ -181,10 +182,17 @@
       G.INVESTORS.forEach(function (n) {
         html += '<button class="name-btn" type="button" data-n="' + G.esc(n) + '">' + G.esc(n) + '</button>';
       });
+      html += '<button class="name-btn guest" type="button" data-guest="1">명단에 없어요</button>';
       $('names').innerHTML = html;
       $('names').addEventListener('click', function (e) {
         var b = e.target.closest('.name-btn');
         if (!b) return;
+        if (b.getAttribute('data-guest')) {
+          var n = (prompt('이름을 입력해주세요') || '').trim().slice(0, 12);
+          if (!n) return;
+          choose(n);
+          return;
+        }
         choose(b.getAttribute('data-n'));
       });
     }
@@ -439,7 +447,7 @@
     /* ── 시작 ── */
     renderPick();
     try { me = localStorage.getItem(KEY); } catch (e) {}
-    if (me && G.INVESTORS.indexOf(me) !== -1) {
+    if (me && me.trim()) {
       choose(me);
     } else {
       me = null;

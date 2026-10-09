@@ -278,11 +278,10 @@
     function renderLobby() {
       var joined = {};
       investments.forEach(function (i) { joined[i.investor] = true; });
-      $('investors').innerHTML = G.INVESTORS.map(function (n) {
+      $('investors').innerHTML = G.allInvestors(investments).map(function (n) {
         return '<div class="inv' + (joined[n] ? ' in' : '') + '"><span class="dot"></span>' + G.esc(n) + '</div>';
       }).join('');
-      var c = Object.keys(joined).filter(function (n) { return G.INVESTORS.indexOf(n) !== -1; }).length;
-      $('joinCount').textContent = c + ' / ' + G.INVESTORS.length;
+      $('joinCount').textContent = investments.length + '명 입장';
     }
 
     /* ── 추첨 / 발표 ── */
@@ -375,7 +374,7 @@
 
       var byName = {};
       investments.forEach(function (i) { byName[i.investor] = G.sumAmounts(i.amounts); });
-      $('invrows').innerHTML = G.INVESTORS.map(function (n) {
+      $('invrows').innerHTML = G.allInvestors(investments).map(function (n) {
         var u = byName[n] || 0;
         return '<div class="invrow"><span class="n' + (byName[n] === undefined ? ' off' : '') + '">' + G.esc(n) + '</span>' +
           '<div class="bar"><i style="width:' + (u / G.BUDGET * 100) + '%"></i></div><span class="u">' + u + ' / ' + G.BUDGET + '</span></div>';
@@ -435,7 +434,7 @@
         focus.innerHTML = '<div class="card big-card" style="--c:' + r.team.color + '">' +
           '<div class="head"><div><div class="rank">' + rk + '<small>위</small></div>' + G.logoImg(r.team) + '<div class="nm">' + G.esc(r.team.name) + '</div><div class="tr">' + G.esc(r.team.track) + ' · ' + G.esc(r.team.en) + '</div></div></div>' +
           '<div class="stats"><div class="stat"><div class="l">Total</div><div class="v">' + G.fmt(r.total) + '<small>' + G.pct(r.totalShare) + '</small></div></div>' +
-          '<div class="stat"><div class="l">Backers</div><div class="v">' + r.count + '<small>/ ' + G.INVESTORS.length + '명</small></div></div>' +
+          '<div class="stat"><div class="l">Backers</div><div class="v">' + r.count + '<small>/ 참여 ' + T.joined + '명</small></div></div>' +
           '<div class="stat"><div class="l">Score</div><div class="v">' + r.score.toFixed(1) + '<small>총액 70 · 지지 30</small></div></div></div>' +
           '<div class="backers">' + (r.backers.length ? r.backers.map(function (b) { return '<span>' + G.esc(b.investor) + '<b>' + G.fmt(b.amount) + '</b></span>'; }).join('') : '<span class="muted">투자자 없음</span>') + '</div></div>';
         if (rk === 1 && !confettiFired[1]) { confettiFired[1] = true; confetti(); }

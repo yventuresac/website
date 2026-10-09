@@ -22,6 +22,12 @@
   TEAMS.forEach(function (t) { TEAM_BY_ID[t.id] = t; });
 
   var INVESTORS = ['송준영', '정재민', '이윤지', '백보성', '박준영', '서제후', '안병세'];
+  // 명단 + 실제 들어온 사람(명단 밖 게스트 포함)
+  function allInvestors(investments) {
+    var names = INVESTORS.slice();
+    (investments || []).forEach(function (i) { if (names.indexOf(i.investor) === -1) names.push(i.investor); });
+    return names;
+  }
   var BUDGET = 500;   // 억
   var STEP = 10;      // 억
   var ADMIN_PIN = '7913';
@@ -127,9 +133,11 @@
       });
     });
 
+    // 지지 폭 분모 = 실제로 들어온 사람 수 (불참자가 있어도 점수가 깎이지 않게)
+    var joined = Math.max(1, investments.length);
     rows.forEach(function (r) {
       r.totalShare = grand ? r.total / grand : 0;
-      r.countShare = r.count / INVESTORS.length;
+      r.countShare = r.count / joined;
       r.score = (WEIGHT_TOTAL * r.totalShare + WEIGHT_COUNT * r.countShare) * 100;
       r.backers.sort(function (x, y) { return y.amount - x.amount; });
     });
@@ -152,7 +160,7 @@
       })[0];
     }
 
-    return { rows: rows, ranked: ranked, grand: grand, active: active, winner: winner, best: best };
+    return { rows: rows, ranked: ranked, grand: grand, active: active, joined: investments.length, winner: winner, best: best };
   }
 
   function orderedTeams(state) {
@@ -271,6 +279,7 @@
     shuffle: shuffle,
     fmt: fmt,
     logoImg: logoImg,
+    allInvestors: allInvestors,
     pct: pct,
     esc: esc,
     phaseLabel: phaseLabel
