@@ -41,11 +41,17 @@
     .aa-state.ok { color: #6EE7B7; }
     .aa-state.err { color: #FCA5A5; }
     /* 응답 전체 보기 */
-    .aa-detail td { white-space: normal; }
-    .aa-detail dl { margin: 0; display: grid; grid-template-columns: 220px 1fr; gap: 6px 14px; font-size: 13px; }
+    .aa-detail td { white-space: normal; padding: 20px 18px 24px; background: var(--bg-base); }
+    .aa-sec { font-size: 11px; font-weight: 600; letter-spacing: var(--ls-wide); text-transform: uppercase;
+              color: var(--text-3); margin: 0 0 12px; }
+    .aa-detail dl { margin: 0 0 26px; display: grid; grid-template-columns: 200px 1fr; gap: 9px 16px; font-size: 13.5px; }
     .aa-detail dt { color: var(--text-3); }
-    .aa-detail dd { margin: 0; color: var(--text-2); word-break: break-word; white-space: pre-wrap; }
-    @media (max-width: 640px) { .aa-detail dl { grid-template-columns: 1fr; gap: 2px; } }
+    .aa-detail dd { margin: 0; color: var(--text-1); word-break: break-word; white-space: pre-wrap; }
+    .aa-qa { margin: 0 0 16px; max-width: 780px; }
+    .aa-q { font-size: 13px; color: var(--text-3); margin-bottom: 6px; }
+    .aa-a { font-size: 14px; line-height: 1.7; color: var(--text-1); white-space: pre-wrap; word-break: break-word;
+            padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--edge); border-radius: 10px; }
+    @media (max-width: 640px) { .aa-detail dl { grid-template-columns: 1fr; gap: 2px; } .aa-detail dd { margin-bottom: 8px; } }
   </style>
 </head>
 <body class="theme-mono">
@@ -69,6 +75,7 @@
           <a href="/y-startup/">Y-Startup</a>
           <a href="/boost/">Boost Program</a>
           <a href="/vc-career/">VC Career Session</a>
+          <a href="/networking-party/">Networking Party</a>
         </div>
       </li>
       <li class="nav-item">
@@ -112,6 +119,14 @@
       var root = document.getElementById("root");
       var STATUS = { received: "접수됨", docs_pass: "서류 통과", interview: "면접 대상", accepted: "최종 선정", rejected: "미선정" };
       var db = null, all = [], curProgram = "all", openId = null;
+      /* program 코드 → 사람이 읽는 이름 (지원 현황 페이지와 같은 목록). 새 프로그램은 여기에도 추가 */
+      var PROGRAMS = {
+        "boost-4": "Boost Program 4기",
+        "y-startup-4": "Y-Startup 4기",
+        "recruit-4": "Y-VENTURES 4기 리크루팅",
+        "networking-2026": "Networking Party 2026"
+      };
+      function progName(p) { return PROGRAMS[p] || p; }
 
       function esc(s) {
         return String(s == null ? "" : s)
@@ -137,21 +152,54 @@
           }).join("") + '</select>';
       }
 
+      /* Tally 원본 응답을 읽기 좋게 바꾼다.
+         - 객관식·체크박스·순위의 value 는 보기 id 라서 options 의 글자로 바꾼다
+         - 체크박스는 보기마다 'Q (보기)' true/false 항목이 따로 붙어 오는데, 위 문항이 이미 보여주므로 뺀다
+         - 서술형 답은 짧은 답과 나눠 아래에 문단으로 모은다 */
+      function optText(f, id) {
+        var opts = f.options || [];
+        for (var i = 0; i < opts.length; i++) if (opts[i].id === id) return opts[i].text;
+        return id;
+      }
+      function answerOf(f) {
+        var v = f.value;
+        if (v == null || v === "" || v === false || (Array.isArray(v) && !v.length)) return "";
+        if (v === true) return "예";
+        if (Array.isArray(v) && f.options && f.options.length) {
+          if (f.type === "RANKING") return v.map(function (id, i) { return (i + 1) + ". " + optText(f, id); }).join("\n");
+          return v.map(function (id) { return optText(f, id); }).join(", ");
+        }
+        return fieldText(v);
+      }
       function detailHtml(a) {
         var fields = (a.payload && a.payload.fields) || [];
-        var rows = fields.map(function (f) {
-          var v = fieldText(f.value);
-          if (!v) return "";
-          return '<dt>' + esc(f.label || f.key || "") + '</dt><dd>' + esc(v) + '</dd>';
-        }).filter(Boolean).join("");
-        return '<tr class="aa-detail"><td colspan="6"><dl>' + (rows || "<dt>응답</dt><dd>비어 있음</dd>") + '</dl></td></tr>';
+        var parents = fields.filter(function (f) { return f.options && f.options.length; })
+                            .map(function (f) { return String(f.label || "") + " ("; });
+        var shortRows = "", longRows = "";
+        fields.forEach(function (f) {
+          var label = String(f.label || f.key || "");
+          var isOptionFlag = typeof f.value === "boolean" &&
+            parents.some(function (p) { return label.indexOf(p) === 0; });
+          if (isOptionFlag) return;
+          var ans = answerOf(f);
+          if (!ans) return;
+          var isLong = f.type === "TEXTAREA" || (f.type !== "RANKING" && ans.length > 60);
+          if (isLong) {
+            longRows += '<div class="aa-qa"><div class="aa-q">' + esc(label) + '</div><div class="aa-a">' + esc(ans) + '</div></div>';
+          } else {
+            shortRows += '<dt>' + esc(label) + '</dt><dd>' + esc(ans) + '</dd>';
+          }
+        });
+        var body = (shortRows ? '<div class="aa-sec">기본 정보</div><dl>' + shortRows + '</dl>' : "") +
+                   (longRows ? '<div class="aa-sec">서술 답변</div>' + longRows : "");
+        return '<tr class="aa-detail"><td colspan="6">' + (body || '<div class="aa-q">응답이 비어 있습니다.</div>') + '</td></tr>';
       }
 
       function rowHtml(a) {
         return '<tr>' +
           '<td class="who">' + esc(a.team_name || a.applicant_name || "(이름 없음)") +
             '<small>' + esc(a.applicant_email || "") + '</small></td>' +
-          '<td>' + esc(a.program) + '</td>' +
+          '<td>' + esc(progName(a.program)) + '</td>' +
           '<td>' + esc(fmtDate(a.submitted_at || a.created_at)) + '</td>' +
           '<td>' + statusSelect(a) + '</td>' +
           '<td>' + (a.marketing_opt_in ? '<span class="aa-optin">안내 동의</span>' : "") + '</td>' +
@@ -167,7 +215,7 @@
         var tabs = '<button type="button" class="aa-tab' + (curProgram === "all" ? " on" : "") + '" data-tab="all">전체 (' + all.length + ')</button>' +
           Object.keys(programs).sort().map(function (p) {
             return '<button type="button" class="aa-tab' + (curProgram === p ? " on" : "") + '" data-tab="' + esc(p) + '">' +
-                   esc(p) + ' (' + programs[p] + ')</button>';
+                   esc(progName(p)) + ' (' + programs[p] + ')</button>';
           }).join("");
 
         var rows = curProgram === "all" ? all : all.filter(function (a) { return a.program === curProgram; });

@@ -8,6 +8,7 @@
 //   - 리다이렉트 전용 페이지(greetings, history) — 색인에 넣으면 중복 취급된다
 //   - 로그인·회원 전용(auth, members) — 검색 결과에 뜰 이유가 없다
 //   - 내부 자료(imweb, admin-tools, pipeline)
+//   - 행사 진행용 화면(alumni-day) — 현장에서 폰·큰 화면으로만 쓴다
 //
 // 사용법:
 //   node pipeline/build-sitemap.mjs
@@ -22,7 +23,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const ORIGIN = 'https://www.yventures.ac';
 
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'pipeline', 'imweb', 'admin-tools', 'auth', 'members', 'assets', 'css', 'js', 'supabase', '.claude', '.github']);
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'pipeline', 'imweb', 'admin-tools', 'alumni-day', 'auth', 'members', 'assets', 'css', 'js', 'supabase', '.claude', '.github']);
 
 const DRY_RUN = process.argv.includes('--dry-run');
 

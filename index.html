@@ -28,6 +28,30 @@
 <body>
 
 
+  <!-- 2026 YEAR-END NETWORKING PARTY 팝업 -->
+  <div class="yv-popup-overlay" id="npPopup" role="dialog" aria-modal="true" aria-label="Y-Ventures Year-End Networking Party 안내">
+    <div class="yv-popup">
+      <button class="yv-popup-close" id="npPopupClose" aria-label="팝업 닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <a href="networking-party/" class="yv-popup-text" aria-label="네트워킹 파티 페이지로 이동">
+        <div class="yv-popup-eyebrow">제3회 · 2026</div>
+        <div class="yv-popup-title"><span style="padding: 0 0.12em; margin: 0 -0.12em; background: linear-gradient(225deg, #0075FF 0 32%, var(--text-1) 32%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Y</span>-Ventures Year-End<br>Networking Party</div>
+        <p class="yv-popup-desc">도전을 앞둔 사람과 도전 중인 사람이 <br>먼저 그 길을 걸은 연세 창업가·VC에게 <br>고민을 직접 묻는 연례 네트워킹 행사입니다.</p>
+        <div class="yv-popup-dates">
+          <div><span>일시</span><span>11.14 (토) 14:00 ~ 17:00</span></div>
+          <div><span>장소</span><span>연세대학교 경영관 용재홀</span></div>
+          <div><span>대상</span><span>연세 출신 창업가 · 학생</span></div>
+          <div><span>신청 마감</span><span>11.11 (수) 23:59</span></div>
+        </div>
+      </a>
+      <div class="yv-popup-foot">
+        <button type="button" id="npPopupDismiss">오늘 하루 보지 않기</button>
+        <button type="button" class="yv-popup-apply" onclick="location.href='networking-party/'">행사 안내 보기</button>
+      </div>
+    </div>
+  </div>
+
   <nav id="nav">
     <a href="index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
       <img src="assets/logo.png" alt="Y-VENTURES" />
@@ -47,6 +71,7 @@
           <a href="y-startup/">Y-Startup</a>
           <a href="boost/">Boost Program</a>
           <a href="vc-career/">VC Career Session</a>
+          <a href="networking-party/">Networking Party</a>
         </div>
       </li>
       <li class="nav-item">
@@ -467,6 +492,24 @@
       hero.addEventListener('mouseleave', () => hero.style.setProperty('--hero-bg-x', '100%'));
     }
 
+    // networking party popup — 하루에 한 번 (오늘 하루 보지 않기)
+    (function () {
+      const overlay = document.getElementById('npPopup');
+      if (!overlay) return;
+      const KEY = 'yv-np26-popup-dismissed';
+      const today = new Date().toISOString().slice(0, 10);
+      try { if (localStorage.getItem(KEY) === today) return; } catch (e) {}
+
+      const open = () => overlay.classList.add('open');
+      const close = () => overlay.classList.remove('open');
+      const dismissToday = () => { try { localStorage.setItem(KEY, today); } catch (e) {} close(); };
+
+      window.setTimeout(open, 900);
+      document.getElementById('npPopupClose').addEventListener('click', close);
+      document.getElementById('npPopupDismiss').addEventListener('click', dismissToday);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    })();
   </script>
   <!-- auth: nav login/logout -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

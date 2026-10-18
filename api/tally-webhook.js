@@ -35,9 +35,12 @@ function extract(fields) {
     if (!email && (f.type === 'INPUT_EMAIL' || /이메일|e-?mail/i.test(label)) && /@/.test(val)) email = val.trim();
     if (!team && /팀명|팀 이름/.test(label)) team = val.trim();
     if (!name && /이름|성명|대표자/.test(label) && f.type !== 'INPUT_EMAIL' && val && !/@/.test(val)) name = val.trim();
-    // '추후 안내' 선택 동의 — 폼에 추가되면 자동으로 잡힌다
-    if (/추후|안내 수신|재연락/.test(label)) {
-      optIn = f.value === true || /동의|예|yes/i.test(val);
+    // '추후 안내' 선택 동의 — 폼에 추가되면 자동으로 잡힌다.
+    // Tally 체크박스는 문항 하나와 보기별 항목이 따로 와서 같은 라벨이 여러 번 지나간다.
+    // 한 번 잡힌 동의는 뒤 항목이 덮어쓰지 못하게 하고, '동의 안함' 같은 부정 보기는 세지 않는다.
+    const NEG = /안함|않음|거부|미동의|아니/;
+    if (/추후|안내 수신|재연락/.test(label) && !NEG.test(label)) {
+      if (f.value === true || (/동의|예|yes/i.test(val) && !NEG.test(val))) optIn = true;
     }
   }
   return { email, name, team, optIn };
