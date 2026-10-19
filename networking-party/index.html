@@ -47,22 +47,6 @@
     .np-step p { font-size: 14px; line-height: 1.75; color: var(--text-2); }
     .np-mentor-facts { margin-top: 40px; }
     @media (max-width: 900px) { .np-steps { grid-template-columns: 1fr; } }
-    /* 섹터 카드 */
-    .np-sectors-grid { margin-top: 36px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .np-sector {
-      position: relative; padding: 24px 22px 22px; background: var(--bg-card);
-      border: 1px solid var(--edge); border-radius: 14px; overflow: hidden;
-    }
-    .np-sector::before {
-      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px;
-      background: linear-gradient(90deg, var(--blue-400), rgba(59, 130, 246, 0));
-    }
-    .np-sector-name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; color: var(--text-1); }
-    .np-sector-range { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--blue-300); }
-    .np-sector-desc { margin-top: 12px; font-size: 14px; line-height: 1.65; color: var(--text-2); text-wrap: balance; word-break: keep-all; }
-    .np-sectors-grid + .np-note { margin-top: 14px; }
-    .np-sectors-grid ~ .np-steps { margin-top: 40px; }
-    @media (max-width: 1024px) { .np-sectors-grid { grid-template-columns: repeat(2, 1fr); } }
     /* 이런 분이라면 */
     .np-for { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
     .np-for-card { padding: 28px 28px 26px; background: var(--bg-card); border: 1px solid var(--edge); border-radius: 14px; }
@@ -167,25 +151,6 @@
     <span class="deadline-pill np-deadline">참가 신청 마감 11/11(수) 23:59</span>
   </div>
 
-  <section class="vc-pixel-block">
-    <div class="vc-pixel-2026">2026</div>
-    <div class="vc-pixel" aria-hidden="true">
-      <svg viewBox="0 0 400 400" width="100%" height="100%" role="img" aria-label="Networking pixel N">
-        <defs>
-          <pattern id="np-dots" width="18" height="18" patternUnits="userSpaceOnUse">
-            <circle cx="9" cy="9" r="6" fill="#3B82F6"/>
-          </pattern>
-          <pattern id="np-dim" width="18" height="18" patternUnits="userSpaceOnUse">
-            <circle cx="9" cy="9" r="4" fill="rgba(59, 130, 246, 0.18)"/>
-          </pattern>
-        </defs>
-        <rect x="0" y="40" width="400" height="320" fill="url(#np-dim)"/>
-        <path d="M 80 50 L 132 50 L 268 250 L 268 50 L 320 50 L 320 350 L 268 350 L 132 150 L 132 350 L 80 350 Z" fill="url(#np-dots)"/>
-      </svg>
-    </div>
-    <p class="vc-pixel-caption">Y-VENTURES · YEAR-END NETWORKING PARTY</p>
-  </section>
-
   <section class="section bordered">
     <div class="eyebrow">행사 소개</div>
     <h2 class="section-heading">연세 창업가와 VC를 <span class="heading-underline">한 곳에</span></h2>
@@ -233,16 +198,20 @@
         <div class="timetable-content"><em>Opening</em> · <strong>박기호 LB인베스트먼트 대표</strong><img class="np-logo np-logo-lb" src="./img/logo-lb.png?v=2" alt="LB인베스트먼트" width="108" height="30" /></div>
       </div>
       <div class="timetable-row">
-        <div class="timetable-time">14:10 — 14:30</div>
+        <div class="timetable-time">14:10 — 14:20</div>
         <div class="timetable-content"><em>Introduction</em> · <strong>Y-VENTURES 소개 및 섹터별 연사 소개</strong></div>
       </div>
       <div class="timetable-row">
-        <div class="timetable-time">14:30 — 15:00</div>
+        <div class="timetable-time">14:20 — 14:50</div>
         <div class="timetable-content"><em>Keynote</em> · <strong>이세영 뤼튼테크놀로지스 대표</strong><img class="np-logo np-logo-wrtn" src="./img/logo-wrtn.png?v=2" alt="뤼튼" width="62" height="19" /></div>
       </div>
       <div class="timetable-row">
-        <div class="timetable-time">15:00 — 16:30</div>
-        <div class="timetable-content"><em>Sector Session</em> · <strong>Early Stage · 규제 돌파 · B2B · AI</strong> <span style="color: var(--text-3);">· 섹터별 강의실, 연사 강연 후 멘토-멘티 세션</span></div>
+        <div class="timetable-time">14:50 — 15:50</div>
+        <div class="timetable-content"><em>Sector Talk</em> · <strong>섹터별 연사 스피치</strong></div>
+      </div>
+      <div class="timetable-row">
+        <div class="timetable-time">15:50 — 16:30</div>
+        <div class="timetable-content"><em>Mentoring Session</em> · <strong>섹터별 멘토-멘티 세션</strong> <span style="color: var(--text-3);">· 4개 섹터로 나누어 진행</span></div>
       </div>
       <div class="timetable-row">
         <div class="timetable-time">16:30 — 16:50</div>
@@ -263,33 +232,15 @@
   <section class="section bordered">
     <div class="eyebrow">Mentoring Session</div>
     <h2 class="section-heading"><span class="heading-underline">멘토-멘티 세션</span></h2>
-    <p class="section-text">이 행사의 중심은 섹터별 멘토-멘티 세션입니다. 강연을 듣는 데서 끝나지 않고, 각자 안고 온 고민을 그 자리에서 연사에게 직접 묻고 함께 답을 찾습니다. 한 방에 멘티 20명 내외라 질문할 시간이 충분합니다.</p>
+    <p class="section-text">이 행사의 중심은 네 개 섹터로 나뉘어 진행되는 멘토-멘티 세션입니다. 강연을 듣는 데서 끝나지 않고, 각자 안고 온 고민을 그 자리에서 연사에게 직접 묻고 함께 답을 찾습니다.</p>
 
-    <div class="np-sectors-grid">
-      <article class="np-sector">
-        <h3 class="np-sector-name">Early Stage <span class="np-sector-range">Pre-seed ~ Series A</span></h3>
-        <p class="np-sector-desc">첫 고객과 첫 투자, 초기 팀을 만들어 가는 단계의 고민</p>
-      </article>
-      <article class="np-sector">
-        <h3 class="np-sector-name">규제 돌파</h3>
-        <p class="np-sector-desc">규제가 있는 시장에서 길을 내며 사업을 키우는 법</p>
-      </article>
-      <article class="np-sector">
-        <h3 class="np-sector-name">B2B</h3>
-        <p class="np-sector-desc">기업 고객을 설득하고 계약까지 이어가는 법</p>
-      </article>
-      <article class="np-sector">
-        <h3 class="np-sector-name">AI</h3>
-        <p class="np-sector-desc">AI로 제품을 만들고 시장을 여는 법</p>
-      </article>
-    </div>
-    <p class="np-note">섹터마다 연사 한 분이 함께합니다. 섹터별 연사는 확정되는 대로 공개합니다.</p>
+    <p class="np-note">섹터 구성과 섹터별 연사는 확정되는 대로 공개합니다.</p>
 
     <ol class="np-steps">
       <li class="np-step">
         <div class="np-step-num">01</div>
         <h3>섹터 배정</h3>
-        <p>지원서에 적은 희망 순위와 섹터별 인원을 고려해 네 섹터 중 한 곳에 배정됩니다.</p>
+        <p>참가가 확정된 분께 희망 섹터를 따로 여쭤보고, 섹터별 인원을 고려해 한 곳에 배정합니다.</p>
       </li>
       <li class="np-step">
         <div class="np-step-num">02</div>
@@ -305,9 +256,9 @@
 
     <dl class="event-facts np-mentor-facts">
       <dt>방 구성</dt>
-      <dd>섹터당 연사 1명 · 멘티 20명 내외</dd>
+      <dd>4개 섹터 · 섹터당 연사 1명</dd>
       <dt>진행 시간</dt>
-      <dd>15:00 — 16:30 (90분) · 연사 강연 후 멘토-멘티 세션</dd>
+      <dd>14:50 — 15:50 섹터별 연사 스피치 · 15:50 — 16:30 멘토-멘티 세션</dd>
       <dt>진행</dt>
       <dd>섹터마다 <span class="np-nb">Y-VENTURES</span> 학회원이 모더레이터로 배치되어 대화를 이끕니다</dd>
     </dl>
@@ -438,7 +389,7 @@
     const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.event-facts', '.timetable-row', '.np-for-card', '.np-sector', '.np-step', '.np-midcta', '.np-gallery figure', '.about-cta-title', '.about-cta-actions', '.btn'];
+    const revealSelectors = ['.eyebrow', '.section-heading', '.section-text', '.event-facts', '.timetable-row', '.np-for-card', '.np-step', '.np-midcta', '.np-gallery figure', '.about-cta-title', '.about-cta-actions', '.btn'];
     const revealTargets = document.querySelectorAll(revealSelectors.join(','));
     revealTargets.forEach((el, i) => {
       el.classList.add('reveal');
