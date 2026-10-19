@@ -169,7 +169,16 @@
           if (f.type === "RANKING") return v.map(function (id, i) { return (i + 1) + ". " + optText(f, id); }).join("\n");
           return v.map(function (id) { return optText(f, id); }).join(", ");
         }
+        if (f.type === "INPUT_PHONE_NUMBER" || /^\+82/.test(String(v))) return krPhone(fieldText(v));
         return fieldText(v);
+      }
+      // Tally 는 전화번호를 +8210… 으로 준다. 연락할 때 바로 쓰게 010-0000-0000 으로 보여준다.
+      function krPhone(s) {
+        var d = String(s).replace(/[^\d+]/g, "");
+        if (/^\+82/.test(d)) d = "0" + d.slice(3).replace(/^0/, "");
+        if (/^01\d{9}$/.test(d)) return d.slice(0, 3) + "-" + d.slice(3, 7) + "-" + d.slice(7);
+        if (/^01\d{8}$/.test(d)) return d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6);
+        return s;
       }
       function detailHtml(a) {
         var fields = (a.payload && a.payload.fields) || [];
