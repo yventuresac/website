@@ -33,7 +33,8 @@ function extract(fields) {
     const label = String(f.label || '');
     const val = fieldText(f.value);
     if (!email && (f.type === 'INPUT_EMAIL' || /이메일|e-?mail/i.test(label)) && /@/.test(val)) email = val.trim();
-    if (!team && /팀명|팀\s?(의\s?)?이름/.test(label)) team = val.trim();
+    // 학생 신청서는 '창업팀의 이름', 초청 신청서는 '기업명'으로 묻는다.
+    if (!team && /팀명|팀\s?(의\s?)?이름|기업명|회사명/.test(label)) team = val.trim();
     if (!name && /이름|성명|대표자/.test(label) && f.type !== 'INPUT_EMAIL' && val && !/@/.test(val)) name = val.trim();
     // '추후 안내' 선택 동의 — 폼에 추가되면 자동으로 잡힌다.
     // Tally 체크박스는 문항 하나와 보기별 항목이 따로 와서 같은 라벨이 여러 번 지나간다.
