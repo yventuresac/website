@@ -44,6 +44,9 @@
     .aa-view { background: none; border: none; color: #93C5FD; font-size: 13px; cursor: pointer;
                padding: 0; font-family: 'Pretendard', sans-serif; }
     .aa-optin { color: #6EE7B7; font-size: 12px; }
+    .aa-table select.aa-type.founder { color: #93C5FD; border-color: rgba(96, 165, 250, 0.45); }
+    .aa-table select.aa-type.guess { border-style: dashed; }
+    .aa-guess { display: block; margin-top: 3px; font-size: 11px; color: var(--text-3); }
     .aa-state { font-size: 12px; color: var(--text-3); min-width: 56px; display: inline-block; }
     .aa-state.ok { color: #6EE7B7; }
     .aa-state.err { color: #FCA5A5; }
@@ -153,7 +156,7 @@
 
       /* 고른 행사·연도·폼은 이 브라우저에 기억해 둔다 (다시 열면 같은 화면) */
       var FKEY = "yv-admin-apps-filter";
-      var cur = { event: null, year: null, form: "all" };
+      var cur = { event: null, year: null, form: "all", type: "all" };
       try { var saved = JSON.parse(localStorage.getItem(FKEY) || "null"); if (saved) cur = saved; } catch (e) {}
       function saveCur() { try { localStorage.setItem(FKEY, JSON.stringify(cur)); } catch (e) {} }
 
@@ -230,13 +233,49 @@
         });
         var body = (shortRows ? '<div class="aa-sec">기본 정보</div><dl>' + shortRows + '</dl>' : "") +
                    (longRows ? '<div class="aa-sec">서술 답변</div>' + longRows : "");
-        return '<tr class="aa-detail"><td colspan="6">' + (body || '<div class="aa-q">응답이 비어 있습니다.</div>') + '</td></tr>';
+        return '<tr class="aa-detail"><td colspan="7">' + (body || '<div class="aa-q">응답이 비어 있습니다.</div>') + '</td></tr>';
+      }
+
+      /* 구분: 창업가 / 학생
+         창업가 = 창업 경험이 있거나, 지금 구체적으로 준비·진행 중 (팀 구성, 개발, 출시, 법인 등)
+         학생   = "해볼까?" 정도의 관심 단계
+         운영진이 고른 값(applicant_type)이 있으면 그걸 쓰고, 없으면 응답으로 추정해 '추정'으로 표시한다. */
+      var TYPES = { founder: "창업가", student: "학생" };
+      var PREP = /준비\s*(중|하고|하는)|팀\s*(을|원을|원)?\s*(꾸리|꾸려|구성|모집|빌딩)|공동\s*창업|MVP|프로토타입|시제품|개발\s*(중|하고|하는)|출시|런칭|베타|법인|사업자\s*(등록|를)|예비\s*창업\s*패키지|예창패|지원\s*사업|고객\s*인터뷰|검증\s*(중|하고|하는)|운영\s*(중|하고|하는)/i;
+      function guessType(a) {
+        var fields = (a.payload && a.payload.fields) || [];
+        var ans = function (re) {
+          var out = [];
+          fields.forEach(function (f) {
+            if (re.test(String(f.label || "")) && typeof f.value !== "boolean") { var t = answerOf(f); if (t) out.push(t); }
+          });
+          return out.join(" ");
+        };
+        var yn = ans(/창업\s*여부/);
+        if (yn && !/아니/.test(yn)) return { type: "founder", why: "창업 경험 있음" };
+        var title = ans(/^직함$/);
+        if (title && /대표|CEO|Founder|창업|공동|이사|CTO|COO/i.test(title)) return { type: "founder", why: "직함: " + title };
+        var text = ans(/창업\s*계획|관심\s*분야|관련\s*이력|창업인지|얻고자|참여하고\s*싶은/);
+        var m = text.match(PREP);
+        if (m) return { type: "founder", why: "준비·진행 중 ('" + m[0] + "')" };
+        return { type: "student", why: title ? "직함: " + title : "구체적 준비 내용 없음" };
+      }
+      function typeOf(a) { return a.applicant_type || guessType(a).type; }
+      function typeSelect(a) {
+        var g = a.applicant_type ? null : guessType(a);
+        var t = a.applicant_type || g.type;
+        return '<select class="aa-type ' + t + (g ? " guess" : "") + '" data-type="' + a.id + '"' +
+               (g ? ' title="추정 근거: ' + esc(g.why) + '"' : "") + '>' +
+          Object.keys(TYPES).map(function (k) {
+            return '<option value="' + k + '"' + (t === k ? " selected" : "") + '>' + TYPES[k] + '</option>';
+          }).join("") + '</select>' + (g ? '<span class="aa-guess">추정 · ' + esc(g.why) + '</span>' : "");
       }
 
       function rowHtml(a) {
         return '<tr>' +
           '<td class="who">' + esc(a.team_name || a.applicant_name || "(이름 없음)") +
             '<small>' + esc(a.applicant_email || "") + '</small></td>' +
+          '<td>' + typeSelect(a) + '</td>' +
           '<td>' + esc(progName(a.program)) + '</td>' +
           '<td>' + esc(fmtDate(a.submitted_at || a.created_at)) + '</td>' +
           '<td>' + statusSelect(a) + '</td>' +
@@ -281,10 +320,19 @@
               }).join("") + '</div>'
             : "");
 
-        var rows = cur.form === "all" ? inYear : inYear.filter(function (a) { return meta(a).form === cur.form; });
+        var inForm = cur.form === "all" ? inYear : inYear.filter(function (a) { return meta(a).form === cur.form; });
+        var tyCount = { founder: 0, student: 0 };
+        inForm.forEach(function (a) { tyCount[typeOf(a)]++; });
+        if (!cur.type) cur.type = "all";
+        var rows = cur.type === "all" ? inForm : inForm.filter(function (a) { return typeOf(a) === cur.type; });
+        tabs = tabs.replace('</select></div>',
+          '</select><select data-f="type" aria-label="구분">' +
+          [["all", "구분 전체 (" + inForm.length + ")"], ["founder", "창업가 (" + tyCount.founder + ")"], ["student", "학생 (" + tyCount.student + ")"]]
+            .map(function (o) { return '<option value="' + o[0] + '"' + (cur.type === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
+          '</select></div>');
         var table = rows.length
           ? '<div class="aa-table-wrap"><table class="aa-table"><thead><tr>' +
-            '<th>팀 / 지원자</th><th>프로그램</th><th>제출일</th><th>상태</th><th>동의</th><th></th>' +
+            '<th>팀 / 지원자</th><th>구분</th><th>프로그램</th><th>제출일</th><th>상태</th><th>동의</th><th></th>' +
             '</tr></thead><tbody>' + rows.map(rowHtml).join("") + '</tbody></table></div>'
           : '<div class="aa-msg">이 조건에 지원서가 없습니다.</div>';
 
@@ -298,7 +346,9 @@
         });
         root.querySelectorAll("[data-f]").forEach(function (sel) {
           sel.addEventListener("change", function () {
-            if (sel.getAttribute("data-f") === "event") { cur.event = sel.value; cur.year = null; }
+            var f = sel.getAttribute("data-f");
+            if (f === "type") { cur.type = sel.value; openId = null; render(); return; }
+            if (f === "event") { cur.event = sel.value; cur.year = null; }
             else cur.year = sel.value;
             cur.form = "all"; openId = null; render();
           });
@@ -308,6 +358,24 @@
             var id = Number(b.getAttribute("data-view"));
             openId = openId === id ? null : id;
             render();
+          });
+        });
+        root.querySelectorAll("[data-type]").forEach(function (sel) {
+          sel.addEventListener("change", function () {
+            var id = Number(sel.getAttribute("data-type"));
+            var state = root.querySelector('[data-state="' + id + '"]');
+            state.textContent = "저장 중…"; state.className = "aa-state";
+            db.from("applications").update({ applicant_type: sel.value }).eq("id", id).then(function (r) {
+              if (r.error) {
+                state.textContent = "실패"; state.className = "aa-state err";
+                state.title = "supabase/migration-applicant-type.sql 을 실행했는지 확인하세요";
+                return;
+              }
+              for (var i = 0; i < all.length; i++) if (all[i].id === id) all[i].applicant_type = sel.value;
+              render();
+              var s2 = root.querySelector('[data-state="' + id + '"]');
+              if (s2) { s2.textContent = "저장됨"; s2.className = "aa-state ok"; }
+            });
           });
         });
         root.querySelectorAll("[data-status]").forEach(function (sel) {
