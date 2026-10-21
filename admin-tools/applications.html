@@ -21,6 +21,13 @@
               background: none; color: var(--text-2); font-size: 13px; cursor: pointer;
               font-family: 'Pretendard', sans-serif; }
     .aa-tab.on { border-color: var(--blue-400); color: #93C5FD; }
+    .aa-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .aa-filters select {
+      padding: 9px 34px 9px 14px; font-size: 14px; font-weight: 600; font-family: 'Pretendard', sans-serif;
+      color: var(--text-1); background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' fill='none' stroke='%239CA3AF' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center / 11px;
+      border: 1px solid var(--edge); border-radius: 10px; cursor: pointer; -webkit-appearance: none; appearance: none;
+    }
+    .aa-filters select:hover { border-color: var(--edge-hover); }
     .aa-table-wrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); }
     .aa-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
     .aa-table th, .aa-table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--edge); white-space: nowrap; }
@@ -118,16 +125,37 @@
     (function () {
       var root = document.getElementById("root");
       var STATUS = { received: "접수됨", docs_pass: "서류 통과", interview: "면접 대상", accepted: "최종 선정", rejected: "미선정" };
-      var db = null, all = [], curProgram = "all", openId = null;
-      /* program 코드 → 사람이 읽는 이름 (지원 현황 페이지와 같은 목록). 새 프로그램은 여기에도 추가 */
+      var db = null, all = [], openId = null;
+      /* 행사 드롭다운 순서. 리크루팅도 하나의 '행사'로 다룬다 */
+      var EVENTS = [
+        { id: "networking", name: "Networking Party" },
+        { id: "boost", name: "Boost Program" },
+        { id: "y-startup", name: "Y-Startup" },
+        { id: "vc-career", name: "VC Career Session" },
+        { id: "recruit", name: "리크루팅" },
+        { id: "etc", name: "기타" }
+      ];
+      /* program 코드 → 행사·연도·폼 이름 (지원 현황 페이지에도 이름 추가). 새 Tally 폼은 여기에 한 줄.
+         year 를 비워두면 제출일의 연도로 묶는다. form 은 같은 행사·연도에 폼이 여러 개일 때 구분용 */
       var PROGRAMS = {
-        "boost-4": "Boost Program 4기",
-        "y-startup-4": "Y-Startup 4기",
-        "recruit-4": "Y-VENTURES 4기 리크루팅",
-        "networking-2026": "Networking Party 2026 · 학생 신청",
-        "networking-2026-invite": "Networking Party 2026 · 초청 리스트"
+        "networking-2026":        { event: "networking", year: "2026", form: "학생 신청", name: "Networking Party 2026 · 학생 신청" },
+        "networking-2026-invite": { event: "networking", year: "2026", form: "초청 리스트", name: "Networking Party 2026 · 초청 리스트" },
+        "boost-4":                { event: "boost", year: "2026", form: "4기", name: "Boost Program 4기" },
+        "y-startup-4":            { event: "y-startup", form: "4기", name: "Y-Startup 4기" },
+        "recruit-4":              { event: "recruit", year: "2026", form: "4기", name: "Y-VENTURES 4기 리크루팅" }
       };
-      function progName(p) { return PROGRAMS[p] || p; }
+      function meta(a) {
+        var m = PROGRAMS[a.program] || { event: "etc", form: a.program, name: a.program };
+        var y = m.year || String(new Date(a.submitted_at || a.created_at).getFullYear());
+        return { event: m.event, year: y, form: m.form || a.program, name: m.name || a.program };
+      }
+      function progName(p) { return (PROGRAMS[p] && PROGRAMS[p].name) || p; }
+
+      /* 고른 행사·연도·폼은 이 브라우저에 기억해 둔다 (다시 열면 같은 화면) */
+      var FKEY = "yv-admin-apps-filter";
+      var cur = { event: null, year: null, form: "all" };
+      try { var saved = JSON.parse(localStorage.getItem(FKEY) || "null"); if (saved) cur = saved; } catch (e) {}
+      function saveCur() { try { localStorage.setItem(FKEY, JSON.stringify(cur)); } catch (e) {} }
 
       function esc(s) {
         return String(s == null ? "" : s)
@@ -219,29 +247,61 @@
       }
 
       function render() {
-        var programs = {};
-        all.forEach(function (a) { programs[a.program] = (programs[a.program] || 0) + 1; });
+        // 행사 → 연도 → 폼 순으로 좁힌다. 데이터가 있는 행사·연도만 보여준다.
+        var evCount = {};
+        all.forEach(function (a) { var e = meta(a).event; evCount[e] = (evCount[e] || 0) + 1; });
+        var events = EVENTS.filter(function (e) { return evCount[e.id]; });
+        if (!events.some(function (e) { return e.id === cur.event; })) { cur.event = events[0].id; cur.year = null; cur.form = "all"; }
 
-        var tabs = '<button type="button" class="aa-tab' + (curProgram === "all" ? " on" : "") + '" data-tab="all">전체 (' + all.length + ')</button>' +
-          Object.keys(programs).sort().map(function (p) {
-            return '<button type="button" class="aa-tab' + (curProgram === p ? " on" : "") + '" data-tab="' + esc(p) + '">' +
-                   esc(progName(p)) + ' (' + programs[p] + ')</button>';
-          }).join("");
+        var inEvent = all.filter(function (a) { return meta(a).event === cur.event; });
+        var yrCount = {};
+        inEvent.forEach(function (a) { var y = meta(a).year; yrCount[y] = (yrCount[y] || 0) + 1; });
+        var years = Object.keys(yrCount).sort().reverse();
+        if (years.indexOf(cur.year) < 0) { cur.year = years[0]; cur.form = "all"; }
 
-        var rows = curProgram === "all" ? all : all.filter(function (a) { return a.program === curProgram; });
+        var inYear = inEvent.filter(function (a) { return meta(a).year === cur.year; });
+        var fmCount = {};
+        inYear.forEach(function (a) { var f = meta(a).form; fmCount[f] = (fmCount[f] || 0) + 1; });
+        var forms = Object.keys(fmCount);
+        if (cur.form !== "all" && !fmCount[cur.form]) cur.form = "all";
+        saveCur();
+
+        var tabs = '<div class="aa-filters">' +
+          '<select data-f="event" aria-label="행사">' + events.map(function (e) {
+            return '<option value="' + esc(e.id) + '"' + (e.id === cur.event ? " selected" : "") + '>' + esc(e.name) + ' (' + evCount[e.id] + ')</option>';
+          }).join("") + '</select>' +
+          '<select data-f="year" aria-label="연도">' + years.map(function (y) {
+            return '<option value="' + esc(y) + '"' + (y === cur.year ? " selected" : "") + '>' + esc(y) + '년 (' + yrCount[y] + ')</option>';
+          }).join("") + '</select></div>' +
+          (forms.length > 1
+            ? '<div class="aa-tabs">' +
+              '<button type="button" class="aa-tab' + (cur.form === "all" ? " on" : "") + '" data-tab="all">전체 (' + inYear.length + ')</button>' +
+              forms.map(function (f) {
+                return '<button type="button" class="aa-tab' + (cur.form === f ? " on" : "") + '" data-tab="' + esc(f) + '">' + esc(f) + ' (' + fmCount[f] + ')</button>';
+              }).join("") + '</div>'
+            : "");
+
+        var rows = cur.form === "all" ? inYear : inYear.filter(function (a) { return meta(a).form === cur.form; });
         var table = rows.length
           ? '<div class="aa-table-wrap"><table class="aa-table"><thead><tr>' +
             '<th>팀 / 지원자</th><th>프로그램</th><th>제출일</th><th>상태</th><th>동의</th><th></th>' +
             '</tr></thead><tbody>' + rows.map(rowHtml).join("") + '</tbody></table></div>'
           : '<div class="aa-msg">이 조건에 지원서가 없습니다.</div>';
 
-        root.innerHTML = '<div class="aa-tabs">' + tabs + '</div>' + table +
+        root.innerHTML = tabs + table +
           '<p style="margin-top:10px;font-size:13px;color:var(--text-3)">' +
           "'안내 동의'는 지원서에서 추후 프로그램 안내 수신에 동의한 경우에만 표시됩니다. " +
           '동의 표시가 없는 지원자에게는 이 지원 건 외의 연락을 보내지 마세요.</p>';
 
         root.querySelectorAll(".aa-tab").forEach(function (b) {
-          b.addEventListener("click", function () { curProgram = b.getAttribute("data-tab"); openId = null; render(); });
+          b.addEventListener("click", function () { cur.form = b.getAttribute("data-tab"); openId = null; render(); });
+        });
+        root.querySelectorAll("[data-f]").forEach(function (sel) {
+          sel.addEventListener("change", function () {
+            if (sel.getAttribute("data-f") === "event") { cur.event = sel.value; cur.year = null; }
+            else cur.year = sel.value;
+            cur.form = "all"; openId = null; render();
+          });
         });
         root.querySelectorAll("[data-view]").forEach(function (b) {
           b.addEventListener("click", function () {
