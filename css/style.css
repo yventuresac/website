@@ -3440,6 +3440,28 @@ html.yv-gated body { visibility: hidden; }
 }
 .yv-popup-dates div span:last-child { color: var(--text-1); font-weight: 600; }
 .yv-popup-text .deadline-pill { margin-top: 26px; }
+.yv-popup-speakers { margin-top: 24px; text-align: left; }
+.yv-popup-speakers-label {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--edge);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--blue-300);
+}
+.yv-popup-speaker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--edge);
+}
+.yv-popup-speaker img { display: block; flex: none; width: auto; }
+.yv-popup-speaker span { text-align: right; font-size: 12px; font-weight: 700; line-height: 1.45; color: var(--text-1); }
+.yv-popup-speaker small { display: block; font-size: 11px; font-weight: 500; color: var(--text-3); }
+.yv-popup-speakers-note { margin-top: 10px; font-size: 11px; color: var(--text-3); }
 
 /* ══════════════════════════════════════════
    FLOW COMPONENTS — 시간축 / 단계 레일
