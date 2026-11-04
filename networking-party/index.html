@@ -42,7 +42,7 @@
     /* 섹터 연사 로고 묶음 — 좁은 화면에서는 줄을 바꿔 통째로 내려간다 */
     .np-logos { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-left: 14px; vertical-align: middle; }
     .np-logos .np-logo { margin-left: 0; }
-    .np-logo-12labs, .np-logo-mydoctor { height: 20px; }
+    .np-logo-12labs, .np-logo-mydoctor, .np-logo-mayi { height: 20px; }
     .np-logo-kakaovc { height: 14px; }
     @media (max-width: 1100px) { .np-logos { display: flex; margin: 10px 0 0; } }
     .page-desc.np-lede { max-width: none; }
@@ -60,8 +60,6 @@
     .np-speaker-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--blue-300); }
     .np-speaker-name { margin-top: 14px; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-1); }
     .np-speaker-org { margin-top: 6px; font-size: 14px; line-height: 1.6; color: var(--text-2); }
-    .np-speaker.is-tba { border-style: dashed; background: transparent; }
-    .np-speaker.is-tba .np-speaker-name { color: var(--text-3); }
     @media (max-width: 900px) { .np-speakers { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 560px) { .np-speakers { grid-template-columns: 1fr; } }
     @media (max-width: 900px) { .np-steps { grid-template-columns: 1fr; } }
@@ -231,7 +229,7 @@
       </div>
       <div class="timetable-row">
         <div class="timetable-time">14:50 — 15:50</div>
-        <div class="timetable-content"><em>Sector Talk</em> · <strong>섹터별 연사 스피치</strong><span class="np-logos"><img class="np-logo np-logo-12labs" src="./img/logo-twelvelabs.png" alt="트웰브랩스" width="98" height="20" /><img class="np-logo np-logo-mydoctor" src="./img/logo-mydoctor.png" alt="나만의닥터" width="99" height="20" /><img class="np-logo np-logo-kakaovc" src="./img/logo-kakaoventures.png" alt="카카오벤처스" width="118" height="14" /></span></div>
+        <div class="timetable-content"><em>Sector Talk</em> · <strong>섹터별 연사 스피치</strong><span class="np-logos"><img class="np-logo np-logo-12labs" src="./img/logo-twelvelabs.png" alt="트웰브랩스" width="98" height="20" /><img class="np-logo np-logo-mydoctor" src="./img/logo-mydoctor.png" alt="나만의닥터" width="99" height="20" /><img class="np-logo np-logo-kakaovc" src="./img/logo-kakaoventures.png" alt="카카오벤처스" width="118" height="14" /><img class="np-logo np-logo-mayi" src="./img/logo-mayi.svg" alt="메이아이" width="76" height="20" /></span></div>
       </div>
       <div class="timetable-row">
         <div class="timetable-time">15:50 — 16:30</div>
@@ -276,11 +274,11 @@
         <p class="np-speaker-name">안혜원</p>
         <p class="np-speaker-org">카카오벤처스 심사역</p>
       </article>
-      <article class="np-speaker is-tba">
-        <div class="np-speaker-logo" aria-hidden="true"></div>
-        <div class="np-speaker-tag">네 번째 섹터</div>
-        <p class="np-speaker-name">추후 공개</p>
-        <p class="np-speaker-org">확정되는 대로 안내드립니다</p>
+      <article class="np-speaker">
+        <div class="np-speaker-logo"><img src="./img/logo-mayi.svg" alt="메이아이" width="83" height="22" style="height: 22px;" /></div>
+        <div class="np-speaker-tag">AI</div>
+        <p class="np-speaker-name">박준혁</p>
+        <p class="np-speaker-org">메이아이 대표</p>
       </article>
     </div>
 
