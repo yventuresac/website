@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg" />
+  <title>참석 확인 현황 — Y-VENTURES 관리</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../css/style.css?v=20260820" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <script src="/js/nav-auth.js?v=2"></script>
+  <style>
+    .page-header { padding: 120px var(--space-3xl) var(--space-lg); }
+    .page-title { font-size: clamp(32px, 4vw, 44px); }
+    .page-desc { margin-top: var(--space-xs); font-size: var(--text-body-sm); }
+    .section { padding: var(--space-lg) var(--space-3xl) var(--space-3xl); }
+    .rv-wrap { max-width: 1180px; margin: 0 auto; }
+    .rv-msg { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--text-3);
+              border: 1px dashed var(--edge); border-radius: 12px; line-height: var(--lh-relaxed); }
+    .rv-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+              font-size: 13px; color: var(--text-3); }
+    .rv-bar .grow { flex: 1; }
+    .rv-btn { padding: 7px 14px; border: 1px solid var(--edge); border-radius: 999px; background: none;
+              color: var(--text-2); font-size: 13px; cursor: pointer; font-family: 'Pretendard', sans-serif; }
+    .rv-btn:hover { border-color: var(--edge-hover); color: var(--text-1); }
+    .rv-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
+    .rv-tile { padding: 16px; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); min-width: 0; }
+    .rv-tile b { display: block; font-size: 32px; line-height: 1.1; color: var(--text-1); font-variant-numeric: tabular-nums; }
+    .rv-tile span { font-size: 12px; color: var(--text-3); }
+    .rv-tile small { display: block; margin-top: 4px; font-size: 12px; color: var(--text-3); }
+    .rv-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .rv-card { padding: 16px; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); min-width: 0; }
+    .rv-card h3 { margin: 0 0 12px; font-size: var(--text-eyebrow); letter-spacing: var(--ls-eyebrow);
+                  text-transform: uppercase; color: var(--text-3); font-weight: var(--fw-semibold); }
+    .rv-sec { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 14px; align-items: center; font-size: 13px; }
+    .rv-sec .h { font-size: 11px; color: var(--text-3); text-align: right; }
+    .rv-sec .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: var(--fw-semibold); }
+    .rv-sec .nm { color: var(--text-2); min-width: 0; }
+    .rv-sec .nm small { display: block; color: var(--text-3); font-size: 11px; }
+    .rv-track { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--edge); margin-bottom: 6px; overflow: hidden; }
+    .rv-track i { display: block; height: 100%; background: var(--blue-500); }
+    .rv-names { font-size: 13px; color: var(--text-2); line-height: 1.9; }
+    .rv-names .chip { display: inline-block; margin: 0 6px 6px 0; padding: 2px 10px; border: 1px solid var(--edge);
+                      border-radius: 999px; white-space: nowrap; }
+    .rv-names .chip small { color: var(--text-3); margin-left: 4px; }
+    .rv-note { margin-top: 10px; font-size: 12px; color: var(--text-3); line-height: 1.6; }
+    .rv-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .rv-tab { padding: 7px 14px; border: 1px solid var(--edge); border-radius: 999px; background: none;
+              color: var(--text-2); font-size: 13px; cursor: pointer; font-family: 'Pretendard', sans-serif;
+              font-variant-numeric: tabular-nums; }
+    .rv-tab.on { border-color: var(--blue-300); color: var(--blue-300); }
+    .rv-tablewrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: 14px; }
+    .rv-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+    .rv-table th, .rv-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--edge); vertical-align: top; }
+    .rv-table th { font-size: 11px; letter-spacing: var(--ls-wide); color: var(--text-3); font-weight: var(--fw-medium); white-space: nowrap; }
+    .rv-table td { color: var(--text-2); }
+    .rv-table td.who { color: var(--text-1); font-weight: var(--fw-semibold); white-space: nowrap; }
+    .rv-table td.who small, .rv-table td small { display: block; font-weight: normal; color: var(--text-3); font-size: 12px; }
+    .rv-table tr:last-child td { border-bottom: none; }
+    .rv-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--edge); white-space: nowrap; }
+    .rv-tag.yes { border-color: rgba(52, 199, 89, .5); color: #34c759; }
+    .rv-tag.no { border-color: rgba(255, 69, 58, .5); color: #ff6b6b; }
+    .rv-tag.warn { border-color: rgba(255, 159, 10, .5); color: #ff9f0a; margin-left: 6px; }
+    .rv-q { max-width: 280px; white-space: pre-wrap; }
+    @media (max-width: 900px) {
+      .rv-tiles { grid-template-columns: repeat(3, 1fr); }
+      .rv-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .page-header { padding: 100px 16px var(--space-md); }
+      .section { padding: var(--space-md) 16px var(--space-2xl); }
+      .rv-tiles { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body class="theme-mono">
+
+  <nav id="nav" class="scrolled">
+    <a href="/index.html" class="nav-logo" aria-label="Y-VENTURES 홈">
+      <img src="/assets/logo.png" alt="Y-VENTURES" />
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item">
+        <a href="/about/">ABOUT</a>
+        <div class="dropdown">
+          <a href="/about/#greetings">Greetings</a>
+          <a href="/about/#who-we-are">Who we are</a>
+          <a href="/about/#history">History</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/programs/">PROGRAMS</a>
+        <div class="dropdown">
+          <a href="/y-startup/">Y-Startup</a>
+          <a href="/boost/">Boost Program</a>
+          <a href="/vc-career/">VC Career Session</a>
+          <a href="/networking-party/">Networking Party</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/network/">NETWORK</a>
+        <div class="dropdown">
+          <a href="/team/">Our Team</a>
+          <a href="/partners/">Our Partners</a>
+          <a href="/yonsei/">Yonsei Ecosystem</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="/scouts/">SCOUTS</a>
+        <div class="dropdown">
+          <a href="/curriculum/">Curriculum</a>
+          <a href="/recruiting/">Recruiting</a>
+          <a href="/insights/">Insights</a>
+        </div>
+      </li>
+      <li class="nav-item"><a href="/newsletter/">NEWSLETTER</a></li>
+      <li class="nav-item"><a href="/contact/">CONTACT</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">Admin</div>
+    <h1 class="page-title">참석 확인 현황</h1>
+    <p class="page-desc">Networking Party 2026 참석 확인·섹터 선택 폼(Tally) 응답입니다. 2분마다 새로 불러옵니다.</p>
+  </div>
+
+  <section class="section">
+    <div class="rv-wrap" id="root">
+      <div class="rv-msg">불러오는 중…</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var root = document.getElementById("root");
+      /* 참석 확인 폼의 웹훅 program 코드와, 대조할 신청자 명단의 program 코드 */
+      var RSVP = "networking-2026-rsvp";
+      var ROSTER = ["networking-2026", "networking-2026-invite"];
+      var db = null, data = null, tab = "all", loadedAt = null;
+
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function msg(t) { root.innerHTML = '<div class="rv-msg">' + esc(t) + '</div>'; }
+      function pad(n) { return String(n).padStart(2, "0"); }
+      function fmt(s) {
+        var d = new Date(s); if (isNaN(d)) return "";
+        return (d.getMonth() + 1) + "." + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+      function fieldText(v) {
+        if (v == null) return "";
+        if (Array.isArray(v)) return v.map(fieldText).filter(Boolean).join(", ");
+        if (typeof v === "object") return fieldText(v.text != null ? v.text : (v.value != null ? v.value : v.label));
+        return String(v);
+      }
+      function optText(f, id) {
+        var o = (f.options || []).filter(function (x) { return x.id === id; })[0];
+        return o ? o.text : id;
+      }
+      function fields(a) { return (a.payload && a.payload.fields) || []; }
+      /* 라벨이 맞는 첫 문항 (보기별 true/false 항목은 건너뛴다) */
+      function field(a, re) {
+        return fields(a).filter(function (f) { return typeof f.value !== "boolean" && re.test(String(f.label || "")); })[0] || null;
+      }
+      function answer(a, re) {
+        var f = field(a, re); if (!f) return "";
+        var v = f.value;
+        if (v == null || v === "" || (Array.isArray(v) && !v.length)) return "";
+        if (Array.isArray(v) && f.options && f.options.length) return v.map(function (id) { return optText(f, id); }).join(", ");
+        return fieldText(v).trim();
+      }
+      /* 섹터 보기 글자 "B2B · 글로벌 시장 | 정진우 (…) · B224호" → 섹터 이름 / 방 */
+      function sectorName(t) { return String(t).split("|")[0].trim(); }
+      function sectorRoom(t) { var m = String(t).match(/B\d{3}호/); return m ? m[0] : ""; }
+      /* 뒤풀이 "참석합니다" / "참석하지 않습니다" — 둘 다 "참석"으로 시작하니 부정어로 가른다 */
+      function afterYes(s) { return /참석/.test(s) && !/않|어렵|불참/.test(s); }
+      function nameKey(s) { return String(s || "").replace(/\s+/g, "").toLowerCase(); }
+
+      function parseRsvp(a) {
+        var rank = field(a, /섹터\s*순위/);
+        var order = rank && Array.isArray(rank.value) ? rank.value.map(function (id) { return optText(rank, id); }) : [];
+        var attend = answer(a, /^참석\s*여부/);
+        var photoF = fields(a).filter(function (f) { return /사진/.test(String(f.label || "")); });
+        var photo = photoF.some(function (f) { return f.value === true || (Array.isArray(f.value) && f.value.length); });
+        return {
+          id: a.id,
+          name: answer(a, /^이름$/) || a.applicant_name || "(이름 없음)",
+          attend: /어렵|불참|못/.test(attend) ? "no" : (attend ? "yes" : ""),
+          attendText: attend,
+          after: answer(a, /뒤풀이/),
+          order: order,
+          question: answer(a, /질문/),
+          org: answer(a, /소속/),
+          photo: photo,
+          at: a.submitted_at || a.created_at
+        };
+      }
+      function parseRoster(a) {
+        var name = answer(a, /^이름$/) || a.applicant_name || "";
+        var phone = String(answer(a, /전화번호/)).replace(/[^\d+]/g, "");
+        if (/^\+82/.test(phone)) phone = "0" + phone.slice(3).replace(/^0/, "");
+        if (/^01\d{9}$/.test(phone)) phone = phone.slice(0, 3) + "-" + phone.slice(3, 7) + "-" + phone.slice(7);
+        return { name: name, kind: a.program === "networking-2026-invite" ? "초청" : "신청", phone: phone,
+                 email: a.applicant_email || answer(a, /이메일/) };
+      }
+
+      function compute(rows) {
+        var rsvpRows = rows.filter(function (a) { return a.program === RSVP; })
+          .sort(function (x, y) { return new Date(x.submitted_at || x.created_at) - new Date(y.submitted_at || y.created_at); });
+        /* 같은 이름이 여러 번 내면 마지막 응답을 쓴다 */
+        var byName = {}, dupCount = 0;
+        rsvpRows.forEach(function (a) {
+          var r = parseRsvp(a), k = nameKey(r.name);
+          if (byName[k]) { dupCount++; r.dup = true; }
+          byName[k] = r;
+        });
+        var replies = Object.keys(byName).map(function (k) { return byName[k]; })
+          .sort(function (x, y) { return new Date(y.at) - new Date(x.at); });
+
+        var roster = rows.filter(function (a) { return ROSTER.indexOf(a.program) >= 0; }).map(parseRoster);
+        var rosterKeys = {};
+        roster.forEach(function (p) { rosterKeys[nameKey(p.name)] = p; });
+        replies.forEach(function (r) { r.inRoster = !!rosterKeys[nameKey(r.name)]; r.kind = r.inRoster ? rosterKeys[nameKey(r.name)].kind : ""; });
+        var missing = roster.filter(function (p) { return !byName[nameKey(p.name)]; });
+
+        /* 섹터별 1순위 / 1~3순위 (참석자만) */
+        var sectors = {}, sectorOrder = [];
+        rsvpRows.forEach(function (a) {
+          var f = field(a, /섹터\s*순위/);
+          (f && f.options || []).forEach(function (o) {
+            var n = sectorName(o.text);
+            if (!sectors[n]) { sectors[n] = { name: n, room: sectorRoom(o.text), speaker: (String(o.text).split("|")[1] || "").replace(/·\s*B\d{3}호/, "").trim(), first: 0, top3: 0 }; sectorOrder.push(n); }
+          });
+        });
+        var going = replies.filter(function (r) { return r.attend === "yes"; });
+        var noRank = 0;
+        going.forEach(function (r) {
+          if (!r.order.length) { noRank++; return; }
+          r.order.forEach(function (t, i) {
+            var s = sectors[sectorName(t)]; if (!s) return;
+            if (i === 0) s.first++;
+            if (i < 3) s.top3++;
+          });
+        });
+
+        return {
+          replies: replies, roster: roster, missing: missing, dupCount: dupCount,
+          going: going.length,
+          notGoing: replies.filter(function (r) { return r.attend === "no"; }).length,
+          after: going.filter(function (r) { return afterYes(r.after); }).length,
+          sectors: sectorOrder.map(function (n) { return sectors[n]; }), noRank: noRank,
+          strays: replies.filter(function (r) { return !r.inRoster; })
+        };
+      }
+
+      function tiles(d) {
+        var t = function (n, label, sub) { return '<div class="rv-tile"><b>' + n + '</b><span>' + esc(label) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : "") + '</div>'; };
+        return '<div class="rv-tiles">' +
+          t(d.replies.length, "회신", "신청자 " + d.roster.length + "명 중") +
+          t(d.going, "참석") +
+          t(d.notGoing, "불참") +
+          t(d.after, "뒤풀이 참석", "참석자 중") +
+          t(d.missing.length, "미회신") +
+          '</div>';
+      }
+      function sectorCard(d) {
+        var max = Math.max.apply(null, [1].concat(d.sectors.map(function (s) { return s.first; })));
+        var body = d.sectors.length ? '<div class="rv-sec"><span></span><span class="h">1순위</span><span class="h">1~3순위</span>' +
+          d.sectors.map(function (s) {
+            return '<span class="nm">' + esc(s.name) + (s.speaker || s.room ? '<small>' + esc([s.speaker, s.room].filter(Boolean).join(" · ")) + '</small>' : "") + '</span>' +
+              '<span class="n">' + s.first + '</span><span class="n">' + s.top3 + '</span>' +
+              '<span class="rv-track"><i style="width:' + Math.round(s.first / max * 100) + '%"></i></span>';
+          }).join("") + '</div>' : '<p class="rv-note">아직 응답이 없습니다.</p>';
+        return '<div class="rv-card"><h3>섹터 선호 (참석자 기준)</h3>' + body +
+          '<p class="rv-note">순위를 고르지 않은 참석자 ' + d.noRank + '명 · 미회신자 ' + d.missing.length + '명은 무작위 배정 대상입니다.</p></div>';
+      }
+      function missingCard(d) {
+        var body = d.missing.length
+          ? '<div class="rv-names">' + d.missing.map(function (p) { return '<span class="chip">' + esc(p.name) + '<small>' + esc(p.kind) + '</small></span>'; }).join("") + '</div>'
+          : '<p class="rv-note">모두 회신했습니다.</p>';
+        var stray = d.strays.length
+          ? '<p class="rv-note">신청자 명단과 이름이 맞지 않는 응답 ' + d.strays.length + '건: ' + d.strays.map(function (r) { return esc(r.name); }).join(", ") + ' — 오타나 대리 응답인지 확인이 필요합니다. 이 경우 같은 사람이 미회신 목록에도 남습니다.</p>'
+          : "";
+        return '<div class="rv-card"><h3>미회신 ' + d.missing.length + '명</h3>' + body + stray +
+          '<p class="rv-note">이름 기준으로 대조합니다(띄어쓰기 무시). 리마인드 대상은 아래 "미회신 CSV"로 내려받을 수 있습니다.</p></div>';
+      }
+      function tableHtml(d) {
+        var list = d.replies.filter(function (r) { return tab === "all" || r.attend === tab; });
+        var tb = function (id, label, n) { return '<button type="button" class="rv-tab' + (tab === id ? " on" : "") + '" data-tab="' + id + '">' + label + ' (' + n + ')</button>'; };
+        var head = '<div class="rv-tabs">' + tb("all", "전체", d.replies.length) + tb("yes", "참석", d.going) + tb("no", "불참", d.notGoing) + '</div>';
+        if (!list.length) return head + '<div class="rv-msg">해당하는 응답이 없습니다.</div>';
+        return head + '<div class="rv-tablewrap"><table class="rv-table"><thead><tr>' +
+          '<th>이름</th><th>참석</th><th>뒤풀이</th><th>섹터 1·2·3순위</th><th>이름표 소속</th><th>사진</th><th>연사 질문</th><th>제출</th>' +
+          '</tr></thead><tbody>' + list.map(function (r) {
+            var yes = r.attend === "yes";
+            return '<tr><td class="who">' + esc(r.name) +
+                (r.inRoster ? "" : '<span class="rv-tag warn">명단에 없음</span>') +
+                (r.kind ? '<small>' + esc(r.kind) + '</small>' : "") + '</td>' +
+              '<td>' + (yes ? '<span class="rv-tag yes">참석</span>' : (r.attend === "no" ? '<span class="rv-tag no">불참</span>' : "—")) + '</td>' +
+              '<td>' + (yes ? esc(afterYes(r.after) ? "참석" : (r.after ? "불참" : "—")) : "") + '</td>' +
+              '<td>' + (yes ? (r.order.length ? r.order.slice(0, 3).map(function (t, i) { return (i + 1) + ". " + esc(sectorName(t)); }).join("<br>") : "미선택") : "") + '</td>' +
+              '<td>' + (yes ? esc(r.org) : "") + '</td>' +
+              '<td>' + (yes ? (r.photo ? "동의" : "미동의") : "") + '</td>' +
+              '<td class="rv-q">' + (yes ? esc(r.question) : "") + '</td>' +
+              '<td>' + esc(fmt(r.at)) + (r.dup ? '<small>재제출 · 마지막 응답 기준</small>' : "") + '</td></tr>';
+          }).join("") + '</tbody></table></div>';
+      }
+
+      function render() {
+        var d = data;
+        root.innerHTML =
+          '<div class="rv-bar"><span>마지막 업데이트 ' + esc(fmt(loadedAt)) + '</span><span class="grow"></span>' +
+          '<button type="button" class="rv-btn" data-act="reload">새로고침</button>' +
+          '<button type="button" class="rv-btn" data-act="csv-going">참석자 CSV</button>' +
+          '<button type="button" class="rv-btn" data-act="csv-missing">미회신 CSV</button></div>' +
+          tiles(d) +
+          '<div class="rv-grid">' + sectorCard(d) + missingCard(d) + '</div>' +
+          tableHtml(d);
+      }
+
+      function download(name, header, rows) {
+        var q = function (s) { return '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"'; };
+        var csv = "﻿" + [header].concat(rows).map(function (r) { return r.map(q).join(","); }).join("\r\n");
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      }
+      root.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-tab],[data-act]"); if (!t) return;
+        if (t.hasAttribute("data-tab")) { tab = t.getAttribute("data-tab"); render(); return; }
+        var act = t.getAttribute("data-act");
+        if (act === "reload") load();
+        if (act === "csv-going") download("참석자_" + new Date().toISOString().slice(0, 10) + ".csv",
+          ["이름", "구분", "뒤풀이", "1순위", "2순위", "3순위", "이름표 소속", "사진 동의", "연사 질문"],
+          data.replies.filter(function (r) { return r.attend === "yes"; }).map(function (r) {
+            return [r.name, r.kind || "명단에 없음", afterYes(r.after) ? "참석" : "불참",
+                    sectorName(r.order[0] || ""), sectorName(r.order[1] || ""), sectorName(r.order[2] || ""),
+                    r.org, r.photo ? "동의" : "미동의", r.question];
+          }));
+        if (act === "csv-missing") download("미회신_" + new Date().toISOString().slice(0, 10) + ".csv",
+          ["이름", "전화번호", "이메일", "구분"],
+          data.missing.map(function (p) { return [p.name, p.phone, p.email, p.kind]; }));
+      });
+
+      function load() {
+        return db.from("applications").select("*").in("program", [RSVP].concat(ROSTER))
+          .then(function (r) {
+            if (r.error) { msg("불러오지 못했습니다: " + r.error.message); return; }
+            data = compute(r.data || []); loadedAt = new Date(); render();
+          }, function (e) { msg("불러오지 못했습니다: " + e); });
+      }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        if (!window.yvAuth) { msg("설정이 완료되지 않았습니다."); return; }
+        db = window.yvAuth.client;
+        db.auth.getUser().then(function (u) {
+          var user = u && u.data ? u.data.user : null;
+          if (!user) { msg("로그인이 필요합니다."); return; }
+          return db.from("profiles").select("is_admin").eq("id", user.id).maybeSingle().then(function (pr) {
+            if (!pr || !pr.data || !pr.data.is_admin) { msg("이 계정에는 관리자 권한이 없습니다. (" + (user.email || "") + ")"); return; }
+            load();
+            setInterval(function () { if (!document.hidden) load(); }, 120000);
+          });
+        });
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var hb = document.getElementById("hamburger");
+      var nm = document.getElementById("navMenu");
+      if (hb && nm) hb.addEventListener("click", function () { nm.classList.toggle("open"); });
+    })();
+  </script>
+</body>
+</html>
