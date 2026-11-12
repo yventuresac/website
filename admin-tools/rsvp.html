@@ -31,6 +31,10 @@
     .rv-tile b { display: block; font-size: 32px; line-height: 1.1; color: var(--text-1); font-variant-numeric: tabular-nums; }
     .rv-tile span { font-size: 12px; color: var(--text-3); }
     .rv-tile small { display: block; margin-top: 4px; font-size: 12px; color: var(--text-3); }
+    .rv-tile-btn { text-align: left; font-family: 'Pretendard', sans-serif; cursor: pointer; transition: border-color .15s; }
+    .rv-tile-btn:hover { border-color: var(--edge-hover); }
+    .rv-tile-btn.on { border-color: var(--blue-300); }
+    #rvPeople { margin: 20px 0 28px; }
     .rv-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; margin-bottom: 28px; }
     .rv-card { padding: 16px; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg-card); min-width: 0; }
     .rv-card h3 { margin: 0 0 12px; font-size: var(--text-eyebrow); letter-spacing: var(--ls-eyebrow);
@@ -250,7 +254,22 @@
           });
         });
 
+        /* 표에 쓸 전체 명단: 신청자 전원(회신 여부와 함께) + 명단에 없는 이름으로 온 응답.
+           회신한 사람은 최근 제출순, 미회신은 이름순으로 뒤에 붙인다 */
+        var people = roster.map(function (p) {
+          var r = byName[nameKey(p.name)] || null;
+          return { name: p.name, kind: p.kind, phone: p.phone, reply: r, status: r ? (r.attend || "none") : "none" };
+        }).concat(replies.filter(function (r) { return !r.inRoster; }).map(function (r) {
+          return { name: r.name, kind: "", phone: "", reply: r, status: r.attend || "none", stray: true };
+        }));
+        people.sort(function (x, y) {
+          if (x.reply && y.reply) return new Date(y.reply.at) - new Date(x.reply.at);
+          if (x.reply || y.reply) return x.reply ? -1 : 1;
+          return x.name.localeCompare(y.name, "ko");
+        });
+
         return {
+          people: people,
           replies: replies, roster: roster, missing: missing, dupCount: dupCount,
           going: going.length,
           notGoing: replies.filter(function (r) { return r.attend === "no"; }).length,
@@ -261,13 +280,18 @@
       }
 
       function tiles(d) {
-        var t = function (n, label, sub) { return '<div class="rv-tile"><b>' + n + '</b><span>' + esc(label) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : "") + '</div>'; };
+        /* 참석·불참·미회신 칸을 누르면 아래 명단이 그 상태로 걸러진다 */
+        var t = function (n, label, sub, tabId) {
+          return (tabId ? '<button type="button" class="rv-tile rv-tile-btn' + (tab === tabId ? " on" : "") + '" data-tab="' + tabId + '">' : '<div class="rv-tile">') +
+            '<b>' + n + '</b><span>' + esc(label) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : "") +
+            (tabId ? '</button>' : '</div>');
+        };
         return '<div class="rv-tiles">' +
-          t(d.replies.length, "회신", "신청자 " + d.roster.length + "명 중") +
-          t(d.going, "참석") +
-          t(d.notGoing, "불참") +
+          t(d.replies.length, "회신", "신청자 " + d.roster.length + "명 중", "all") +
+          t(d.going, "참석", "명단 보기", "yes") +
+          t(d.notGoing, "불참", "명단 보기", "no") +
           t(d.after, "뒤풀이 참석", "참석자 중") +
-          t(d.missing.length, "미회신") +
+          t(d.missing.length, "미회신", "명단 보기", "none") +
           '</div>';
       }
       function sectorCard(d) {
@@ -292,24 +316,29 @@
           '<p class="rv-note">이름 기준으로 대조합니다(띄어쓰기 무시). 리마인드 대상은 아래 "미회신 CSV"로 내려받을 수 있습니다.</p></div>';
       }
       function tableHtml(d) {
-        var list = d.replies.filter(function (r) { return tab === "all" || r.attend === tab; });
+        var count = function (s) { return d.people.filter(function (p) { return p.status === s; }).length; };
+        var list = d.people.filter(function (p) { return tab === "all" || p.status === tab; });
         var tb = function (id, label, n) { return '<button type="button" class="rv-tab' + (tab === id ? " on" : "") + '" data-tab="' + id + '">' + label + ' (' + n + ')</button>'; };
-        var head = '<div class="rv-tabs">' + tb("all", "전체", d.replies.length) + tb("yes", "참석", d.going) + tb("no", "불참", d.notGoing) + '</div>';
-        if (!list.length) return head + '<div class="rv-msg">해당하는 응답이 없습니다.</div>';
+        var head = '<div class="rv-tabs">' + tb("all", "전체", d.people.length) + tb("yes", "참석", count("yes")) +
+                   tb("no", "불참", count("no")) + tb("none", "미회신", count("none")) + '</div>';
+        if (!list.length) return head + '<div class="rv-msg">해당하는 사람이 없습니다.</div>';
         return head + '<div class="rv-tablewrap"><table class="rv-table"><thead><tr>' +
-          '<th>이름</th><th>참석</th><th>뒤풀이</th><th>섹터 1·2·3순위</th><th>이름표 소속</th><th>사진</th><th>연사 질문</th><th>제출</th>' +
-          '</tr></thead><tbody>' + list.map(function (r) {
-            var yes = r.attend === "yes";
-            return '<tr><td class="who">' + esc(r.name) +
-                (r.inRoster ? "" : '<span class="rv-tag warn">명단에 없음</span>') +
-                (r.kind ? '<small>' + esc(r.kind) + '</small>' : "") + '</td>' +
-              '<td>' + (yes ? '<span class="rv-tag yes">참석</span>' : (r.attend === "no" ? '<span class="rv-tag no">불참</span>' : "—")) + '</td>' +
+          '<th>이름</th><th>참석 여부</th><th>뒤풀이</th><th>섹터 1·2·3순위</th><th>이름표 소속</th><th>사진</th><th>연사 질문</th><th>제출</th>' +
+          '</tr></thead><tbody>' + list.map(function (p) {
+            var r = p.reply, yes = p.status === "yes";
+            var badge = yes ? '<span class="rv-tag yes">참석</span>'
+                      : p.status === "no" ? '<span class="rv-tag no">불참</span>'
+                      : '<span class="rv-tag">미회신</span>';
+            return '<tr><td class="who">' + esc(p.name) +
+                (p.stray ? '<span class="rv-tag warn">명단에 없음</span>' : "") +
+                (p.kind ? '<small>' + esc(p.kind) + (!r && p.phone ? " · " + esc(p.phone) : "") + '</small>' : "") + '</td>' +
+              '<td>' + badge + '</td>' +
               '<td>' + (yes ? esc(afterYes(r.after) ? "참석" : (r.after ? "불참" : "—")) : "") + '</td>' +
               '<td>' + (yes ? (r.order.length ? r.order.slice(0, 3).map(function (t, i) { return (i + 1) + ". " + esc(sectorName(t)); }).join("<br>") : "미선택") : "") + '</td>' +
               '<td>' + (yes ? esc(r.org) : "") + '</td>' +
               '<td>' + (yes ? (r.photo ? "동의" : "미동의") : "") + '</td>' +
               '<td class="rv-q">' + (yes ? esc(r.question) : "") + '</td>' +
-              '<td>' + esc(fmt(r.at)) + (r.dup ? '<small>재제출 · 마지막 응답 기준</small>' : "") + '</td></tr>';
+              '<td>' + (r ? esc(fmt(r.at)) + (r.dup ? '<small>재제출 · 마지막 응답 기준</small>' : "") : "") + '</td></tr>';
           }).join("") + '</tbody></table></div>';
       }
 
@@ -321,8 +350,8 @@
           '<button type="button" class="rv-btn" data-act="csv-going">참석자 CSV</button>' +
           '<button type="button" class="rv-btn" data-act="csv-missing">미회신 CSV</button></div>' +
           tiles(d) +
-          '<div class="rv-grid">' + sectorCard(d) + missingCard(d) + '</div>' +
-          tableHtml(d);
+          '<div id="rvPeople">' + tableHtml(d) + '</div>' +
+          '<div class="rv-grid rv-after">' + sectorCard(d) + missingCard(d) + '</div>';
       }
 
       function download(name, header, rows) {
