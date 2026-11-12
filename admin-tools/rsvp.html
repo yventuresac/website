@@ -225,13 +225,26 @@
           if (byName[k]) { dupCount++; r.dup = true; }
           byName[k] = r;
         });
-        var replies = Object.keys(byName).map(function (k) { return byName[k]; })
-          .sort(function (x, y) { return new Date(y.at) - new Date(x.at); });
-
         var roster = rows.filter(function (a) { return ROSTER.indexOf(a.program) >= 0; }).map(parseRoster);
         var rosterKeys = {};
         roster.forEach(function (p) { rosterKeys[nameKey(p.name)] = p; });
-        replies.forEach(function (r) { r.inRoster = !!rosterKeys[nameKey(r.name)]; r.kind = r.inRoster ? rosterKeys[nameKey(r.name)].kind : ""; });
+
+        /* 이름이 정확히 안 맞으면, 한쪽 이름이 다른 쪽에 들어 있고(짧은 쪽 3글자 이상)
+           아직 회신이 없는 신청자가 딱 한 명일 때 같은 사람으로 본다.
+           예: 신청 "Aimer" ↔ 회신 "Koshmambetov Aimer" */
+        Object.keys(byName).forEach(function (k) {
+          if (rosterKeys[k]) return;
+          var cands = Object.keys(rosterKeys).filter(function (rk) {
+            if (byName[rk]) return false;
+            var s = rk.length < k.length ? rk : k, l = s === rk ? k : rk;
+            return s.length >= 3 && l.indexOf(s) >= 0;
+          });
+          if (cands.length === 1) { byName[cands[0]] = byName[k]; byName[k].matchedAs = rosterKeys[cands[0]].name; delete byName[k]; }
+        });
+
+        var replies = Object.keys(byName).map(function (k) { var r = byName[k]; r.key = k; return r; })
+          .sort(function (x, y) { return new Date(y.at) - new Date(x.at); });
+        replies.forEach(function (r) { r.inRoster = !!rosterKeys[r.key]; r.kind = r.inRoster ? rosterKeys[r.key].kind : ""; });
         var missing = roster.filter(function (p) { return !byName[nameKey(p.name)]; });
 
         /* 섹터별 1순위 / 1~3순위 (참석자만) */
@@ -331,7 +344,8 @@
                       : '<span class="rv-tag">미회신</span>';
             return '<tr><td class="who">' + esc(p.name) +
                 (p.stray ? '<span class="rv-tag warn">명단에 없음</span>' : "") +
-                (p.kind ? '<small>' + esc(p.kind) + (!r && p.phone ? " · " + esc(p.phone) : "") + '</small>' : "") + '</td>' +
+                (p.kind ? '<small>' + esc(p.kind) + (!r && p.phone ? " · " + esc(p.phone) : "") + '</small>' : "") +
+                (r && r.matchedAs ? '<small>회신 이름: ' + esc(r.name) + '</small>' : "") + '</td>' +
               '<td>' + badge + '</td>' +
               '<td>' + (yes ? esc(afterYes(r.after) ? "참석" : (r.after ? "불참" : "—")) : "") + '</td>' +
               '<td>' + (yes ? (r.order.length ? r.order.slice(0, 3).map(function (t, i) { return (i + 1) + ". " + esc(sectorName(t)); }).join("<br>") : "미선택") : "") + '</td>' +
